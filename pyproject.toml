@@ -1,0 +1,50 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[distutils]
+index-servers = ["pypi"]
+
+[pypi]
+repository = "https://upload.pypi.org/legacy/"
+username = "terminalkitten"
+
+[project]
+name = "django-insights"
+authors = [{ name = "DK", email = "dk@terminalkitten.com" }]
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["black", "ipython", "flit", "flake8", "pytest", "mypy", "isort", "wheel"]
+doc = ["pdoc3"]
+
+[project.scripts]
+insights = "django_insights.cli:cli"
+
+[project.urls]
+Home = "https://github.com/terminalkitten/django-insights"
+
+[tool.django-stubs]
+django_settings_module = "project.settings"
+
+[tool.black]
+line-length = 88
+skip-string-normalization = true
+target-version = ['py39', 'py310', 'py311']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = """\
+    --strict-config
+    --strict-markers
+    --ds=project.settings
+    """
+django_find_project = false

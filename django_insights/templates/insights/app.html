@@ -1,0 +1,155 @@
+{% extends "insights/base.html" %}
+{% load remove_substr %}
+{% block content %}
+    <div class="flex flex-wrap mb-4 -mx-2 p-2 mt-8">
+        {% for bucket, chart, values in timeseries %}
+            {% if chart %}
+                <div class="w-1/1 md:w-1/2 px-2">
+                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground dark:shadow-slate-700/[.7]">
+                        <div class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-foreground">
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ bucket.desc }}</p>
+                            </div>
+                        </div>
+                        <img class="w-full h-auto border-t-1 border-gray-200"
+                             src="data:image/png;base64,{{ chart }}"
+                             alt="{{ bucket.question }} "/>
+                        <!-- Table Section -->
+                        <!-- Accordion -->
+                        <div class="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-foreground dark:border-gray-700">
+                            <button type="button"
+                                    class="hs-collapse-toggle text-sm py-4 px-6 w-full flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200"
+                                    id="hs-basic-collapse-{{ bucket.label }}"
+                                    data-hs-collapse="#hs-as-table-collapse-{{ bucket.label }}">
+                                <svg class="hs-collapse-open:rotate-90 w-2.5 h-2.5"
+                                     width="16"
+                                     height="16"
+                                     viewBox="0 0 16 16"
+                                     fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.50598 2L10.1524 7.64645C10.3477 7.84171 10.3477 8.15829 10.1524 8.35355L4.50598 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Bekijk data
+                            </button>
+                            <div id="hs-as-table-collapse-{{ bucket.label }}"
+                                 class="hs-collapse hidden w-full overflow-hidden transition-[height] duration-300"
+                                 aria-labelledby="hs-basic-collapse-{{ bucket.label }}">
+                                <!-- Table -->
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-slate-900">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left">
+                                                <div class="flex items-center gap-x-2">
+                                                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200">Periode</span>
+                                                </div>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left">
+                                                <div class="flex items-center gap-x-2">
+                                                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200">Waarde</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for bucket_value in values %}
+                                            <tr class="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-800">
+                                                <td class="h-px w-px whitespace-nowrap">
+                                                    <div class="px-6 py-2">
+                                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.timestamp|date:bucket.xformat|remove_substr:"%" }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="h-px w-px whitespace-nowrap">
+                                                    <div class="px-6 py-2">
+                                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.xvalue }}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <!-- End Table Section -->
+                            </div>
+                        </div>
+                        <!-- End Accordion -->
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% for bucket, chart, values in scatterplots %}
+            {% if chart %}
+                <div class="w-1/1 md:w-1/2 px-2">
+                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:shadow-slate-700/[.7]">
+                        <div class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-gray-700">
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ bucket.desc }}</p>
+                            </div>
+                        </div>
+                        <img class="w-full h-auto border-t-1 border-gray-200"
+                             src="data:image/png;base64,{{ chart }}"
+                             alt="{{ bucket.question }} "/>
+                        <!-- Table Section -->
+                        <!-- Accordion -->
+                        <div class="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-slate-900 dark:border-gray-700">
+                            <button type="button"
+                                    class="hs-collapse-toggle text-sm py-4 px-6 w-full flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-200"
+                                    id="hs-basic-collapse-{{ bucket.label }}"
+                                    data-hs-collapse="#hs-as-table-collapse-{{ bucket.label }}">
+                                <svg class="hs-collapse-open:rotate-90 w-2.5 h-2.5"
+                                     width="16"
+                                     height="16"
+                                     viewBox="0 0 16 16"
+                                     fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.50598 2L10.1524 7.64645C10.3477 7.84171 10.3477 8.15829 10.1524 8.35355L4.50598 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Bekijk data
+                            </button>
+                            <div id="hs-as-table-collapse-{{ bucket.label }}"
+                                 class="hs-collapse hidden w-full overflow-hidden transition-[height] duration-300"
+                                 aria-labelledby="hs-basic-collapse-{{ bucket.label }}">
+                                <!-- Table -->
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-slate-900">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left">
+                                                <div class="flex items-center gap-x-2">
+                                                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200">Waarde #1</span>
+                                                </div>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-left">
+                                                <div class="flex items-center gap-x-2">
+                                                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-800 dark:text-gray-200">Waarde #2</span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for bucket_value in values %}
+                                            <tr class="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-800">
+                                                <td class="h-px w-px whitespace-nowrap">
+                                                    <div class="px-6 py-2">
+                                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.yvalue }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="h-px w-px whitespace-nowrap">
+                                                    <div class="px-6 py-2">
+                                                        <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.xvalue }}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <!-- End Table Section -->
+                            </div>
+                        </div>
+                        <!-- End Accordion -->
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <!-- End Grid Section -->
+{% endblock content %}
