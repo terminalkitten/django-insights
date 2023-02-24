@@ -1,3 +1,5 @@
+!["Django Insights"](docs/img/banner.png)
+
 ## Features
 
 Some of it’s stand out features are:
