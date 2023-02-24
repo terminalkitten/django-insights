@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 
 import matplotlib
@@ -11,7 +13,6 @@ import os
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
-import seaborn as sns
 from django.db.models.query import QuerySet
 from django.views.generic import DetailView, ListView, View
 from matplotlib.ticker import LinearLocator
@@ -19,11 +20,11 @@ from matplotlib.ticker import LinearLocator
 from django_insights.models import App, Counter, Gauge
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
+fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/montserrat.ttf")
 
 
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = 'Ubuntu'
+plt.rcParams['font.sans-serif'] = 'Montserrat'
 
 
 def to_base64img(fig) -> str:
