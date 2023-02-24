@@ -1,4 +1,5 @@
 django
 inflect
+tqdm
 pytest
 pytest-django
