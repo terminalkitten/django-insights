@@ -1,0 +1,14 @@
+site_name: Django Insights
+theme:
+  name: material
+  palette:
+    primary: black
+  font:
+    text: Poppins
+  icon:
+    logo: material/library-outline
+  features:
+    - navigation.footer
+  extra:
+    generator: false
+  copyright: Copyright &copy; 2023 terminalkitten
