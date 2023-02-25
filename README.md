@@ -1,4 +1,4 @@
-!["Django Insights"](docs/img/banner.png)
+!["Django Insights"](docs/assets/images/banner.png)
 
 ## Background
 

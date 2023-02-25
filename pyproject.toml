@@ -20,7 +20,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["black", "ipython", "flit", "flake8", "pytest", "mypy", "isort", "wheel"]
-doc = ["pdoc3"]
+doc = ["pdoc"]
 
 [project.scripts]
 insights = "django_insights.cli:cli"
