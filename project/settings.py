@@ -38,7 +38,7 @@ MIDDLEWARE_CLASSES = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
 
-AUTH_USER_MODEL = "project.testapp.TestAppUser"
+AUTH_USER_MODEL = "testapp.TestAppUser"
 
 ROOT_URLCONF = "project.urls"
 LANGUAGE_CODE = "en-us"
