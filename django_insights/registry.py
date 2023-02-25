@@ -22,8 +22,7 @@ class InsightRegistry:
     ):
         self.registered_insights.append((app, label, question, func))
 
-    # FIXME: rename to something more usefull, collect_insights
-    def execute_insights(self):
+    def collect_insights(self):
         progress_iterator = tqdm(self.registered_insights, desc='Collect insights')
 
         for app, name, question, metric in progress_iterator:

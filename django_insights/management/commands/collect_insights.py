@@ -15,4 +15,4 @@ class Command(BaseCommand):
         registry.autodiscover_insights()
 
         # Save metrics
-        metrics.save()
+        metrics.collect()

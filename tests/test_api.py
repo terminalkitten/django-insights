@@ -6,12 +6,12 @@ from django_insights.database import check_settings
 from django_insights.registry import registry
 from project.settings import DATABASES
 
-CLONED_DATABASES = DATABASES.copy()
-CLONED_DATABASES.pop('insights')
+COPY_DATABASES = DATABASES.copy()
+COPY_DATABASES.pop('insights')
 
 
 class ApiTests(TestCase):
-    @override_settings(DATABASES=CLONED_DATABASES)
+    @override_settings(DATABASES=COPY_DATABASES)
     def test_throw_error_no_insights_db_configured(self):
         with pytest.raises(ImproperlyConfigured):
             check_settings()

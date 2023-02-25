@@ -196,9 +196,8 @@ class InsightMetrics:
 
         return decorator
 
-    # FIXME: rename to something sane
-    def save(self):
-        registry.execute_insights()
+    def collect(self):
+        registry.collect_insights()
 
         Counter.objects.bulk_create(self.create_counters)
         Gauge.objects.bulk_create(self.create_gauges)
