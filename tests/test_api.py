@@ -33,4 +33,5 @@ class ApiTests(TestCase):
         assert AppUser.objects.count() == 0
 
     def test_has_counter_metric(self):
-        assert Counter.objects.count() == 1
+        counter = Counter.objects.first()
+        assert counter.value == 0
