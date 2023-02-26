@@ -9,6 +9,7 @@ theme:
     logo: material/library-outline
   features:
     - navigation.footer
-  extra:
-    generator: false
-  copyright: Copyright &copy; 2023 terminalkitten
+
+extra:
+  generator: false
+copyright: Copyright &copy; 2023 terminalkitten
