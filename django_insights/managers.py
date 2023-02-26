@@ -5,7 +5,7 @@ from django_insights.choices import BucketType
 
 class BucketQuerySet(models.QuerySet):
     def timeseries(self):
-        return self.filter(type=BucketType.TIME_SERIES)
+        return self.filter(type=BucketType.TIMESERIES)
 
     def histograms(self):
         return self.filter(type=BucketType.HISTOGRAM)

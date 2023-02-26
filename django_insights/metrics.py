@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import functools
-from datetime import datetime
-from typing import Any
 
 from django_insights.choices import BucketType
+from django_insights.metrics_types import (
+    CounterType,
+    GaugeType,
+    ScatterPlotType,
+    TimeSeriesType,
+)
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import registry
 
@@ -52,9 +56,13 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                value: int = func(*args, **kwargs)
+                counter_type: CounterType = func(*args, **kwargs)
                 counter = Counter(
-                    app=app, label=label, value=value, question=question, desc=desc
+                    app=app,
+                    label=label,
+                    value=counter_type.value,
+                    question=question,
+                    desc=desc,
                 )
                 self.create_counters.append(counter)
 
@@ -77,9 +85,13 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                value: float = func(*args, **kwargs)
+                gauge_type: GaugeType = func(*args, **kwargs)
                 gauge = Gauge(
-                    app=app, label=label, value=value, question=question, desc=desc
+                    app=app,
+                    label=label,
+                    value=gauge_type.value,
+                    question=question,
+                    desc=desc,
                 )
                 self.create_gauges.append(gauge)
 
@@ -111,7 +123,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                values: list[tuple[datetime, int]] = func(*args, **kwargs)
+                ts_type: TimeSeriesType = func(*args, **kwargs)
 
                 bucket = Bucket.objects.create(
                     app=app,
@@ -123,10 +135,10 @@ class InsightMetrics:
                     ylabel=ylabel,
                     yformat=yformat,
                     title=title,
-                    type=BucketType.TIME_SERIES,
+                    type=BucketType.TIMESERIES,
                 )
 
-                for timestamp, xvalue in values:
+                for timestamp, xvalue in ts_type.values:
                     bucket_value = BucketValue(
                         timestamp=timestamp, xvalue=xvalue, bucket=bucket
                     )
@@ -160,7 +172,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                values: list[tuple[Any, Any, Any, Any]] = func(*args, **kwargs)
+                scp_type: ScatterPlotType = func(*args, **kwargs)
 
                 bucket = Bucket.objects.create(
                     app=app,
@@ -175,12 +187,12 @@ class InsightMetrics:
                     type=BucketType.SCATTERPLOT,
                 )
 
-                for timestamp, xvalue, yvalue, zvalue in values:
+                for timestamp, xvalue, yvalue, category in scp_type.values:
                     bucket_value = BucketValue(
-                        timestamp=timestamp,
                         xvalue=xvalue,
                         yvalue=yvalue,
-                        zvalue=zvalue,
+                        category=category,
+                        timestamp=timestamp,
                         bucket=bucket,
                     )
                     self.create_bucket_values.append(bucket_value)

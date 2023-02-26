@@ -1,9 +1,9 @@
 class BucketType:
-    TIME_SERIES = 1
+    TIMESERIES = 1
     HISTOGRAM = 2
     SCATTERPLOT = 3
     BUCKET_TYPES = (
-        (TIME_SERIES, 'timeseries'),
+        (TIMESERIES, 'timeseries'),
         (HISTOGRAM, 'histogram'),
         (SCATTERPLOT, 'scatterplot'),
     )

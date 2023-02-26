@@ -112,7 +112,7 @@ class Bucket(MetricModel):
     app = models.ForeignKey(App, related_name='buckets', on_delete=models.CASCADE)
 
     type = models.IntegerField(
-        choices=BucketType.BUCKET_TYPES, default=BucketType.TIME_SERIES
+        choices=BucketType.BUCKET_TYPES, default=BucketType.TIMESERIES
     )
 
     # Bucket specific plot options
@@ -126,7 +126,7 @@ class Bucket(MetricModel):
 
     @property
     def is_timeseries(self) -> bool:
-        return self.type == BucketType.TIME_SERIES
+        return self.type == BucketType.TIMESERIES
 
     @property
     def is_histogram(self) -> bool:
@@ -153,8 +153,8 @@ class Bucket(MetricModel):
 
 class BucketValue(models.Model):
     """
-    Simple bucket value map, used for time-series, histogram and scatterpltos,
-    timestamp, label and app are unique together
+    Bucket values matrix: used for time-series, histogram and scatterpltos.
+    Combination of timestamp, label and app are unique.
     """
 
     # Timestamp for timeseries
