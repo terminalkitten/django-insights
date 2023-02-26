@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-
-import matplotlib
-
-matplotlib.use('Agg')
-
 import base64
 import io
 import os
+from typing import Any
 
+import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
@@ -19,6 +15,7 @@ from matplotlib.ticker import LinearLocator
 
 from django_insights.models import App, Counter, Gauge
 
+matplotlib.use('Agg')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/montserrat.ttf")
 
