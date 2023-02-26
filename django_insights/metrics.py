@@ -56,7 +56,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                counter_type: CounterType = func(*args, **kwargs)
+                counter_type: CounterType(value=func(*args, **kwargs))
                 counter = Counter(
                     app=app,
                     label=label,
@@ -85,7 +85,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                gauge_type: GaugeType = func(*args, **kwargs)
+                gauge_type: GaugeType(value=func(*args, **kwargs))
                 gauge = Gauge(
                     app=app,
                     label=label,
@@ -123,7 +123,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                ts_type: TimeSeriesType = func(*args, **kwargs)
+                ts_type: TimeSeriesType(values=func(*args, **kwargs))
 
                 bucket = Bucket.objects.create(
                     app=app,
@@ -172,7 +172,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                scp_type: ScatterPlotType = func(*args, **kwargs)
+                scp_type: ScatterPlotType(values=func(*args, **kwargs))
 
                 bucket = Bucket.objects.create(
                     app=app,
