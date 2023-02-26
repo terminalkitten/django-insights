@@ -27,7 +27,7 @@ project
 In these insights files your write out any metric you would like to track. Eacht metric starts with a question and some values to store. Below is a example of the `@metrics.counter` function:
 
 ```python
-# insights.py
+# project/testapp/insights.py
 from django_insights.metrics import metrics
 from project.testapp.models import Author
 
