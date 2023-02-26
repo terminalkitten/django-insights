@@ -42,6 +42,7 @@ line_length = 88
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+filterwarnings = ["error", "ignore::UserWarning"]
 addopts = """\
     --strict-config
     --strict-markers
