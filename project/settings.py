@@ -16,6 +16,8 @@ DATABASES = {
     "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
 }
 
+DATABASE_ROUTERS = ['django_insights.database.Router']
+
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
 }
@@ -38,7 +40,7 @@ MIDDLEWARE_CLASSES = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
 
-AUTH_USER_MODEL = "testapp.TestAppUser"
+AUTH_USER_MODEL = "testapp.AppUser"
 
 ROOT_URLCONF = "project.urls"
 LANGUAGE_CODE = "en-us"
