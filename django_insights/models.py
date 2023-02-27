@@ -1,28 +1,11 @@
 import uuid
 
-import django
-import inflect
 from django.db import models
 from django.utils import timezone
-
-if django.VERSION < (4, 0):
-    from django.utils.translation import ugettext_lazy as _
-else:
-    from django.utils.translation import gettext_lazy as _
-
-from django.utils.translation import trans_real
 
 from django_insights.choices import BucketType
 from django_insights.database import database_entry
 from django_insights.managers import BucketManager
-
-# FIXME: rename to something sane!
-p = inflect.engine()
-
-
-def custom_gettext(msg):
-    # Should be a better method?
-    return trans_real._default._catalog.get(msg)  # noqa
 
 
 class App(models.Model):
@@ -30,21 +13,6 @@ class App(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     name = models.CharField(max_length=254, db_index=True, unique=True)
-
-    def translated_name(self) -> str:
-        # FIXME: this sucks bigtome
-        names = self.name.split(".")
-        names.pop()
-        name = names.pop()
-
-        if custom_gettext(name) is None:
-            print("name", p.singular_noun(name))
-            if p.singular_noun(name):
-                return _(f"{p.singular_noun(name)}").title()
-            else:
-                return name.title()
-
-        return _(f"{name}").title()
 
 
 class ExecutionDelta(models.Model):

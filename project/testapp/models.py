@@ -14,10 +14,16 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Author(models.Model):
+    created = models.DateTimeField('created', editable=False, auto_now_add=True)
+    modified = models.DateTimeField('modified', auto_now=True)
+
     name = models.CharField(max_length=32, unique=True)
     age = models.IntegerField()
 
 
 class Book(models.Model):
+    created = models.DateTimeField('created', editable=False, auto_now_add=True)
+    modified = models.DateTimeField('modified', auto_now=True)
+
     title = models.CharField(max_length=128)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, related_name='books', on_delete=models.CASCADE)
