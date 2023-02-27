@@ -5,7 +5,7 @@ from django.test import TestCase, override_settings
 from django_insights.database import check_settings
 from django_insights.models import Counter
 from django_insights.registry import registry
-from project.settings import DATABASES
+from project.settings.test import DATABASES
 from project.testapp.models import AppUser
 from tests.utils import collect_insights
 
