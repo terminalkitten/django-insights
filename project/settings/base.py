@@ -12,8 +12,8 @@ TEMPLATE_DEBUG = DEBUG
 SECRET_KEY = "NOTASECRET"
 
 DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
-    "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"},
+    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/testapp.db"},
+    "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/insights.db"},
 }
 
 DATABASE_ROUTERS = ['django_insights.database.Router']

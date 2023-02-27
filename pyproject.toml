@@ -46,6 +46,6 @@ filterwarnings = ["error", "ignore::UserWarning"]
 addopts = """\
     --strict-config
     --strict-markers
-    --ds=project.settings
+    --ds=project.settings.test
     """
 django_find_project = false
