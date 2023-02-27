@@ -11,6 +11,7 @@ TEMPLATE_DEBUG = DEBUG
 
 SECRET_KEY = "NOTASECRET"
 
+
 DATABASES = {
     "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/testapp.db"},
     "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/insights.db"},
@@ -27,6 +28,7 @@ ALLOWED_HOSTS: list[str] = []
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.staticfiles",
     "project.testapp",
     "django_insights",
 ]
@@ -39,6 +41,14 @@ MIDDLEWARE_CLASSES = (
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 )
+
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
 
 AUTH_USER_MODEL = "testapp.AppUser"
 
