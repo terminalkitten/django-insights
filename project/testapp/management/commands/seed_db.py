@@ -15,14 +15,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.HTTP_INFO('[TestApp] - Database seed'))
 
+        Author.objects.all().delete()
+        Book.objects.all().delete()
+
         authors = []
         books = []
 
-        names = [fake.name() for i in range(100)]
+        names = [fake.unique.name() for i in range(2000)]
+        titles = [fake.sentence(nb_words=randrange(30)) for i in range(245)]
 
         for name in names:
             authors.append(Author(name=name, age=randrange(80)))
-            books.append(Book(author=choice(authors), title=fake.sentence(nb_words=10)))
+
+        for title in titles:
+            books.append(Book(author=choice(authors), title=title))
 
         Author.objects.bulk_create(authors)
         Book.objects.bulk_create(books)

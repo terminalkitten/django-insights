@@ -1,4 +1,4 @@
-PHONY: rs migrate dump shell seed collect_insights compilereqtxt clean
+.PHONY: rs migrate dump shell seed collect_insights compilereqtxt clean
 
 rs:
 	python manage.py runserver
