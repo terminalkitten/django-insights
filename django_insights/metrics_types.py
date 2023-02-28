@@ -15,9 +15,9 @@ class GaugeType:
     value: float
 
 
-TimeSeriesAnswer = NamedTuple(
-    "TimeSeriesAnswer", [('timestamp', datetime.datetime), ('xvalue', float)]
-)
+class TimeSeriesAnswer(NamedTuple):
+    timestamp: datetime.datetime
+    xvalue: float
 
 
 @dataclass
@@ -25,15 +25,11 @@ class TimeSeriesType:
     values: list[TimeSeriesAnswer]
 
 
-ScatterPlotAnswer = NamedTuple(
-    "ScatterPlotAnswer",
-    [
-        ('timestamp', Optional[datetime.datetime]),
-        ('xvalue', float),
-        ('yvalue', float),
-        ('category', Optional[str]),
-    ],
-)
+class ScatterPlotAnswer(NamedTuple):
+    timestamp: Optional[datetime.datetime]
+    xvalue: float
+    yvalue: float
+    category: Optional[str]
 
 
 @dataclass

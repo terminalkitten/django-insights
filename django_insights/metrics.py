@@ -6,7 +6,9 @@ from django_insights.choices import BucketType
 from django_insights.metrics_types import (
     CounterType,
     GaugeType,
+    ScatterPlotAnswer,
     ScatterPlotType,
+    TimeSeriesAnswer,
     TimeSeriesType,
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
@@ -123,7 +125,10 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                ts_type = TimeSeriesType(values=func(*args, **kwargs))
+                results = func(*args, **kwargs)
+                ts_type = TimeSeriesType(
+                    values=[TimeSeriesAnswer(*result) for result in results]
+                )
 
                 bucket = Bucket.objects.create(
                     app=app,
@@ -138,9 +143,9 @@ class InsightMetrics:
                     type=BucketType.TIMESERIES,
                 )
 
-                for timestamp, xvalue in ts_type.values:
+                for row in ts_type.values:
                     bucket_value = BucketValue(
-                        timestamp=timestamp, xvalue=xvalue, bucket=bucket
+                        timestamp=row.timestamp, xvalue=row.xvalue, bucket=bucket
                     )
                     self.create_bucket_values.append(bucket_value)
 
@@ -172,7 +177,10 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args, **kwargs):
-                scp_type = ScatterPlotType(values=func(*args, **kwargs))
+                results = func(*args, **kwargs)
+                scp_type = ScatterPlotType(
+                    values=[ScatterPlotAnswer(*result) for result in results]
+                )
 
                 bucket = Bucket.objects.create(
                     app=app,
