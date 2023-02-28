@@ -6,6 +6,7 @@ from django.utils import timezone
 from django_insights.choices import BucketType
 from django_insights.database import database_entry
 from django_insights.managers import BucketManager
+from django_insights.settings import settings
 
 
 class App(models.Model):
@@ -13,6 +14,10 @@ class App(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     name = models.CharField(max_length=254, db_index=True, unique=True)
+
+    @property
+    def custom_name(self) -> str:
+        return settings.INSIGHTS_MENU.get(self.name, self.name)
 
 
 class ExecutionDelta(models.Model):

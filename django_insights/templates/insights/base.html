@@ -22,7 +22,7 @@
                 <div class="flex items-center justify-between">
                     {% url 'insights:insight_dashboard' as dashboard_url %}
                     <a class="flex-none" href="{{ dashboard_url }}">
-                        <span class="text-xl font-semibold dark:text-white">MyApp</span>
+                        <span class="text-xl font-semibold dark:text-white">{{app_name}}</span>
                         <span class="inline-block align-top dark:text-white">Insights</span>
                     </a>
                     <div class="sm:hidden">
@@ -56,7 +56,7 @@
                         {% for app in apps %}
                             {% url 'insights:insight_app' app_uuid=app.uuid as app_url %}
                             <a class="font-medium text-gray-600 hover:text-gray-400 dark:text-background dark:hover:text-gray-500"
-                               href="{{ app_url }}">{{ app.name }}</a>
+                               href="{{ app_url }}">{{ app.custom_name }}</a>
                         {% endfor %}
                     </div>
                 </div>
