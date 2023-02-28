@@ -138,9 +138,9 @@ class InsightMetrics:
                     type=BucketType.TIMESERIES,
                 )
 
-                for row in ts_type.values:
+                for timestamp, xvalue in ts_type.values:
                     bucket_value = BucketValue(
-                        timestamp=row.timestamp, xvalue=row.xvalue, bucket=bucket
+                        timestamp=timestamp, xvalue=xvalue, bucket=bucket
                     )
                     self.create_bucket_values.append(bucket_value)
 

@@ -7,7 +7,7 @@ migrate:
 	python manage.py migrate
 	python manage.py migrate insights --database=insights
 
-dump:
+dumpdata:
 	python manage.py dumpdata testapp.Author > project/testapp/fixtures/authors.json
 
 shell:
