@@ -77,3 +77,11 @@ TEMPLATES = [
 ]
 
 USE_TZ = True
+
+# Django Insights settings
+
+# Custom app name
+INSIGHTS_APP_NAME = "MyCustomAppName"
+
+# Menu translation
+INSIGHTS_MENU = {'project.testapp.insights': 'TestApp'}

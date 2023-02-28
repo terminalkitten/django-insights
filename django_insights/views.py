@@ -14,14 +14,15 @@ from django.views.generic import DetailView, ListView, View
 from matplotlib.ticker import LinearLocator
 
 from django_insights.models import App, Counter, Gauge
+from django_insights.settings import settings
 
 matplotlib.use('Agg')
 dir_path = os.path.dirname(os.path.realpath(__file__))
-fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/montserrat.ttf")
+fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
 
 
 plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = 'Montserrat'
+plt.rcParams['font.sans-serif'] = 'Ubuntu'
 
 
 def to_base64img(fig) -> str:
@@ -70,7 +71,7 @@ def render_timeseries(xaxis, yaxis, bucket) -> str:
     return to_base64img(fig)
 
 
-class InsightAppMenuMixin(View):
+class InsightAppMixin(View):
     apps: list[App] = []
 
     def get_apps(self) -> QuerySet[App]:
@@ -80,11 +81,13 @@ class InsightAppMenuMixin(View):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context.update({'apps': self.get_apps()})
+        context.update(
+            {'app_name': settings.INSIGHTS_APP_NAME, 'apps': self.get_apps()}
+        )
         return context
 
 
-class InsightsAppView(InsightAppMenuMixin, DetailView):
+class InsightsAppView(InsightAppMixin, DetailView):
     model = App
     slug_field = 'uuid'
     slug_url_kwarg = 'app_uuid'
@@ -128,7 +131,7 @@ class InsightsAppView(InsightAppMenuMixin, DetailView):
         return context
 
 
-class InsightsDashboardView(InsightAppMenuMixin, ListView):
+class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
     def get_queryset(self) -> list[Any]:
