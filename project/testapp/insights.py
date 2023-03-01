@@ -46,7 +46,7 @@ def avg_books_per_author() -> int:
         .get('total_books__avg')
     )
 
-    return round(avg_total_books, 2)
+    return avg_total_books
 
 
 @metrics.timeseries(
