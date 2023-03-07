@@ -1,12 +1,13 @@
 {% load static %}
+{% url 'insights:insight_dashboard' as dashboard_url %}
 <!doctype html>
-<html lang="en" class="">
-    <title>MyApp - Insights</title>
+<html id="html-root" lang="en" class="">
+    <title>{{ app_name }} - Insights</title>
     <head>
         <meta charset="UTF-8" />
         <meta lang="en" />
-        <meta keywords="myapp, insights" />
-        <meta description="MyApp - Insights" />
+        <meta keywords="{{ app_name }}, insights" />
+        <meta description="{{ app_name }} - Insights" />
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="preconnect" href="https://fonts.bunny.net" />
@@ -14,31 +15,62 @@
               rel="stylesheet"/>
         <link rel="stylesheet" href="{% static 'insights/css/insights.css' %}" />
         <script src="{% static 'insights/js/preline.js' %}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function toggleDarkMode() {
+                    const element = document.getElementById('html-root')
+                    if (element.classList.contains('dark')) {
+                    element.classList.remove('dark')
+                    } else {
+                    element.classList.add('dark')
+                    }
+                }
+                
+                const button = document.querySelector("button");
+
+                button.addEventListener("click", (event) => {
+                    toggleDarkMode()
+                });
+            });
+        </script>
     </head>
     <body class="bg-background text-foreground dark:bg-foreground dark:text-background">
-        <header class="flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full bg-white text-sm py-4 dark:bg-foreground  border-b border-gray-300 dark:border-foreground">
+        <header class="z-50 flex flex-wrap w-full py-2 text-sm sm:justify-start sm:flex-nowrap">
+            <nav class="max-w-[85rem] w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between">
+                <button class="p-2 rounded-sm hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="1.5"
+                         stroke="currentColor"
+                         class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                </button>
+            </nav>
+        </header>
+        <header class="z-50 flex flex-wrap w-full py-4 text-sm sm:justify-start sm:flex-nowrap">
             <nav class="max-w-[85rem] w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between"
                  aria-label="Home">
                 <div class="flex items-center justify-between">
-                    {% url 'insights:insight_dashboard' as dashboard_url %}
                     <a class="flex-none" href="{{ dashboard_url }}">
-                        <span class="text-xl font-semibold dark:text-white">{{app_name}}</span>
+                        <span class="text-xl font-semibold text-primary-500">{{ app_name }}</span>
                         <span class="inline-block align-top dark:text-white">Insights</span>
                     </a>
                     <div class="sm:hidden">
                         <button type="button"
-                                class="hs-collapse-toggle p-2 inline-flex justify-center items-center gap-2 rounded-md border font-medium bg-white text-gray-700 shadow-sm align-middle hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-600 transition-all text-sm dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-gray-700 dark:text-gray-400 dark:hover:text-white dark:focus:ring-offset-gray-800"
+                                class="inline-flex items-center justify-center gap-2 p-2 text-sm font-medium text-gray-700 align-middle transition-all bg-white border rounded-md shadow-sm hs-collapse-toggle hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-blue-600"
                                 data-hs-collapse="#navbar-collapse-with-animation"
                                 aria-controls="navbar-collapse-with-animation"
                                 aria-label="Toggle navigation">
-                            <svg class="hs-collapse-open:hidden w-4 h-4"
+                            <svg class="w-4 h-4 hs-collapse-open:hidden"
                                  width="16"
                                  height="16"
                                  fill="currentColor"
                                  viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
                             </svg>
-                            <svg class="hs-collapse-open:block hidden w-4 h-4"
+                            <svg class="hidden w-4 h-4 hs-collapse-open:block"
                                  width="16"
                                  height="16"
                                  fill="currentColor"
@@ -49,8 +81,8 @@
                     </div>
                 </div>
                 <div id="navbar-collapse-with-animation"
-                     class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow sm:block">
-                    <div class="flex flex-col gap-5 mt-5 sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:pl-5">
+                     class="hidden overflow-hidden transition-all duration-300 hs-collapse basis-full grow sm:block">
+                    <div class="flex flex-col gap-5 mt-5 shrink sm:flex-row sm:items-center sm:justify-end sm:mt-0 sm:pl-5">
                         <a class="font-medium text-gray-600 hover:text-gray-400 dark:text-background dark:hover:text-gray-500"
                            href="{{ dashboard_url }}">Dashboard</a>
                         {% for app in apps %}
@@ -62,7 +94,7 @@
                 </div>
             </nav>
         </header>
-        <div class="container mx-auto">
+        <div>
             {% block content %}
             {% endblock content %}
         </div>
