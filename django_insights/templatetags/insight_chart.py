@@ -8,8 +8,8 @@ register = template.Library()
 
 
 @register.simple_tag
-def timeseries_chart(bucket: Bucket):
-    img = timeseries(bucket=bucket)
+def timeseries_chart(bucket: Bucket, theme: str = "light"):
+    img = timeseries(bucket=bucket, theme=theme)
 
     return mark_safe(
         f"""
@@ -23,8 +23,8 @@ def timeseries_chart(bucket: Bucket):
 
 
 @register.simple_tag
-def scatterplot_chart(bucket: Bucket):
-    img = scatterplot(bucket=bucket)
+def scatterplot_chart(bucket: Bucket, theme: str = "light"):
+    img = scatterplot(bucket=bucket, theme=theme)
 
     return mark_safe(
         f"""

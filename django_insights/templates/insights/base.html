@@ -16,27 +16,55 @@
         <link rel="stylesheet" href="{% static 'insights/css/insights.css' %}" />
         <script src="{% static 'insights/js/preline.js' %}"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                function toggleDarkMode() {
-                    const element = document.getElementById('html-root')
-                    if (element.classList.contains('dark')) {
-                    element.classList.remove('dark')
-                    } else {
-                    element.classList.add('dark')
-                    }
-                }
-                
-                const button = document.querySelector("button");
+            function setCookie(theme) {
+                document.cookie = `theme=${theme}; path=/; max-age=${60 * 60 * 24 * 14};`;
+            }
 
+            function getCookie (name) {
+                let value = `; ${document.cookie}`;
+                let parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+
+            function darkMode(theme) {
+                const element = document.getElementById('html-root')
+                if(theme == 'light') {
+                    element.classList.remove('dark')
+                } else {
+                    element.classList.add('dark')
+                }
+            }
+            
+            function toggleDarkMode() {
+                const element = document.getElementById('html-root')
+                if (element.classList.contains('dark')) {
+                    element.classList.remove('dark');
+                    return "light"
+                } else {
+                    element.classList.add('dark')
+                    return "dark"
+                }
+            }
+
+            const theme = getCookie('theme')
+            darkMode(theme);
+            
+            document.addEventListener('DOMContentLoaded', function() {
+
+
+                const button = document.querySelector("button");
+                
                 button.addEventListener("click", (event) => {
-                    toggleDarkMode()
+                    const theme = toggleDarkMode()
+                    setCookie(theme)
+                    window.location.reload()
                 });
             });
         </script>
     </head>
     <body class="bg-background text-foreground dark:bg-foreground dark:text-background">
         <header class="z-50 flex flex-wrap w-full py-2 text-sm sm:justify-start sm:flex-nowrap">
-            <nav class="max-w-[85rem] w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between">
+            <nav class="w-full px-4 mx-auto sm:flex sm:items-center sm:justify-between">
                 <button class="p-2 rounded-sm hover:bg-gray-100">
                     <svg xmlns="http://www.w3.org/2000/svg"
                          fill="none"

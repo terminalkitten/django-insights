@@ -54,8 +54,6 @@ themes = Theme(
     ),
 )
 
-theme = themes.dark
-
 
 def to_base64img(fig) -> str:
     flike = io.BytesIO()
@@ -63,7 +61,7 @@ def to_base64img(fig) -> str:
     return base64.b64encode(flike.getvalue()).decode()
 
 
-def prepare_plot(bucket):
+def prepare_plot(bucket, theme):
     fig, ax = plt.subplots(figsize=(8, 4))
     fig.set_facecolor(theme.face)
     ax.tick_params(axis='x', colors=theme.tick)
@@ -86,14 +84,18 @@ def prepare_plot(bucket):
     return fig, ax
 
 
-def render_scatterplot(xaxis, yaxis, bucket) -> str:
-    fig, ax = prepare_plot(bucket)
+def render_scatterplot(xaxis, yaxis, bucket, theme) -> str:
+    theme = getattr(themes, theme)
+
+    fig, ax = prepare_plot(bucket, theme)
     ax.scatter(xaxis, yaxis, color=theme.primary)
     return to_base64img(fig)
 
 
-def render_timeseries(xaxis, yaxis, bucket) -> str:
-    fig, ax = prepare_plot(bucket)
+def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
+    theme = getattr(themes, theme)
+
+    fig, ax = prepare_plot(bucket, theme)
     ax.plot(xaxis, yaxis, '--bo', markersize=5, color=theme.primary)
 
     # Date formatting
@@ -104,22 +106,18 @@ def render_timeseries(xaxis, yaxis, bucket) -> str:
     return to_base64img(fig)
 
 
-def scatterplot(
-    bucket: Bucket,
-) -> str:
+def scatterplot(bucket: Bucket, theme: str) -> str:
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
 
-    return render_scatterplot(yvalues, xvalues, bucket)
+    return render_scatterplot(yvalues, xvalues, bucket, theme)
 
 
-def timeseries(
-    bucket: Bucket,
-) -> str:
+def timeseries(bucket: Bucket, theme: str) -> str:
     values = bucket.values.all()
 
     yvalues = [bucket_value.timestamp for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
 
-    return render_timeseries(yvalues, xvalues, bucket)
+    return render_timeseries(yvalues, xvalues, bucket, theme)

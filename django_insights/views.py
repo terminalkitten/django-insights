@@ -31,6 +31,11 @@ class InsightsAppView(InsightAppMixin, DetailView):
     slug_url_kwarg = 'app_uuid'
     template_name = "insights/app.html"
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context.update({'theme': self.request.COOKIES.get('theme')})
+        return context
+
 
 class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
