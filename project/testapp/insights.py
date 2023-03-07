@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from django.db.models import Avg, Count
 from django.db.models.functions import TruncMonth, TruncYear
@@ -83,3 +84,19 @@ def num_of_books_per_year() -> list[tuple[datetime, int]]:
         .values_list('year', 'total')
         .order_by('year')
     )
+
+
+@metrics.scatterplot(
+    question="Num of books by age of author?",
+    xlabel="Age",
+    ylabel="Num of books",
+)
+def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
+    vals = (
+        Author.objects.all()
+        .annotate(num_of_books=Count('books'))
+        .values('num_of_books', 'age', 'pk')
+        .values_list('num_of_books', 'age', 'pk')
+    )
+
+    return vals

@@ -200,7 +200,6 @@ class InsightMetrics:
                         xvalue=row.xvalue,
                         yvalue=row.yvalue,
                         category=row.category,
-                        timestamp=row.timestamp,
                         bucket=bucket,
                     )
                     self.create_bucket_values.append(bucket_value)

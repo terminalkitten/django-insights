@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
-from typing import NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
 
 @dataclass
@@ -26,10 +26,9 @@ class TimeSeriesType:
 
 
 class ScatterPlotAnswer(NamedTuple):
-    timestamp: Optional[datetime.datetime]
     xvalue: float
     yvalue: float
-    category: Optional[str]
+    category: Optional[Any]
 
 
 @dataclass
