@@ -47,10 +47,10 @@ themes = Theme(
     ),
     dark=ThemeColor(
         primary="#3B82F6",
-        face="#000000",
+        face="#0d1117",
         tick="#FEFEFE",
         grid="#FEFEFE",
-        edge="#000000",
+        edge="#0d1117",
     ),
 )
 
@@ -70,6 +70,8 @@ def prepare_plot(bucket, theme):
     ax.set_title(bucket.title)
     ax.set_ylabel(bucket.ylabel)
     ax.set_xlabel(bucket.xlabel)
+    ax.yaxis.label.set_color(theme.tick)
+    ax.xaxis.label.set_color(theme.tick)
     ax.grid(
         linestyle="dotted",
         linewidth=0.3,

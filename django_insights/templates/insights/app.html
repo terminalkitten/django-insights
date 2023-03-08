@@ -5,7 +5,7 @@
         {% for bucket in app.buckets.timeseries %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground dark:shadow-slate-700/[.7]">
+                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 border-b border-gray-200 md:flex md:justify-between md:items-center dark:border-foreground">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
@@ -15,7 +15,7 @@
                         {% timeseries_chart bucket theme=theme %}
                         <!-- Table Section -->
                         <!-- Accordion -->
-                        <div class="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-foreground dark:border-gray-700">
+                        <div class="dark:hover:bg-foreground">
                             <button type="button"
                                     class="flex items-center w-full gap-2 px-6 py-4 text-sm font-semibold text-gray-800 hs-collapse-toggle dark:text-gray-200"
                                     id="hs-basic-collapse-{{ bucket.label }}"
@@ -34,8 +34,8 @@
                                  class="hs-collapse hidden w-full overflow-hidden transition-[height] duration-300"
                                  aria-labelledby="hs-basic-collapse-{{ bucket.label }}">
                                 <!-- Table -->
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead class="bg-gray-50 dark:bg-slate-900">
+                                <table class="min-w-full">
+                                    <thead class="bg-gray-50">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
                                                 <div class="flex items-center gap-x-2">
@@ -49,9 +49,9 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody>
                                         {% for bucket_value in bucket.values.all %}
-                                            <tr class="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-800">
+                                            <tr class="border-0">
                                                 <td class="w-px h-px whitespace-nowrap">
                                                     <div class="px-6 py-2">
                                                         <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.timestamp|date:bucket.xformat|remove_substr:"%" }}</span>
@@ -77,7 +77,7 @@
         {% for bucket in app.buckets.scatterplots %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700 dark:shadow-slate-700/[.7]">
+                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 border-b border-gray-200 md:flex md:justify-between md:items-center dark:border-gray-700">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
