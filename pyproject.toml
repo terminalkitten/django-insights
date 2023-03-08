@@ -16,10 +16,21 @@ readme = "README.md"
 license = { file = "LICENSE" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-dependencies = []
+dependencies = ["django", "matplotlib", "tqdm"]
 
 [project.optional-dependencies]
-dev = ["black", "ipython", "flit", "flake8", "pytest", "mypy", "isort", "wheel"]
+dev = [
+    "black",
+    "ipython",
+    "flit",
+    "flake8",
+    "pytest",
+    "pytest-django",
+    "mypy",
+    "isort",
+    "wheel",
+    "faker"
+]
 doc = ["pdoc"]
 
 [project.scripts]

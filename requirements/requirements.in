@@ -2,4 +2,5 @@ django
 matplotlib
 pytest
 pytest-django
+faker
 tqdm
