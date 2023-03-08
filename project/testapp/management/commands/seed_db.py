@@ -20,7 +20,6 @@ class Command(BaseCommand):
         Book.objects.all().delete()
 
         authors = []
-        books = []
 
         names = [fake.unique.name() for i in range(2000)]
         titles = [fake.sentence(nb_words=randrange(30)) for i in range(5000)]
@@ -31,7 +30,11 @@ class Command(BaseCommand):
                 datetime_end='now',
                 tzinfo=timezone.get_current_timezone(),
             )
-            authors.append(Author(created=author_created, name=name, age=randrange(80)))
+            authors.append(
+                Author.objects.create(
+                    created=author_created, name=name, age=randrange(80)
+                )
+            )
 
         for title in titles:
             book_created = fake.date_time_between_dates(
@@ -39,9 +42,7 @@ class Command(BaseCommand):
                 datetime_end='now',
                 tzinfo=timezone.get_current_timezone(),
             )
-            books.append(
-                Book(created=book_created, author=choice(authors), title=title)
-            )
 
-        Author.objects.bulk_create(authors)
-        Book.objects.bulk_create(books)
+            Book.objects.create(
+                created=book_created, author=choice(authors), title=title
+            )
