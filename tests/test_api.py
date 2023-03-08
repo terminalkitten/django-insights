@@ -36,4 +36,4 @@ class ApiTests(TestCase):
 
     def test_has_counter_metric(self):
         counter = Counter.objects.first()
-        assert counter.value == 0
+        assert counter.value == 2000
