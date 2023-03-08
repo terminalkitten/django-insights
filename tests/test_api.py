@@ -1,4 +1,5 @@
 import pytest
+from django.core import management
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 
@@ -19,6 +20,7 @@ class ApiTests(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
+        management.call_command('seed_db')
         collect_insights()
 
     @override_settings(DATABASES=COPY_DATABASES)
