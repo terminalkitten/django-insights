@@ -34,6 +34,6 @@ class ApiTests(TestCase):
     def test_no_app_users_found(self):
         assert AppUser.objects.count() == 0
 
-    def test_has_counter_metric(self):
-        counter = Counter.objects.first()
+    def test_count_authors(self):
+        counter = Counter.objects.get(label="count_authors")
         assert counter.value == 2000
