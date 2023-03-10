@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from django.db.models import Avg, Count
-from django.db.models.functions import TruncMonth, TruncYear
+from django.db.models import Avg, Count, Value
+from django.db.models.functions import Length, TruncMonth, TruncYear
 
 from django_insights.metrics import metrics
 from project.testapp.models import Author, Book
@@ -18,6 +18,24 @@ def count_authors() -> int:
 @metrics.counter(question="How many books are there?")
 def count_books() -> int:
     return Book.objects.count()
+
+
+@metrics.counter(question="Books with title longer than 20 chars?")
+def count_books_title_gt_20() -> int:
+    return (
+        Book.objects.annotate(title_len=Length('title'))
+        .filter(title_len__gt=20)
+        .count()
+    )
+
+
+@metrics.counter(question="Books with title less than 10 chars?")
+def count_books_title_lt_10() -> int:
+    return (
+        Book.objects.annotate(title_len=Length('title'))
+        .filter(title_len__lt=10)
+        .count()
+    )
 
 
 @metrics.counter(question="Authors with two or more books?")
@@ -37,6 +55,13 @@ def count_authors_without_books() -> int:
         .annotate(total_books=Count('books'))
         .filter(total_books=0)
         .count()
+    )
+
+
+@metrics.counter(question="Authors with name longer than 20 chars?")
+def count_authors_name_gt_20() -> int:
+    return (
+        Author.objects.annotate(name_len=Length('name')).filter(name_len__gt=20).count()
     )
 
 
@@ -94,11 +119,21 @@ def num_of_books_per_year() -> list[tuple[datetime, int]]:
     ylabel="Num of books",
 )
 def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
-    vals = (
-        Author.objects.all()
-        .annotate(num_of_books=Count('books'))
-        .values('num_of_books', 'age', 'pk')
-        .values_list('num_of_books', 'age', 'pk')
+    return (
+        Author.objects.values('age')
+        .annotate(num_of_books=Count('books'), category=Value("author"))
+        .values_list('num_of_books', 'age', 'category')
     )
 
-    return vals
+
+@metrics.barchart(
+    question="Num of books by gender of author?",
+    xlabel="Gender",
+    ylabel="Num of books",
+)
+def author_gender_vs_num_of_books() -> list[tuple[float, float]]:
+    return (
+        Author.objects.values('gender')
+        .annotate(num_of_books=Count('books'))
+        .values_list('num_of_books', 'gender')
+    )

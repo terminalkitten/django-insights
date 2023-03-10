@@ -109,6 +109,10 @@ class Bucket(MetricModel):
     def is_scatterplot(self) -> bool:
         return self.type == BucketType.SCATTERPLOT
 
+    @property
+    def is_barchart(self) -> bool:
+        return self.type == BucketType.BARCHART
+
     objects = BucketManager()
 
     class Meta:

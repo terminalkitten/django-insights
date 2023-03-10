@@ -13,6 +13,9 @@ class BucketQuerySet(models.QuerySet):
     def scatterplots(self):
         return self.filter(type=BucketType.SCATTERPLOT)
 
+    def barcharts(self):
+        return self.filter(type=BucketType.BARCHART)
+
 
 class BucketManager(models.Manager):
     def get_queryset(self):
@@ -26,3 +29,6 @@ class BucketManager(models.Manager):
 
     def scatterplots(self):
         return self.get_queryset().scatterplots()
+
+    def barcharts(self):
+        return self.get_queryset().barcharts()

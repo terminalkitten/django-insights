@@ -20,6 +20,7 @@ class Author(models.Model):
     created = models.DateTimeField('created')
     modified = models.DateTimeField('modified', auto_now=True)
 
+    gender = models.IntegerField(choices=(('M', 1), ('F', 2)))
     name = models.CharField(max_length=32, unique=True)
     age = models.IntegerField()
 

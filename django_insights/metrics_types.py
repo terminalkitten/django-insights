@@ -34,3 +34,13 @@ class ScatterPlotAnswer(NamedTuple):
 @dataclass
 class ScatterPlotType:
     values: list[ScatterPlotAnswer]
+
+
+class BarChartAnswer(NamedTuple):
+    xvalue: float
+    yvalue: float
+
+
+@dataclass
+class BarChartType:
+    values: list[BarChartAnswer]

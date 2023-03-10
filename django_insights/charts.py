@@ -57,7 +57,8 @@ themes = Theme(
 
 def to_base64img(fig) -> str:
     flike = io.BytesIO()
-    fig.savefig(flike, dpi=130)
+    fig.savefig(flike, dpi=180)
+
     return base64.b64encode(flike.getvalue()).decode()
 
 
@@ -74,7 +75,7 @@ def prepare_plot(bucket, theme):
     ax.xaxis.label.set_color(theme.tick)
     ax.grid(
         linestyle="dotted",
-        linewidth=0.3,
+        linewidth=0.1,
         color=theme.grid,
         zorder=-10,
         visible=False,
@@ -84,6 +85,14 @@ def prepare_plot(bucket, theme):
         spine.set_edgecolor(theme.edge)
 
     return fig, ax
+
+
+def render_barchart(xaxis, yaxis, bucket, theme) -> str:
+    theme = getattr(themes, theme)
+    fig, ax = prepare_plot(bucket, theme)
+    ax.bar(xaxis, yaxis)
+
+    return to_base64img(fig)
 
 
 def render_scatterplot(xaxis, yaxis, bucket, theme) -> str:
@@ -98,7 +107,7 @@ def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
     theme = getattr(themes, theme)
 
     fig, ax = prepare_plot(bucket, theme)
-    ax.plot(xaxis, yaxis, '--bo', markersize=5, color=theme.primary)
+    ax.plot(xaxis, yaxis, '--o', markersize=5, color=theme.primary)
 
     # Date formatting
     fig.autofmt_xdate()
@@ -106,6 +115,14 @@ def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
     ax.yaxis.set_minor_locator(LinearLocator(25))
 
     return to_base64img(fig)
+
+
+def barchart(bucket: Bucket, theme: str) -> str:
+    values = bucket.values.all()
+    yvalues = [bucket_value.yvalue for bucket_value in values]
+    xvalues = [bucket_value.xvalue for bucket_value in values]
+
+    return render_barchart(yvalues, xvalues, bucket, theme)
 
 
 def scatterplot(bucket: Bucket, theme: str) -> str:

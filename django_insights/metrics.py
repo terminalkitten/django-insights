@@ -4,6 +4,8 @@ import functools
 
 from django_insights.choices import BucketType
 from django_insights.metrics_types import (
+    BarChartAnswer,
+    BarChartType,
     CounterType,
     GaugeType,
     ScatterPlotAnswer,
@@ -200,6 +202,60 @@ class InsightMetrics:
                         xvalue=row.xvalue,
                         yvalue=row.yvalue,
                         category=row.category,
+                        bucket=bucket,
+                    )
+                    self.create_bucket_values.append(bucket_value)
+
+            registry.register_insight(
+                label=label,
+                app=app.name,
+                question=question,
+                func=inner,
+            )
+
+            return None
+
+        return decorator
+
+    def barchart(
+        self,
+        question: str = None,
+        desc: str = None,
+        xlabel: str = None,
+        xformat: str = None,
+        ylabel: str = None,
+        yformat: str = None,
+        title=None,
+    ):
+        """Decorator to collect Barchart metrics"""
+
+        def decorator(func):
+            label, app = self.get_app(func)
+
+            @functools.wraps(func)
+            def inner(*args, **kwargs):
+                results = func(*args, **kwargs)
+                bar_type = BarChartType(
+                    values=[BarChartAnswer(*result) for result in results]
+                )
+
+                bucket = Bucket.objects.create(
+                    app=app,
+                    label=label,
+                    question=question,
+                    desc=desc,
+                    xlabel=xlabel,
+                    xformat=xformat,
+                    ylabel=ylabel,
+                    yformat=yformat,
+                    title=title,
+                    type=BucketType.BARCHART,
+                )
+
+                for row in bar_type.values:
+                    bucket_value = BucketValue(
+                        xvalue=row.xvalue,
+                        yvalue=row.yvalue,
                         bucket=bucket,
                     )
                     self.create_bucket_values.append(bucket_value)

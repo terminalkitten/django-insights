@@ -32,7 +32,10 @@ class Command(BaseCommand):
             )
             authors.append(
                 Author.objects.create(
-                    created=author_created, name=name, age=randrange(80)
+                    created=author_created,
+                    name=name,
+                    age=randrange(80),
+                    gender=fake.random.choice((1, 2)),
                 )
             )
 
