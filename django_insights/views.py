@@ -47,18 +47,18 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 
 
 class InsightsChartView(View):
-    def get(self, request, bucket_id):
+    async def get(self, request, bucket_id):
         theme = self.request.COOKIES.get('theme')
-        bucket = Bucket.objects.get(pk=bucket_id)
+        bucket = await Bucket.objects.aget(pk=bucket_id)
 
         fig = None
 
         if bucket.is_timeseries:
-            fig = timeseries(bucket, theme=theme)
+            fig = await timeseries(bucket, theme=theme)
         if bucket.is_scatterplot:
-            fig = scatterplot(bucket, theme=theme)
+            fig = await scatterplot(bucket, theme=theme)
         if bucket.is_barchart:
-            fig = barchart(bucket, theme=theme)
+            fig = await barchart(bucket, theme=theme)
 
         buffer = to_bytes_io(fig)
 

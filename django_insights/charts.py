@@ -9,9 +9,11 @@ import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
+from asgiref.sync import sync_to_async
 from matplotlib.ticker import LinearLocator
 
 from django_insights.models import Bucket
+from django_insights.settings import settings
 
 matplotlib.use('Agg')
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -39,14 +41,14 @@ class Theme:
 
 themes = Theme(
     light=ThemeColor(
-        primary="#3B82F6",  # 3B82F6
+        primary=settings.INSIGHTS_CHART_PRIMARY_COLOR,
         face="#FEFEFE",
         tick="#333333",
         grid="#333333",
         edge="#FFFFFF",
     ),
     dark=ThemeColor(
-        primary="#3B82F6",
+        primary=settings.INSIGHTS_CHART_PRIMARY_COLOR,
         face="#0d1117",
         tick="#FEFEFE",
         grid="#FEFEFE",
@@ -58,7 +60,7 @@ themes = Theme(
 def to_bytes_io(fig) -> bytes:
     """Render Mathplotlib figure to file-like object"""
     flike = io.BytesIO()
-    fig.savefig(flike, dpi=180)
+    fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
 
     return flike.getvalue()
 
@@ -128,6 +130,7 @@ def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
     return fig
 
 
+@sync_to_async
 def barchart(bucket: Bucket, theme: str) -> str:
     """Barchart chart"""
     values = bucket.values.all()
@@ -138,6 +141,7 @@ def barchart(bucket: Bucket, theme: str) -> str:
     return render_barchart(yvalues, xvalues, labels, bucket, theme)
 
 
+@sync_to_async
 def scatterplot(bucket: Bucket, theme: str) -> str:
     """Scatterplot chart"""
     values = bucket.values.all()
@@ -147,6 +151,7 @@ def scatterplot(bucket: Bucket, theme: str) -> str:
     return render_scatterplot(yvalues, xvalues, bucket, theme)
 
 
+@sync_to_async
 def timeseries(bucket: Bucket, theme: str) -> str:
     """Timeseries chart"""
     values = bucket.values.all()

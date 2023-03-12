@@ -78,6 +78,7 @@ TEMPLATES = [
 
 USE_TZ = True
 
+
 # Django Insights settings
 
 # Custom app name
@@ -85,3 +86,9 @@ INSIGHTS_APP_NAME = "Bezamon"
 
 # Menu translation
 INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
+
+# Quality of chart images
+INSIGHTS_CHART_DPI = 400
+
+# Change primary color
+INSIGHTS_CHART_PRIMARY_COLOR = "#fde047"
