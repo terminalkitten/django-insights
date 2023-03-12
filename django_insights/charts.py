@@ -39,7 +39,7 @@ class Theme:
 
 themes = Theme(
     light=ThemeColor(
-        primary="#3B82F6",
+        primary="#3B82F6",  # 3B82F6
         face="#FEFEFE",
         tick="#333333",
         grid="#333333",
@@ -87,10 +87,10 @@ def prepare_plot(bucket, theme):
     return fig, ax
 
 
-def render_barchart(xaxis, yaxis, bucket, theme) -> str:
+def render_barchart(xaxis, yaxis, labels, bucket, theme) -> str:
     theme = getattr(themes, theme)
     fig, ax = prepare_plot(bucket, theme)
-    ax.bar(xaxis, yaxis)
+    ax.bar(labels, yaxis, color=theme.primary)
 
     return to_base64img(fig)
 
@@ -121,8 +121,9 @@ def barchart(bucket: Bucket, theme: str) -> str:
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
+    labels = [bucket_value.category for bucket_value in values]
 
-    return render_barchart(yvalues, xvalues, bucket, theme)
+    return render_barchart(yvalues, xvalues, labels, bucket, theme)
 
 
 def scatterplot(bucket: Bucket, theme: str) -> str:

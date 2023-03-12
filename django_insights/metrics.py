@@ -256,6 +256,7 @@ class InsightMetrics:
                     bucket_value = BucketValue(
                         xvalue=row.xvalue,
                         yvalue=row.yvalue,
+                        category=row.category,
                         bucket=bucket,
                     )
                     self.create_bucket_values.append(bucket_value)

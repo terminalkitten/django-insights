@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from django.db.models import Avg, Count, Value
+from django.db.models import Avg, Case, Count, Value, When
 from django.db.models.functions import Length, TruncMonth, TruncYear
 
 from django_insights.metrics import metrics
@@ -131,9 +131,15 @@ def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
     xlabel="Gender",
     ylabel="Num of books",
 )
-def author_gender_vs_num_of_books() -> list[tuple[float, float]]:
+def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
     return (
         Author.objects.values('gender')
-        .annotate(num_of_books=Count('books'))
-        .values_list('num_of_books', 'gender')
+        .annotate(
+            num_of_books=Count('books'),
+            gender_category=Case(
+                When(gender=1, then=Value('Male')),
+                When(gender=2, then=Value('Female')),
+            ),
+        )
+        .values_list('num_of_books', 'gender', 'gender_category')
     )

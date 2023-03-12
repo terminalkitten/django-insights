@@ -39,6 +39,7 @@ class ScatterPlotType:
 class BarChartAnswer(NamedTuple):
     xvalue: float
     yvalue: float
+    category: Optional[Any]
 
 
 @dataclass
