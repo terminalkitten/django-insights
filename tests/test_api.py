@@ -37,3 +37,7 @@ class ApiTests(TestCase):
     def test_count_authors(self):
         counter = Counter.objects.get(label="count_authors")
         assert counter.value == 2000
+
+    def test_count_books(self):
+        counter = Counter.objects.get(label="count_books")
+        assert counter.value == 5000

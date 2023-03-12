@@ -10,7 +10,10 @@ from django_insights.metrics import metrics
 from project.testapp.models import Author, Book
 
 
-@metrics.counter(question="How many authors are there?")
+@metrics.counter(
+    question="How many authors are there in our store?",
+    desc="Number of authors we sell books for in our store",
+)
 def count_authors() -> int:
     return Author.objects.count()
 
@@ -79,6 +82,7 @@ def avg_books_per_author() -> int:
 
 @metrics.timeseries(
     question="Num of books created per month?",
+    desc="How many books are added each month, since the opening of our store",
     xlabel="Month",
     xformat='%m',
     ylabel="Num of books",

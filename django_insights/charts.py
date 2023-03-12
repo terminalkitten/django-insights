@@ -55,14 +55,21 @@ themes = Theme(
 )
 
 
-def to_base64img(fig) -> str:
+def to_bytes_io(fig) -> bytes:
+    """Render Mathplotlib figure to file-like object"""
     flike = io.BytesIO()
     fig.savefig(flike, dpi=180)
 
-    return base64.b64encode(flike.getvalue()).decode()
+    return flike.getvalue()
+
+
+def to_base64img(fig) -> str:
+    """Render Mathplotlib figure to Base64 encoded image"""
+    return base64.b64encode(to_bytes_io(fig)).decode()
 
 
 def prepare_plot(bucket, theme):
+    """Default plot options, used for all charts"""
     fig, ax = plt.subplots(figsize=(8, 4))
     fig.set_facecolor(theme.face)
     ax.tick_params(axis='x', colors=theme.tick)
@@ -88,22 +95,26 @@ def prepare_plot(bucket, theme):
 
 
 def render_barchart(xaxis, yaxis, labels, bucket, theme) -> str:
+    """Render barchart"""
     theme = getattr(themes, theme)
     fig, ax = prepare_plot(bucket, theme)
     ax.bar(labels, yaxis, color=theme.primary)
 
-    return to_base64img(fig)
+    return fig
 
 
 def render_scatterplot(xaxis, yaxis, bucket, theme) -> str:
+    """Render scatterplot"""
     theme = getattr(themes, theme)
 
     fig, ax = prepare_plot(bucket, theme)
     ax.scatter(xaxis, yaxis, color=theme.primary)
-    return to_base64img(fig)
+
+    return fig
 
 
 def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
+    """Render timeseries"""
     theme = getattr(themes, theme)
 
     fig, ax = prepare_plot(bucket, theme)
@@ -114,10 +125,11 @@ def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
     ax.fmt_xdata = mdates.DateFormatter(bucket.xformat)
     ax.yaxis.set_minor_locator(LinearLocator(25))
 
-    return to_base64img(fig)
+    return fig
 
 
 def barchart(bucket: Bucket, theme: str) -> str:
+    """Barchart chart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
@@ -127,6 +139,7 @@ def barchart(bucket: Bucket, theme: str) -> str:
 
 
 def scatterplot(bucket: Bucket, theme: str) -> str:
+    """Scatterplot chart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
@@ -135,6 +148,7 @@ def scatterplot(bucket: Bucket, theme: str) -> str:
 
 
 def timeseries(bucket: Bucket, theme: str) -> str:
+    """Timeseries chart"""
     values = bucket.values.all()
 
     yvalues = [bucket_value.timestamp for bucket_value in values]

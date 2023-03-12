@@ -81,7 +81,7 @@ USE_TZ = True
 # Django Insights settings
 
 # Custom app name
-INSIGHTS_APP_NAME = "Books & More"
+INSIGHTS_APP_NAME = "Bezamon"
 
 # Menu translation
-INSIGHTS_MENU = {'project.testapp.insights': 'Publisher'}
+INSIGHTS_MENU = {'project.testapp.insights': 'Books'}

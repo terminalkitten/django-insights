@@ -12,7 +12,7 @@
                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ bucket.desc }}</p>
                             </div>
                         </div>
-                        {% timeseries_chart bucket theme=theme %}
+                        {% chart bucket %}
                         <!-- Table Section -->
                         <!-- Accordion -->
                         <div class="dark:hover:bg-foreground">
@@ -84,7 +84,7 @@
                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ bucket.desc }}</p>
                             </div>
                         </div>
-                        {% scatterplot_chart bucket theme=theme %}
+                        {% chart bucket %}
                         <!-- Table Section -->
                         <!-- Accordion -->
                         <div class="dark:hover:bg-foreground">
@@ -156,7 +156,7 @@
                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ bucket.desc }}</p>
                             </div>
                         </div>
-                        {% bar_chart bucket theme=theme %}
+                        {% chart bucket %}
                         <!-- Table Section -->
                         <!-- Accordion -->
                         <div class="dark:hover:bg-foreground">

@@ -15,4 +15,9 @@ urlpatterns = [
         views.InsightsDashboardView.as_view(),
         name="insight_dashboard",
     ),
+    path(
+        'charts/<int:bucket_id>/',
+        views.InsightsChartView.as_view(),
+        name="insight_chart",
+    ),
 ]
