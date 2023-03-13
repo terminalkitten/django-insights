@@ -4,7 +4,7 @@
 
 ## Features
 
-Create insights from your app, store them in a SQLite database, these insights are written right next to your application logic.
+Create insights for your app, store them in a SQLite database for further processing, these insights are written right next to your application logic.
 
 ## Installation
 
@@ -38,11 +38,73 @@ def count_authors() -> int:
 
 ```
 
+Add django_insights package, insights database and router to your settings
+
+```python
+
+INSTALLED_APPS = [
+    ...
+    "django_insights",
+]
+
+
+DATABASES = {
+    ...
+    "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/insights.db"},
+    ...
+}
+
+DATABASE_ROUTERS = ['django_insights.database.Router']
+
+```
+
+Note: please make sure you exclude the database in your `.gitignore` file
+
 Migrate insights database:
 
 ```bash
-$ workon myapp
-$ python manage.py migrate insights --database=insights
+workon myapp
+python manage.py migrate insights --database=insights
+```
+
+Now collect your insights
+
+```bash
+python manage.py collect_insights
+```
+
+You now have a database containing all insights from your application.
+You can inspect this database yourself with `sqlite3 db/insights.db` - or - you can use the Django Insights dashboard.
+
+To enable this dashboard, add the following settings:
+
+```python
+from django.urls import include, path
+
+urlpatterns = [
+    path(
+        '/insights',
+        include('django_insights.urls', namespace='insights'),
+    ),
+]
+```
+
+Now you can visit https://localhost:8000/insights to inspect your Django Insights database
+
+## Settings
+
+```python
+# Custom app name
+INSIGHTS_APP_NAME = "Bezamon"
+
+# Menu translation
+INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
+
+# Quality of chart images
+INSIGHTS_CHART_DPI = 180
+
+# Change primary color
+INSIGHTS_CHART_PRIMARY_COLOR = "#fde047"
 ```
 
 ## Background
@@ -59,7 +121,7 @@ Write more about where to find documentation
 
 ## Ideas
 
--
+- Connect to other datasources and export to different file-formats ( ArrowFile?, NDJSON )
 
 ## Is it any good?
 
