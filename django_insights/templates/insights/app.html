@@ -1,7 +1,7 @@
 {% extends "insights/base.html" %}
 {% load remove_substr insight_chart %}
 {% block content %}
-    <div class="flex flex-wrap p-2 mt-8 mb-4 -mx-2">
+    <div class="flex flex-wrap">
         {% for bucket in app.buckets.timeseries %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">

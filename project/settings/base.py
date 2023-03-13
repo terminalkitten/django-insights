@@ -88,7 +88,7 @@ INSIGHTS_APP_NAME = "Bezamon"
 INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
 
 # Quality of chart images
-INSIGHTS_CHART_DPI = 400
+INSIGHTS_CHART_DPI = 180
 
 # Change primary color
 INSIGHTS_CHART_PRIMARY_COLOR = "#fde047"
