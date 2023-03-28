@@ -12,21 +12,25 @@
         <meta name="author" content="terminalkitten">
       
       
+        <link rel="canonical" href="https://github.com/terminalkitten/django-insights/types/">
       
       
-      <link rel="icon" href="/terminalkitten/django-insights/assets/images/favicon.png">
+        <link rel="prev" href="../license/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.14">
     
     
       
-        <title>Django Insights</title>
+        <title>Types - Django Insights</title>
       
     
     
-      <link rel="stylesheet" href="/terminalkitten/django-insights/assets/stylesheets/main.113286f1.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.113286f1.min.css">
       
         
-        <link rel="stylesheet" href="/terminalkitten/django-insights/assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -42,7 +46,7 @@
       
     
     
-    <script>__md_scope=new URL("/terminalkitten/django-insights/",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -66,6 +70,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#metrics" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -76,7 +85,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/terminalkitten/django-insights/." title="Django Insights" class="md-header__button md-logo" aria-label="Django Insights" data-md-component="logo">
+    <a href=".." title="Django Insights" class="md-header__button md-logo" aria-label="Django Insights" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.242 11.242 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24Z"/></svg>
@@ -95,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Types
             
           </span>
         </div>
@@ -174,7 +183,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/terminalkitten/django-insights/." title="Django Insights" class="md-nav__button md-logo" aria-label="Django Insights" data-md-component="logo">
+    <a href=".." title="Django Insights" class="md-nav__button md-logo" aria-label="Django Insights" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.242 11.242 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24Z"/></svg>
@@ -205,7 +214,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/terminalkitten/django-insights/." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         Home
       </a>
     </li>
@@ -247,7 +256,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/terminalkitten/django-insights/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         Installation
       </a>
     </li>
@@ -261,7 +270,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/terminalkitten/django-insights/alternatives/" class="md-nav__link">
+      <a href="../alternatives/" class="md-nav__link">
         Alternatives
       </a>
     </li>
@@ -275,7 +284,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/terminalkitten/django-insights/license/" class="md-nav__link">
+      <a href="../license/" class="md-nav__link">
         License
       </a>
     </li>
@@ -295,14 +304,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
       
       
       
@@ -311,7 +322,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           Insights
@@ -322,11 +333,73 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="/terminalkitten/django-insights/types/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Types
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Types
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#counter" class="md-nav__link">
+    Counter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gauge" class="md-nav__link">
+    Gauge
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timeseries" class="md-nav__link">
+    Timeseries
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scatterplot" class="md-nav__link">
+    Scatterplot
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -355,6 +428,44 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#counter" class="md-nav__link">
+    Counter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gauge" class="md-nav__link">
+    Gauge
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timeseries" class="md-nav__link">
+    Timeseries
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scatterplot" class="md-nav__link">
+    Scatterplot
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -366,8 +477,24 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+  
+  
+
+
+<h1 id="metrics">Metrics</h1>
+<p>There are currently 4 types of metrics that can be collected with Django Insights:</p>
+<h2 id="counter">Counter</h2>
+<h2 id="gauge">Gauge</h2>
+<h2 id="timeseries">Timeseries</h2>
+<h2 id="scatterplot">Scatterplot</h2>
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -378,6 +505,27 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../license/" class="md-footer__link md-footer__link--prev" aria-label="Previous: License" rel="prev">
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <div class="md-ellipsis">
+                <span class="md-footer__direction">
+                  Previous
+                </span>
+                License
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -400,10 +548,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "/terminalkitten/django-insights/", "features": ["navigation.footer"], "search": "/terminalkitten/django-insights/assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.footer"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="/terminalkitten/django-insights/assets/javascripts/bundle.2a6f1dda.min.js"></script>
+      <script src="../assets/javascripts/bundle.2a6f1dda.min.js"></script>
       
     
   </body>
