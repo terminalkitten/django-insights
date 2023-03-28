@@ -1,0 +1,7 @@
+django_insights/static/* linguist-vendored
+django_insights/packages/* linguist-vendored
+docs/* linguist-documentation
+
+*.py linguist-detectable=true
+*.js linguist-detectable=false
+*.html linguist-detectable=false
