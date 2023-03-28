@@ -104,7 +104,7 @@ INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
 INSIGHTS_CHART_DPI = 180
 
 # Change primary color
-INSIGHTS_CHART_PRIMARY_COLOR = "#fde047"
+INSIGHTS_CHART_PRIMARY_COLOR = "#336699"
 ```
 
 ## Background

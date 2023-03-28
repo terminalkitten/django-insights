@@ -27,7 +27,7 @@ clean:
 	rm -rf django_insights/migrations
 	rm -rf project/testapp/migrations
 
-	python manage.py makemigrations testapp
+	python manage.py makemigrations testapp users
 	python manage.py makemigrations insights
-	python manage.py migrate testapp
+	python manage.py migrate
 	python manage.py migrate insights --database=insights
