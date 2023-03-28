@@ -1,6 +1,6 @@
 [![CI](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg)](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml)
 
-!["Django Insights"](docs/assets/images/banner.png)
+!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/banner.png)
 
 ## Features
 
