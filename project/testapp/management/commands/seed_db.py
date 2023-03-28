@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.HTTP_INFO('[TestApp] - Database seed'))
 
-        AppUser.objects.create(email="dk@nutshell.nl")
+        AppUser.objects.create(email="user@example.com")
 
         Author.objects.all().delete()
         Book.objects.all().delete()
