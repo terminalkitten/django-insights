@@ -99,6 +99,135 @@ urlpatterns = [
 
 Now you can visit https://localhost:8000/insights to inspect your Django Insights database
 
+Django insights contains 5 types of metrics it can collect:
+
+- counter
+- gauge
+- timeseries
+- scatterplot
+- barchart
+
+### Counter:
+
+```python
+from django_insights.metrics import metrics
+from project.testapp.models import Author
+
+
+@metrics.counter(question="How many authors are there?")
+def count_authors() -> int:
+    return Author.objects.count()
+
+```
+
+### Gauge:
+
+```python
+
+from django.db.models import Avg, Count
+
+from django_insights.metrics import metrics
+from project.testapp.models import Author
+
+
+@metrics.gauge(question="Average book(s) per author?")
+def avg_books_per_author() -> int:
+    avg_total_books = (
+        Author.objects.prefetch_related('books')
+        .annotate(total_books=Count('books'))
+        .aggregate(Avg('total_books'))
+        .get('total_books__avg')
+    )
+
+    return avg_total_books
+```
+
+### Timeseries:
+
+```python
+from datetime import datetime
+
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+
+from django_insights.metrics import metrics
+from project.testapp.models import Book
+
+
+@metrics.timeseries(
+    question="Num of books created per month?",
+    desc="How many books are added each month, since the opening of our store",
+    xlabel="Month",
+    xformat='%m',
+    ylabel="Num of books",
+)
+def num_of_books_per_month() -> list[tuple[datetime, int]]:
+    return (
+        Book.objects.all()
+        .annotate(month=TruncMonth('created'))
+        .values('month')
+        .filter(month__isnull=False)
+        .annotate(total=Count('pk'))
+        .values_list('month', 'total')
+        .order_by('month')
+    )
+```
+
+### Scatterplot:
+
+```python
+from datetime import datetime
+
+from django.db.models import Count, Value
+
+from django_insights.metrics import metrics
+from project.testapp.models import Author
+
+
+@metrics.scatterplot(
+    question="Num of books by age of author?",
+    xlabel="Age",
+    ylabel="Num of books",
+)
+def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
+    return (
+        Author.objects.values('age')
+        .annotate(num_of_books=Count('books'), category=Value("author"))
+        .values_list('num_of_books', 'age', 'category')
+    )
+```
+
+### Barchart:
+
+```python
+from datetime import datetime
+
+from django.db.models import Case, Count, Value, When
+
+from django_insights.metrics import metrics
+from project.testapp.models import Author
+
+
+@metrics.barchart(
+    question="Num of books by gender of author?",
+    xlabel="Gender",
+    ylabel="Num of books",
+)
+def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
+    return (
+        Author.objects.values('gender')
+        .annotate(
+            num_of_books=Count('books'),
+            gender_category=Case(
+                When(gender=1, then=Value('Male')),
+                When(gender=2, then=Value('Female')),
+            ),
+        )
+        .values_list('num_of_books', 'gender', 'gender_category')
+    )
+
+```
+
 ## Settings
 
 ```python
