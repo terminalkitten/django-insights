@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import importlib
 
 from django_insights.choices import BucketType
 from django_insights.metrics_types import (
@@ -26,34 +27,47 @@ class InsightMetrics:
 
     apps: dict[str, App] = {}
 
-    def __init__(self) -> None:
+    def __init__(self, reset=True) -> None:
+        self.delete_metrics() if reset else None
+
+    def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
         Counter.objects.all().delete()
         Gauge.objects.all().delete()
         Bucket.objects.all().delete()
         BucketValue.objects.all().delete()
 
-    def get_memoized_app(self, name: str) -> App:
+    def get_memoized_app(self, module: str, label: str = None) -> App:
         """Memoize apps so we reduce query count"""
-        if app := self.apps.get(name):
+        if app := self.apps.get(module):
             return app
 
         # get or create new app
-        app, _ = App.objects.get_or_create(name=name)
-        self.apps.update({name: app})
+        app, _ = App.objects.get_or_create(module=module, defaults={'label': label})
+        self.apps.update({module: app})
 
         return app
 
     def get_app(self, func) -> tuple[str, App]:
-        label = func.__name__
-        app_name = func.__module__
+        """
+        Get memoized app
 
-        app = self.get_memoized_app(name=app_name)
+        """
+
+        label = func.__name__
+        module = func.__module__
+        insights_module = importlib.import_module(module)
+
+        app_label = getattr(insights_module, 'label', None)
+        app = self.get_memoized_app(module=module, label=app_label)
 
         return label, app
 
     def counter(self, question: str = None, desc: str = None):
-        """Decorator to collect Counter metrics"""
+        """
+        Decorator to collect Counter metrics
+
+        """
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -72,7 +86,7 @@ class InsightMetrics:
 
             registry.register_insight(
                 label=label,
-                app=app.name,
+                module=app.module,
                 question=question,
                 func=inner,
             )
@@ -82,7 +96,10 @@ class InsightMetrics:
         return decorator
 
     def gauge(self, question: str = None, desc: str = None):
-        """Decorator to collect Gauge metrics"""
+        """
+        Decorator to collect Gauge metric
+
+        """
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -101,7 +118,7 @@ class InsightMetrics:
 
             registry.register_insight(
                 label=label,
-                app=app.name,
+                module=app.module,
                 question=question,
                 func=inner,
             )
@@ -120,7 +137,10 @@ class InsightMetrics:
         yformat: str = None,
         title=None,
     ):
-        """Decorator to collect TimeSeries metrics"""
+        """
+        Decorator to collect TimeSeries metrics
+
+        """
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -153,7 +173,7 @@ class InsightMetrics:
 
             registry.register_insight(
                 label=label,
-                app=app.name,
+                module=app.module,
                 question=question,
                 func=inner,
             )
@@ -172,7 +192,10 @@ class InsightMetrics:
         yformat: str = None,
         title=None,
     ):
-        """Decorator to collect Scatterplot metrics"""
+        """
+        Decorator to collect Scatterplot metrics
+
+        """
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -208,7 +231,7 @@ class InsightMetrics:
 
             registry.register_insight(
                 label=label,
-                app=app.name,
+                module=app.module,
                 question=question,
                 func=inner,
             )
@@ -227,7 +250,10 @@ class InsightMetrics:
         yformat: str = None,
         title=None,
     ):
-        """Decorator to collect Barchart metrics"""
+        """
+        Decorator to collect Barchart metrics
+
+        """
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -263,7 +289,7 @@ class InsightMetrics:
 
             registry.register_insight(
                 label=label,
-                app=app.name,
+                module=app.module,
                 question=question,
                 func=inner,
             )
@@ -273,6 +299,10 @@ class InsightMetrics:
         return decorator
 
     def collect(self):
+        """
+        Collect insights
+
+        """
         registry.collect_insights()
 
         Counter.objects.bulk_create(self.create_counters)

@@ -16,18 +16,18 @@ class InsightRegistry:
     def register_insight(
         self,
         label: str,
-        app: str,
+        module: str,
         question: str,
         func: Callable[[Any], Any],
     ):
-        self.registered_insights.append((app, label, question, func))
+        self.registered_insights.append((module, label, question, func))
 
     def collect_insights(self):
         progress_iterator = tqdm(self.registered_insights, desc='Collect insights')
 
-        for app, name, question, metric in progress_iterator:
+        for module, name, question, metric in progress_iterator:
             progress_iterator.set_description(
-                desc=f"Create insights for {app}.{name}", refresh=True
+                desc=f"Create insights for {module}.{name}", refresh=True
             )
             metric()
 

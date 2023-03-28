@@ -9,7 +9,11 @@ class CustomSettings:
     INSIGHTS_APP_NAME: str = "MyApp"
     INSIGHTS_MENU: dict[str, str] = {}
     INSIGHTS_CHART_DPI: int = 180
-    INSIGHTS_CHART_PRIMARY_COLOR: str = "#3B82F6"
+
+    INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
+    INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+
+    INSIGHTS_DEFAULT_THEME = "dark"
 
     def __getattribute__(self, name):
         try:

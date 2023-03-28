@@ -48,7 +48,7 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 
 class InsightsChartView(View):
     async def get(self, request, bucket_id):
-        theme = self.request.COOKIES.get('theme')
+        theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
         bucket = await Bucket.objects.aget(pk=bucket_id)
 
         fig = None

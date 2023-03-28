@@ -10,18 +10,27 @@ from django_insights.settings import settings
 
 
 class App(models.Model):
-    """Apps that have insights"""
+    """
+    Apps that have insights
+
+    """
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    name = models.CharField(max_length=254, db_index=True, unique=True)
+    module = models.CharField(max_length=254, db_index=True, unique=True)
+    label = models.CharField(max_length=254, null=True)
 
     @property
-    def custom_name(self) -> str:
-        return settings.INSIGHTS_MENU.get(self.name, self.name)
+    def name(self) -> str:
+        return (
+            settings.INSIGHTS_MENU.get(self.module, None) or self.label or self.module
+        )
 
 
 class ExecutionDelta(models.Model):
-    """Delta is stored on every run and used for filtering, these values should never change"""
+    """
+    Delta is stored on every run and used for filtering, these values should never change
+
+    """
 
     executed_at = models.DateTimeField(db_index=True, default=timezone.now)
     uuid = models.UUIDField(default=uuid.uuid4)
@@ -39,7 +48,10 @@ class MetricModel(models.Model):
 
 
 class Counter(MetricModel):
-    """Simple counter, can incr or decr, label and app are unique"""
+    """
+    Simple counter, can incr or decr, label and app are unique
+
+    """
 
     value = models.IntegerField(default=0)
     app = models.ForeignKey(App, related_name='counters', on_delete=models.CASCADE)
@@ -57,7 +69,10 @@ class Counter(MetricModel):
 
 
 class Gauge(MetricModel):
-    """Simple gauge, can be set or set with delta, label and app are unique"""
+    """
+    Simple gauge, can be set or set with delta, label and app are unique
+
+    """
 
     value = models.FloatField(default=float(0.0))
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
@@ -132,6 +147,7 @@ class BucketValue(models.Model):
     """
     Bucket values matrix: used for time-series, histogram and scatterpltos.
     Combination of timestamp, label and app are unique.
+
     """
 
     # Timestamp for timeseries

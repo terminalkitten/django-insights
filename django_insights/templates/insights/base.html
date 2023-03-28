@@ -116,7 +116,7 @@
                         {% for app in apps %}
                             {% url 'insights:insight_app' app_uuid=app.uuid as app_url %}
                             <a class="font-medium text-gray-600 hover:text-gray-400 dark:text-background dark:hover:text-gray-500"
-                               href="{{ app_url }}">{{ app.custom_name }}</a>
+                               href="{{ app_url }}">{{ app.name }}</a>
                         {% endfor %}
                     </div>
                 </div>

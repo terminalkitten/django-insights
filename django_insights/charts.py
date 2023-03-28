@@ -41,14 +41,14 @@ class Theme:
 
 themes = Theme(
     light=ThemeColor(
-        primary=settings.INSIGHTS_CHART_PRIMARY_COLOR,
+        primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
         face="#FEFEFE",
         tick="#333333",
         grid="#333333",
         edge="#FFFFFF",
     ),
     dark=ThemeColor(
-        primary=settings.INSIGHTS_CHART_PRIMARY_COLOR,
+        primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
         face="#0d1117",
         tick="#FEFEFE",
         grid="#FEFEFE",
