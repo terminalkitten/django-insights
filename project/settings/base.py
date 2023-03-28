@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "project.testapp",
+    "project.testapp.users",
     "django_insights",
 ]
 
@@ -50,7 +51,9 @@ STATICFILES_FINDERS = (
 )
 
 
-AUTH_USER_MODEL = "testapp.AppUser"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = "users.AppUser"
 
 ROOT_URLCONF = "project.urls"
 LANGUAGE_CODE = "en-us"
@@ -91,4 +94,5 @@ INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
 INSIGHTS_CHART_DPI = 180
 
 # Change primary color
-INSIGHTS_CHART_PRIMARY_COLOR = "#fde047"
+INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
+INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
