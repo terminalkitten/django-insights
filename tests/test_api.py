@@ -7,7 +7,7 @@ from django_insights.database import check_settings
 from django_insights.models import Counter
 from django_insights.registry import registry
 from project.settings.test import DATABASES
-from project.testapp.models import AppUser
+from project.testapp.users.models import AppUser
 from tests.utils import collect_insights
 
 COPY_DATABASES = DATABASES.copy()
@@ -31,8 +31,8 @@ class ApiTests(TestCase):
     def test_autodiscover_registry(self):
         assert registry.registered_insights
 
-    def test_no_app_users_found(self):
-        assert AppUser.objects.count() == 0
+    def test_one_app_user_found(self):
+        assert AppUser.objects.count() == 1
 
     def test_count_authors(self):
         counter = Counter.objects.get(label="count_authors")
