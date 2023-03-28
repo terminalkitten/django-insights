@@ -87,9 +87,6 @@ USE_TZ = True
 # Custom app name
 INSIGHTS_APP_NAME = "Bezamon"
 
-# Menu translation
-INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
-
 # Quality of chart images
 INSIGHTS_CHART_DPI = 180
 

@@ -238,8 +238,13 @@ INSIGHTS_APP_NAME = "Bezamon"
 # Quality of chart images
 INSIGHTS_CHART_DPI = 180
 
-# Change primary color
-INSIGHTS_CHART_PRIMARY_COLOR = "#336699"
+# Default theme for dashboard
+INSIGHTS_THEME = "dark"
+
+# Change primary color of dashboard
+INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
+INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+
 ```
 
 ## Background
