@@ -6,6 +6,14 @@
 
 Create insights for your app, store them in a SQLite database for further processing, these insights are written right next to your application logic.
 
+## Note:
+
+Still working on some small things and making and extented tests and docs will follow soon.
+For now focus is on:
+
+- Django 3.2 (LTS), 4.0,4.1 and 4.2;
+- Python ≥ 3.8
+
 ## Installation
 
 Installing with:
