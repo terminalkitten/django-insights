@@ -39,6 +39,7 @@ In these insights files your write out any metric you would like to track. Eacht
 from django_insights.metrics import metrics
 from project.testapp.models import Author
 
+label = "Bookstore"
 
 @metrics.counter(question="How many authors are there?")
 def count_authors() -> int:
@@ -101,11 +102,11 @@ Now you can visit https://localhost:8000/insights to inspect your Django Insight
 
 Django insights contains 5 types of metrics it can collect:
 
-- counter
-- gauge
-- timeseries
-- scatterplot
-- barchart
+- `@metrics.counter`
+- `@metrics.gauge`
+- `@metrics.timeseries`
+- `@metrics.scatterplot`
+- `@metrics.barchart`
 
 ### Counter:
 
@@ -233,9 +234,6 @@ def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
 ```python
 # Custom app name
 INSIGHTS_APP_NAME = "Bezamon"
-
-# Menu translation
-INSIGHTS_MENU = {'project.testapp.insights': 'Books'}
 
 # Quality of chart images
 INSIGHTS_CHART_DPI = 180

@@ -6,7 +6,6 @@ from django.utils import timezone
 from django_insights.choices import BucketType
 from django_insights.database import database_entry
 from django_insights.managers import BucketManager
-from django_insights.settings import settings
 
 
 class App(models.Model):
@@ -21,9 +20,7 @@ class App(models.Model):
 
     @property
     def name(self) -> str:
-        return (
-            settings.INSIGHTS_MENU.get(self.module, None) or self.label or self.module
-        )
+        return self.label or self.module
 
 
 class ExecutionDelta(models.Model):

@@ -7,9 +7,6 @@ migrate:
 	python manage.py migrate
 	python manage.py migrate insights --database=insights
 
-dumpdata:
-	python manage.py dumpdata testapp.Author > project/testapp/fixtures/authors.json
-
 shell:
 	python manage.py shell
 
@@ -19,7 +16,7 @@ seed:
 collect_insights:
 	python manage.py collect_insights
 
-compilereqtxt:
+compilereq:
 	python requirements/compile.py
 
 clean:
