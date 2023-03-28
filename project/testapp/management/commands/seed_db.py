@@ -5,6 +5,7 @@ from django.utils import timezone
 from faker import Faker
 
 from project.testapp.models import Author, Book
+from project.testapp.users.models import AppUser
 
 fake = Faker()
 
@@ -15,6 +16,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.HTTP_INFO('[TestApp] - Database seed'))
+
+        AppUser.objects.create(email="dk@nutshell.nl")
 
         Author.objects.all().delete()
         Book.objects.all().delete()

@@ -9,6 +9,8 @@ from django.db.models.functions import Length, TruncMonth, TruncYear
 from django_insights.metrics import metrics
 from project.testapp.models import Author, Book
 
+label = "Books"
+
 
 @metrics.counter(
     question="How many authors are there in our store?",
