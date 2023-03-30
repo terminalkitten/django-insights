@@ -6,7 +6,7 @@
 
 Create insights for your app, store them in a SQLite database for further processing, these insights are written right next to your application logic.
 
-## Note:
+### Note:
 
 Still working on some small things and making and extented tests and docs will follow soon.
 For now focus is on:
@@ -24,7 +24,7 @@ pip install 'django-insights'
 
 ## Usage
 
-First create 1 or more `insights.py` file(s) in your app directory, for example:
+First create a `insights.py` file in your app directory, for example:
 
 ```bash
 project
@@ -32,7 +32,9 @@ project
     └── insights.py
 ```
 
-In these insights files your write out any metric you would like to track. Eacht metric starts with a question and some values to store. Below is a example of the `@metrics.counter` function:
+Each app can have it's own `insignts.py` file, these files are auto-discovered by Django Insights, so at any given location it would pick up your metrics.
+
+In these insights files you write out any metric you would like to track. Each metric starts with a question and some values to store. Below is a example of the `@metrics.counter` function:
 
 ```python
 # project/testapp/insights.py
@@ -46,6 +48,10 @@ def count_authors() -> int:
     return Author.objects.count()
 
 ```
+
+Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
+
+### Settings
 
 Add django_insights package, insights database and router to your settings
 
@@ -83,7 +89,12 @@ python manage.py collect_insights
 ```
 
 You now have a database containing all insights from your application.
+
 You can inspect this database yourself with `sqlite3 db/insights.db` - or - you can use the Django Insights dashboard.
+
+### Dashboard
+
+!["Dashboard - Main Screen"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_1.png)
 
 To enable this dashboard, add the following settings:
 
@@ -98,7 +109,11 @@ urlpatterns = [
 ]
 ```
 
+!["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_2.png)
+
 Now you can visit https://localhost:8000/insights to inspect your Django Insights database
+
+## Metrics
 
 Django insights contains 5 types of metrics it can collect:
 
