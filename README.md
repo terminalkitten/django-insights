@@ -8,7 +8,7 @@ Create insights for your app, store them in a SQLite database for further proces
 
 ### Note:
 
-Still working on some small things and making and extented tests and docs will follow soon.
+Still working on some small things, extending tests and improve docs.
 For now focus is on:
 
 - Django 3.2 (LTS), 4.0,4.1 and 4.2;
@@ -261,6 +261,20 @@ INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
 INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
 
 ```
+
+## Use-cases
+
+Insights are gathered from your current application state, Django Insights is not intentend to be used as a realtime, incremementing datasource. You should be able to re-gather these insights from your actual data at any moment in time.
+
+Yes:
+
+- How many users, how many users invited a year
+- How many reports a day, how many messages send on Wednesday's
+
+No:
+
+- How many GET request for url XXX a second
+- Realtime profit target percentage
 
 ## Background
 
