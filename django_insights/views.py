@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
+from asgiref.sync import sync_to_async
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
+from django.utils.decorators import classonlymethod
 from django.views.generic import DetailView, ListView, View
 
 from django_insights.charts import barchart, scatterplot, timeseries, to_bytes_io
@@ -46,10 +49,22 @@ class InsightsDashboardView(InsightAppMixin, ListView):
         return context
 
 
+@sync_to_async
+def get_bucket(bucket_id: int) -> Bucket:
+    """Get bucket from async context"""
+    return Bucket.objects.get(pk=bucket_id)
+
+
 class InsightsChartView(View):
+    @classonlymethod
+    def as_view(cls, **initkwargs):
+        view = super().as_view(**initkwargs)
+        view._is_coroutine = asyncio.coroutines._is_coroutine
+        return view
+
     async def get(self, request, bucket_id):
         theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
-        bucket = await Bucket.objects.aget(pk=bucket_id)
+        bucket = await get_bucket(bucket_id)
 
         fig = None
 
