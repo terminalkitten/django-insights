@@ -13,10 +13,9 @@ repo_url: https://github.com/terminalkitten/django-insights
 theme:
   name: material
   palette:
-    primary: black
-    accent: indigo
+    scheme: slate
   font:
-    text: Poppins
+    text: Ubuntu
   icon:
     logo: material/library-outline
   features:
