@@ -166,4 +166,6 @@ node_modules/
 insights.db
 testapp.db
 db/
+
 project/static/
+project/media/

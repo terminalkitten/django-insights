@@ -16,6 +16,7 @@ class CustomSettings:
     INSIGHTS_DEFAULT_THEME = "dark"
     INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
     INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+    INSIGHT_CHARTS_USE_MEDIA_CACHE = False
 
     def __getattribute__(self, name):
         try:

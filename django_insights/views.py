@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Any
 
 from asgiref.sync import sync_to_async
@@ -64,7 +65,15 @@ class InsightsChartView(View):
 
     async def get(self, request, bucket_id):
         theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
-        bucket = await get_bucket(bucket_id)
+        bucket: Bucket = await get_bucket(bucket_id)
+
+        filename: str = f"{settings.MEDIA_ROOT}insights/{bucket.type}-{bucket.pk}.png"
+
+        if os.path.exists(filename) and settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
+            with open(filename, 'rb') as cached_image:
+                buffer = cached_image.read()
+
+            return HttpResponse(buffer, content_type='image/png')
 
         fig = None
 
@@ -76,5 +85,9 @@ class InsightsChartView(View):
             fig = await barchart(bucket, theme=theme)
 
         buffer = to_bytes_io(fig)
+
+        if settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
+            with open(filename, 'wb') as cached_image:
+                cached_image.write(buffer)
 
         return HttpResponse(buffer, content_type='image/png')
