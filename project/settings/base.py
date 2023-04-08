@@ -88,7 +88,7 @@ USE_TZ = True
 # Django Insights settings
 
 # Custom app name
-INSIGHTS_APP_NAME = "Bezamon"
+INSIGHTS_APP_NAME = "Finq"
 
 # Quality of chart images
 INSIGHTS_CHART_DPI = 180
