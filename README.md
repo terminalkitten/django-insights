@@ -8,7 +8,8 @@ Create insights for your app, store them in a SQLite database for further proces
 
 ### Note:
 
-Still working on some small things, extending tests and improve docs.
+Still working on some small things, extending tests and improving the documentation.
+
 For now focus is on:
 
 - Django 3.2 (LTS), 4.0,4.1 and 4.2;
@@ -111,7 +112,7 @@ urlpatterns = [
 
 !["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_2.png)
 
-Now you can visit https://localhost:8000/insights to inspect your Django Insights database
+Now you can visit https://localhost:8000/insights to inspect your Django Insights database.
 
 ## Metrics
 
@@ -264,7 +265,7 @@ INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
 
 ## Use-cases
 
-Insights are gathered from your current application state, Django Insights is not intentend to be used as a realtime, incremementing datasource. You should be able to re-gather these insights from your actual data at any moment in time.
+Insights are gathered from your current application state, Django Insights is not intentend to be used as a realtime, incremementing data-source. You should be able to re-gather these insights from your actual data at any moment in time.
 
 Yes:
 

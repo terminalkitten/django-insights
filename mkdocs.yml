@@ -13,13 +13,19 @@ repo_url: https://github.com/terminalkitten/django-insights
 theme:
   name: material
   palette:
+    accent: pink
+    primary: pink
     scheme: slate
   font:
-    text: Ubuntu
+    text: Roboto
   icon:
-    logo: material/library-outline
+    logo: octicons/pulse-16
   features:
     - navigation.footer
+
+# Custom CSS
+extra_css:
+  - stylesheets/extra.css
 
 # Pages
 nav:
