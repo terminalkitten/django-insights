@@ -13,8 +13,8 @@ repo_url: https://github.com/terminalkitten/django-insights
 theme:
   name: material
   palette:
-    accent: pink
-    primary: pink
+    accent: orange
+    primary: orange
     scheme: slate
   font:
     text: Roboto
