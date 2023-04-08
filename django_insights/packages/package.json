@@ -4,13 +4,14 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "dev": "tailwindcss -i ./src/input.css -o ../static/insights/css/insights.css --watch"
+    "dev": "tailwindcss -i ./src/input.css -o ../static/insights/css/insights.css --watch",
+    "bundle": "esbuild src/index.js --minify --bundle --outfile=../static/insights/js/insights.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nightwind": "^1.1.13",
+    "esbuild": "^0.17.15",
     "preline": "^1.7.0",
     "tailwindcss": "^3.2.7"
   }
