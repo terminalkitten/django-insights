@@ -43,10 +43,12 @@
         
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
-        <style>:root{--md-text-font:"Ubuntu";--md-code-font:"Roboto Mono"}</style>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -63,7 +65,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="pink" data-md-color-accent="pink">
   
     
     
@@ -90,7 +92,7 @@
     <a href=".." title="Django Insights" class="md-header__button md-logo" aria-label="Django Insights" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.242 11.242 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24Z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M6 2c.306 0 .582.187.696.471L10 10.731l1.304-3.26A.751.751 0 0 1 12 7h3.25a.75.75 0 0 1 0 1.5h-2.742l-1.812 4.528a.751.751 0 0 1-1.392 0L6 4.77 4.696 8.03A.75.75 0 0 1 4 8.5H.75a.75.75 0 0 1 0-1.5h2.742l1.812-4.529A.751.751 0 0 1 6 2Z"/></svg>
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -188,7 +190,7 @@
     <a href=".." title="Django Insights" class="md-nav__button md-logo" aria-label="Django Insights" data-md-component="logo">
       
   
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14.27 10.64 13A11.242 11.242 0 0 0 5 10.18v6.95c2.61.34 5 1.34 7 2.82 2-1.48 4.39-2.48 7-2.82v-6.95c-2.16.39-4.09 1.39-5.64 2.82M19 8.15c.65-.1 1.32-.15 2-.15v11c-3.5 0-6.64 1.35-9 3.54C9.64 20.35 6.5 19 3 19V8c.68 0 1.35.05 2 .15 2.69.41 5.1 1.63 7 3.39 1.9-1.76 4.31-2.98 7-3.39M12 6c.27 0 .5-.1.71-.29.19-.21.29-.44.29-.71s-.1-.5-.29-.71C12.5 4.11 12.27 4 12 4s-.5.11-.71.29c-.18.21-.29.45-.29.71s.11.5.29.71c.21.19.45.29.71.29m2.12 1.12a2.997 2.997 0 1 1-4.24-4.24 2.997 2.997 0 1 1 4.24 4.24Z"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M6 2c.306 0 .582.187.696.471L10 10.731l1.304-3.26A.751.751 0 0 1 12 7h3.25a.75.75 0 0 1 0 1.5h-2.742l-1.812 4.528a.751.751 0 0 1-1.392 0L6 4.77 4.696 8.03A.75.75 0 0 1 4 8.5H.75a.75.75 0 0 1 0-1.5h2.742l1.812-4.529A.751.751 0 0 1 6 2Z"/></svg>
 
     </a>
     Django Insights
@@ -269,9 +271,67 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Installation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         Installation
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    Settings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrate-database" class="md-nav__link">
+    Migrate database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collect-your-insights" class="md-nav__link">
+    Collect your insights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -381,6 +441,48 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    Settings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrate-database" class="md-nav__link">
+    Migrate database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collect-your-insights" class="md-nav__link">
+    Collect your insights
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -398,6 +500,57 @@
 
 
 <h1 id="installation">Installation</h1>
+<p>Installing with:</p>
+<pre><code class="language-bash">pip install 'django-insights'
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>First create a <code>insights.py</code> file in your app directory, for example:</p>
+<pre><code class="language-bash">project
+└── testapp
+    └── insights.py
+</code></pre>
+<p>Each app can have it's own <code>insignts.py</code> file, these files are auto-discovered by Django Insights, so at any given location it would pick up your metrics.</p>
+<p>In these insights files you write out any metric you would like to track. Each metric starts with a question and some values to store. Below is a example of the <code>@metrics.counter</code> function:</p>
+<pre><code class="language-python"># project/testapp/insights.py
+from django_insights.metrics import metrics
+from project.testapp.models import Author
+
+label = &quot;Bookstore&quot;
+
+@metrics.counter(question=&quot;How many authors are there?&quot;)
+def count_authors() -&gt; int:
+    return Author.objects.count()
+
+</code></pre>
+<p>Insight apps can have a <code>label</code>, this is used in the dashboard or can be read from <code>insights_app</code> table later on.</p>
+<h3 id="settings">Settings</h3>
+<p>Add django_insights package, insights database and router to your settings</p>
+<pre><code class="language-python">
+INSTALLED_APPS = [
+    ...
+    &quot;django_insights&quot;,
+]
+
+
+DATABASES = {
+    ...
+    &quot;insights&quot;: {&quot;ENGINE&quot;: &quot;django.db.backends.sqlite3&quot;, &quot;NAME&quot;: &quot;db/insights.db&quot;},
+    ...
+}
+
+DATABASE_ROUTERS = ['django_insights.database.Router']
+
+</code></pre>
+<p>Note: please make sure you exclude the database in your <code>.gitignore</code> file</p>
+<h3 id="migrate-database">Migrate database</h3>
+<pre><code class="language-bash">workon myapp
+python manage.py migrate insights --database=insights
+</code></pre>
+<h3 id="collect-your-insights">Collect your insights</h3>
+<pre><code class="language-bash">python manage.py collect_insights
+</code></pre>
+<p>You now have a database containing all insights from your application.</p>
+<p>You can inspect this database yourself with <code>sqlite3 db/insights.db</code> - or - you can use the Django Insights dashboard.</p>
 
 
 

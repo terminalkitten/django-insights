@@ -1,4 +1,3 @@
-[data-md-color-scheme="insights"] {
-    background-color:             hsla(20, 94%, 43%, 0.3);
-    --md-primary-bg-color:        #1F1D1D;
-  }
+[data-md-color-scheme="slate"] {
+  --md-hue: 210;
+}
