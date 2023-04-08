@@ -19,15 +19,18 @@ from django_insights.registry import registry
 
 
 class InsightMetrics:
-    """Auto-generate metrics from mulitple apps at once"""
+    """Auto-generate metrics from multiple apps at once"""
 
-    create_counters: list[Counter] = []
-    create_gauges: list[Gauge] = []
-    create_bucket_values: list[BucketValue] = []
+    create_counters: list[Counter]
+    create_gauges: list[Gauge]
+    create_bucket_values: list[BucketValue]
 
     apps: dict[str, App] = {}
 
     def __init__(self, reset=True) -> None:
+        self.create_counters = []
+        self.create_gauges = []
+        self.create_bucket_values = []
         self.delete_metrics() if reset else None
 
     def delete_metrics(self) -> None:
