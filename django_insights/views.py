@@ -67,7 +67,9 @@ class InsightsChartView(View):
         theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
         bucket: Bucket = await get_bucket(bucket_id)
 
-        filename: str = f"{settings.MEDIA_ROOT}insights/{bucket.type}-{bucket.pk}.png"
+        filename: str = (
+            f"{settings.MEDIA_ROOT}insights/{bucket.type}-{bucket.pk}-{theme}.png"
+        )
 
         if os.path.exists(filename) and settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
             with open(filename, 'rb') as cached_image:
