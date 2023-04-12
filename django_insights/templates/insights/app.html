@@ -126,7 +126,7 @@
                             {% chart bucket %}
                             <div class="h-full p-4 overflow-y-scroll">
                                 <!-- Table -->
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <table class="min-w-full">
                                     <thead class="bg-gray-50 dark:bg-slate-900">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
@@ -141,9 +141,9 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody>
                                         {% for bucket_value in bucket.values.all %}
-                                            <tr class="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-800">
+                                            <tr>
                                                 <td class="w-px h-px whitespace-nowrap">
                                                     <div class="px-6 py-2">
                                                         <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.yvalue }}</span>
@@ -207,7 +207,7 @@
                             {% chart bucket %}
                             <div class="h-full p-4 overflow-y-scroll">
                                 <!-- Table -->
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <table class="min-w-full">
                                     <thead class="bg-gray-50 dark:bg-slate-900">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
@@ -222,9 +222,9 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody>
                                         {% for bucket_value in bucket.values.all %}
-                                            <tr class="bg-white hover:bg-gray-50 dark:bg-slate-900 dark:hover:bg-slate-800">
+                                            <tr>
                                                 <td class="w-px h-px whitespace-nowrap">
                                                     <div class="px-6 py-2">
                                                         <span class="text-sm text-gray-600 dark:text-gray-400">{{ bucket_value.yvalue }}</span>
