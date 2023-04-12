@@ -37,6 +37,13 @@ class InsightsAppView(InsightAppMixin, DetailView):
     slug_url_kwarg = 'app_uuid'
     template_name = "insights/app.html"
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        app = self.get_object()
+
+        context = super().get_context_data(**kwargs)
+        context.update({'app_label': app.name})
+        return context
+
 
 class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
@@ -46,7 +53,7 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context.update({'gauges': Gauge.objects.all()})
+        context.update({'gauges': Gauge.objects.all(), 'app_label': 'Dashboard'})
         return context
 
 
