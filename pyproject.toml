@@ -33,7 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11"
 ]
 dynamic = ["version", "description"]
-dependencies = ["django", "matplotlib", "tqdm"]
+dependencies = ["django", "matplotlib", "tqdm", "weasyprint"]
 
 [project.optional-dependencies]
 dev = [

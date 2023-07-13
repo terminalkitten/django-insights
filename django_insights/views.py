@@ -9,8 +9,15 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.utils.decorators import classonlymethod
 from django.views.generic import DetailView, ListView, View
+from django_weasyprint import WeasyTemplateResponseMixin
 
-from django_insights.charts import barchart, scatterplot, timeseries, to_bytes_io
+from django_insights.charts import (
+    barchart,
+    hbarchart,
+    scatterplot,
+    timeseries,
+    to_bytes_io,
+)
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.settings import settings
 
@@ -49,6 +56,7 @@ class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
     def get_queryset(self) -> list[Any]:
+        # Get all metrics in one query?
         return Counter.objects.all()
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -92,6 +100,8 @@ class InsightsChartView(View):
             fig = await scatterplot(bucket, theme=theme)
         if bucket.is_barchart:
             fig = await barchart(bucket, theme=theme)
+        if bucket.is_hbarchart:
+            fig = await hbarchart(bucket, theme=theme)
 
         buffer = to_bytes_io(fig)
 
@@ -100,3 +110,42 @@ class InsightsChartView(View):
                 cached_image.write(buffer)
 
         return HttpResponse(buffer, content_type='image/png')
+
+
+class InsightsPDFView(WeasyTemplateResponseMixin, InsightAppMixin, ListView):
+    """Render PDF"""
+
+    queryset = App.objects.all()
+
+    pdf_stylesheets = [
+        settings.STATIC_ROOT + 'insights/css/pdf.css',
+    ]
+
+    template_name = 'insights/pdf.html'
+    pdf_attachment = False
+    pdf_filename = 'foo.pdf'
+
+
+class InsightsPDFTestView(InsightAppMixin, ListView):
+    """Render PDF HTML as test"""
+
+    queryset = App.objects.all()
+
+    pdf_stylesheets = [
+        settings.STATIC_ROOT + 'insights/css/pdf.css',
+    ]
+
+    def get_template_names(self):
+        return ['insights/pdf.html']
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        data = super().get_context_data(**kwargs)
+
+        data.update(
+            {
+                'test_mode': True,
+                'test_stylesheet': 'insights/css/pdf.css',
+            }
+        )
+
+        return data

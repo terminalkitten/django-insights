@@ -125,6 +125,10 @@ class Bucket(MetricModel):
     def is_barchart(self) -> bool:
         return self.type == BucketType.BARCHART
 
+    @property
+    def is_hbarchart(self) -> bool:
+        return self.type == BucketType.HBARCHART
+
     objects = BucketManager()
 
     class Meta:

@@ -1,0 +1,89 @@
+{% load static nice_format insight_chart %}
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Report {{ app_name }}</title>
+    <meta name="description" content="Insights report">
+    {% if test_mode %}
+      <link href="{% static test_stylesheet %}" rel="stylesheet" />
+    {% endif %}
+  </head>
+  <body>
+    <article id="cover">
+      <h1>Insights {{ app_name }}</h1>
+    </article>
+    {% for app in object_list %}
+      <article id="columns">
+        <h2>{{ app.name }}</h2>
+        <div class="counters">
+          {% for counter in app.counters.all %}
+            <!-- Counter -->
+            <div>
+              <p>{{ counter.question }}</p>
+              <div class="stats">
+                <h3>{{ counter.value }}</h3>
+                <span class="stats">
+                  <span class="counter">x</span>
+                </span>
+              </div>
+            </div>
+            <!-- End Counter Section -->
+          {% endfor %}
+        </div>
+        {% for bucket in app.buckets.timeseries %}
+          <h3>{{ bucket.question }}</h3>
+          <p>{{ bucket.desc }}</p>
+          {% pdf_chart bucket.pk %}
+          <section>
+            <!-- Table -->
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">{{ bucket.xlabel }}</th>
+                  <th scope="col">{{ bucket.ylabel }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for bucket_value in bucket.values.all %}
+                  <tr>
+                    <td>{{ bucket_value.timestamp|date:bucket.xformat|clean_str:"%" }}</td>
+                    <td>{{ bucket_value.xvalue|nice_float }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- End Table Section -->
+          </section>
+          {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+        {% endfor %}
+        {% for bucket in app.buckets.barcharts %}
+          <h3>{{ bucket.question }}</h3>
+          <p>{{ bucket.desc }}</p>
+          {% pdf_chart bucket.pk %}
+          <section>
+            <!-- Table -->
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">{{ bucket.xlabel }}</th>
+                  <th scope="col">{{ bucket.ylabel }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for bucket_value in bucket.values.all %}
+                  <tr>
+                    <td>{{ bucket_value.category }}</td>
+                    <td>{{ bucket_value.xvalue|nice_float }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <!-- End Table Section -->
+          </section>
+          {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+        {% endfor %}
+        {% if forloop.last %}<div class="pagebreak" />{% endif %}
+      </article>
+    {% endfor %}
+  </body>
+</html>

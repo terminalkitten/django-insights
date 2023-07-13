@@ -3,6 +3,8 @@ from __future__ import annotations
 import functools
 import importlib
 
+from django.db import IntegrityError
+
 from django_insights.choices import BucketType
 from django_insights.metrics_types import (
     BarChartAnswer,
@@ -301,6 +303,64 @@ class InsightMetrics:
 
         return decorator
 
+    def hbarchart(
+        self,
+        question: str = None,
+        desc: str = None,
+        xlabel: str = None,
+        xformat: str = None,
+        ylabel: str = None,
+        yformat: str = None,
+        title=None,
+    ):
+        """
+        Decorator to collect Horizontal Barchart metrics
+
+        """
+
+        def decorator(func):
+            label, app = self.get_app(func)
+
+            @functools.wraps(func)
+            def inner(*args, **kwargs):
+                results = func(*args, **kwargs)
+                bar_type = BarChartType(
+                    values=[BarChartAnswer(*result) for result in results]
+                )
+
+                bucket = Bucket.objects.create(
+                    app=app,
+                    label=label,
+                    question=question,
+                    desc=desc,
+                    xlabel=xlabel,
+                    xformat=xformat,
+                    ylabel=ylabel,
+                    yformat=yformat,
+                    title=title,
+                    type=BucketType.HBARCHART,
+                )
+
+                for row in bar_type.values:
+                    bucket_value = BucketValue(
+                        xvalue=row.xvalue,
+                        yvalue=row.yvalue,
+                        category=row.category,
+                        bucket=bucket,
+                    )
+                    self.create_bucket_values.append(bucket_value)
+
+            registry.register_insight(
+                label=label,
+                module=app.module,
+                question=question,
+                func=inner,
+            )
+
+            return None
+
+        return decorator
+
     def collect(self):
         """
         Collect insights
@@ -308,9 +368,16 @@ class InsightMetrics:
         """
         registry.collect_insights()
 
-        Counter.objects.bulk_create(self.create_counters)
-        Gauge.objects.bulk_create(self.create_gauges)
-        BucketValue.objects.bulk_create(self.create_bucket_values)
+        try:
+            Counter.objects.bulk_create(self.create_counters)
+            Gauge.objects.bulk_create(self.create_gauges)
+            BucketValue.objects.bulk_create(self.create_bucket_values)
+
+        except IntegrityError:
+            print(
+                "Something went wrong, most likely a you've redefined a insights method with the same name."
+            )
+            exit()
 
 
 metrics = InsightMetrics()

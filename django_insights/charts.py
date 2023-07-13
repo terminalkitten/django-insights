@@ -10,7 +10,6 @@ import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 from asgiref.sync import sync_to_async
-from matplotlib.ticker import LinearLocator
 
 from django_insights.models import Bucket
 from django_insights.settings import settings
@@ -96,12 +95,35 @@ def prepare_plot(bucket, theme):
     return fig, ax
 
 
-def render_barchart(xaxis, yaxis, labels, bucket, theme) -> str:
+def render_barchart(yaxis, xaxis, labels, bucket, theme) -> str:
     """Render barchart"""
     theme = getattr(themes, theme)
     fig, ax = prepare_plot(bucket, theme)
-    ax.bar(labels, yaxis, color=theme.primary)
+    ax.bar(labels, xaxis, color=theme.primary)
 
+    return fig
+
+
+def render_hbarchart(yaxis, xaxis, labels, combined_labels, bucket, theme) -> str:
+    """Render horizontal barchart"""
+    theme = getattr(themes, theme)
+    fig, ax = prepare_plot(bucket, theme)
+    bars = ax.barh(
+        combined_labels, xaxis, color=theme.primary, align='center', height=0.9
+    )
+    for bar in bars:
+        width = bar.get_width()
+        label_y_pos = bar.get_y() + bar.get_height() / 2
+        ax.text(width, label_y_pos, s=f'{width}', va='center', size=4)
+
+    for tick in ax.yaxis.get_major_ticks():
+        tick.label.set_fontsize(6)
+
+    ax.set_ylabel(bucket.xlabel)
+    ax.set_xlabel(bucket.ylabel)
+    _, xmax = plt.xlim()
+    plt.subplots_adjust(left=0.3, right=0.9)
+    plt.xlim(0, xmax + 100)
     return fig
 
 
@@ -123,22 +145,36 @@ def render_timeseries(xaxis, yaxis, bucket, theme) -> str:
     ax.plot(xaxis, yaxis, '--o', markersize=5, color=theme.primary)
 
     # Date formatting
-    fig.autofmt_xdate()
     ax.fmt_xdata = mdates.DateFormatter(bucket.xformat)
-    ax.yaxis.set_minor_locator(LinearLocator(25))
 
     return fig
 
 
 @sync_to_async
 def barchart(bucket: Bucket, theme: str) -> str:
-    """Barchart chart"""
+    """Barchart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
     labels = [bucket_value.category for bucket_value in values]
 
     return render_barchart(yvalues, xvalues, labels, bucket, theme)
+
+
+@sync_to_async
+def hbarchart(bucket: Bucket, theme: str) -> str:
+    """Horizontal Barchart"""
+    values = bucket.values.all()
+    yvalues = [bucket_value.yvalue for bucket_value in values]
+    xvalues = [bucket_value.xvalue for bucket_value in values]
+    labels = [bucket_value.category for bucket_value in values]
+
+    combined_labels = [
+        f"{bucket_value.category[0:30]}..:{int(bucket_value.yvalue)}"
+        for bucket_value in values
+    ]
+
+    return render_hbarchart(yvalues, xvalues, labels, combined_labels, bucket, theme)
 
 
 @sync_to_async
@@ -154,7 +190,7 @@ def scatterplot(bucket: Bucket, theme: str) -> str:
 @sync_to_async
 def timeseries(bucket: Bucket, theme: str) -> str:
     """Timeseries chart"""
-    values = bucket.values.all()
+    values = bucket.values.all().exclude(timestamp__date__year=2023)
 
     yvalues = [bucket_value.timestamp for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]

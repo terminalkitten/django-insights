@@ -16,6 +16,9 @@ class BucketQuerySet(models.QuerySet):
     def barcharts(self):
         return self.filter(type=BucketType.BARCHART)
 
+    def hbarcharts(self):
+        return self.filter(type=BucketType.HBARCHART)
+
 
 class BucketManager(models.Manager):
     def get_queryset(self):
@@ -32,3 +35,6 @@ class BucketManager(models.Manager):
 
     def barcharts(self):
         return self.get_queryset().barcharts()
+
+    def hbarcharts(self):
+        return self.get_queryset().hbarcharts()
