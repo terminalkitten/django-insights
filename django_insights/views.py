@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 from asgiref.sync import sync_to_async
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.utils.decorators import classonlymethod
@@ -22,7 +23,12 @@ from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.settings import settings
 
 
-class InsightAppMixin(View):
+class StaffMemberAndSuperUserRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_staff and self.request.user.is_superuser
+
+
+class InsightAppMixin(LoginRequiredMixin, StaffMemberAndSuperUserRequiredMixin, View):
     apps: list[App] = []
 
     def get_apps(self) -> QuerySet[App]:
@@ -71,7 +77,7 @@ def get_bucket(bucket_id: int) -> Bucket:
     return Bucket.objects.get(pk=bucket_id)
 
 
-class InsightsChartView(View):
+class InsightsChartView(LoginRequiredMixin, View):
     @classonlymethod
     def as_view(cls, **initkwargs):
         view = super().as_view(**initkwargs)
