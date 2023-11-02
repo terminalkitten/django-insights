@@ -89,7 +89,7 @@ class InsightsChartView(LoginRequiredMixin, View):
         bucket: Bucket = await get_bucket(bucket_id)
 
         filename: str = (
-            f"{settings.MEDIA_ROOT}insights/{bucket.type}-{bucket.pk}-{theme}.png"
+            f"{settings.MEDIA_ROOT}/insights/{bucket.type}-{bucket.pk}-{theme}.png"
         )
 
         if os.path.exists(filename) and settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
