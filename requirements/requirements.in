@@ -4,4 +4,5 @@ pytest
 pytest-django
 faker
 tqdm
-weasyprint
+weasyprint==52.5
+django-weasyprint==1.1.0.post2
