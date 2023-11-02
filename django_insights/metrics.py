@@ -373,10 +373,11 @@ class InsightMetrics:
             Gauge.objects.bulk_create(self.create_gauges)
             BucketValue.objects.bulk_create(self.create_bucket_values)
 
-        except IntegrityError:
+        except IntegrityError as e:
             print(
                 "Something went wrong, most likely a you've redefined a insights method with the same name."
             )
+            print("Stacktrace:", e)
             exit()
 
 

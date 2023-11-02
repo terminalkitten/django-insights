@@ -117,7 +117,7 @@ def render_hbarchart(yaxis, xaxis, labels, combined_labels, bucket, theme) -> st
         ax.text(width, label_y_pos, s=f'{width}', va='center', size=4)
 
     for tick in ax.yaxis.get_major_ticks():
-        tick.label.set_fontsize(6)
+        tick.label1.set_fontsize(6)
 
     ax.set_ylabel(bucket.xlabel)
     ax.set_xlabel(bucket.ylabel)

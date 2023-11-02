@@ -17,70 +17,120 @@
         <h2>{{ app.name }}</h2>
         <div class="counters">
           {% for counter in app.counters.all %}
-            <!-- Counter -->
-            <div>
-              <p>{{ counter.question }}</p>
-              <div class="stats">
-                <h3>{{ counter.value }}</h3>
-                <span class="stats">
-                  <span class="counter">x</span>
-                </span>
+            {% if counter %}
+              <!-- Counter -->
+              <div>
+                <p>{{ counter.question }}</p>
+                <div class="stats">
+                  <h3>{{ counter.value }}</h3>
+                  <span class="stats">
+                    <span class="counter">x</span>
+                  </span>
+                </div>
               </div>
-            </div>
-            <!-- End Counter Section -->
+              <!-- End Counter Section -->
+            {% endif %}
+          {% endfor %}
+          {% for gauge in app.gauges.all %}
+            {% if gauge %}
+              <!-- Gauges -->
+              <div>
+                <p>{{ gauge.question }}</p>
+                <div class="stats">
+                  <h3>{{ gauge.value }}</h3>
+                  <span class="stats">
+                    <span class="counter">%</span>
+                  </span>
+                </div>
+              </div>
+              <!-- End Gauges Section -->
+            {% endif %}
           {% endfor %}
         </div>
+        <div class="pagebreak" />
         {% for bucket in app.buckets.timeseries %}
-          <h3>{{ bucket.question }}</h3>
-          <p>{{ bucket.desc }}</p>
-          {% pdf_chart bucket.pk %}
-          <section>
-            <!-- Table -->
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">{{ bucket.xlabel }}</th>
-                  <th scope="col">{{ bucket.ylabel }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for bucket_value in bucket.values.all %}
+          {% if bucket %}
+            <h3>{{ bucket.question }}</h3>
+            <p>{{ bucket.desc }}</p>
+            {% pdf_chart bucket.pk %}
+            <section>
+              <!-- Table -->
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ bucket_value.timestamp|date:bucket.xformat|clean_str:"%" }}</td>
-                    <td>{{ bucket_value.xvalue|nice_float }}</td>
+                    <th scope="col">{{ bucket.xlabel }}</th>
+                    <th scope="col">{{ bucket.ylabel }}</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            <!-- End Table Section -->
-          </section>
-          {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+                </thead>
+                <tbody>
+                  {% for bucket_value in bucket.values.all %}
+                    <tr>
+                      <td>{{ bucket_value.timestamp|date:bucket.xformat|clean_str:"%" }}</td>
+                      <td>{{ bucket_value.xvalue|nice_float }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <!-- End Table Section -->
+            </section>
+            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+          {% endif %}
         {% endfor %}
         {% for bucket in app.buckets.barcharts %}
-          <h3>{{ bucket.question }}</h3>
-          <p>{{ bucket.desc }}</p>
-          {% pdf_chart bucket.pk %}
-          <section>
-            <!-- Table -->
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">{{ bucket.xlabel }}</th>
-                  <th scope="col">{{ bucket.ylabel }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for bucket_value in bucket.values.all %}
+          {% if bucket %}
+            <h3>{{ bucket.question }}</h3>
+            <p>{{ bucket.desc }}</p>
+            {% pdf_chart bucket.pk %}
+            <section>
+              <!-- Table -->
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ bucket_value.category }}</td>
-                    <td>{{ bucket_value.xvalue|nice_float }}</td>
+                    <th scope="col">{{ bucket.xlabel }}</th>
+                    <th scope="col">{{ bucket.ylabel }}</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            <!-- End Table Section -->
-          </section>
-          {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+                </thead>
+                <tbody>
+                  {% for bucket_value in bucket.values.all %}
+                    <tr>
+                      <td>{{ bucket_value.category }}</td>
+                      <td>{{ bucket_value.xvalue|nice_float }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <!-- End Table Section -->
+            </section>
+            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+          {% endif %}
+        {% endfor %}
+        {% for bucket in app.buckets.hbarcharts %}
+          {% if bucket %}
+            <h3>{{ bucket.question }}</h3>
+            <p>{{ bucket.desc }}</p>
+            {% pdf_chart bucket.pk %}
+            <section>
+              <!-- Table -->
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">{{ bucket.xlabel }}</th>
+                    <th scope="col">{{ bucket.ylabel }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for bucket_value in bucket.values.all %}
+                    <tr>
+                      <td>{{ bucket_value.category }}</td>
+                      <td>{{ bucket_value.xvalue|nice_float }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <!-- End Table Section -->
+            </section>
+            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+          {% endif %}
         {% endfor %}
         {% if forloop.last %}<div class="pagebreak" />{% endif %}
       </article>

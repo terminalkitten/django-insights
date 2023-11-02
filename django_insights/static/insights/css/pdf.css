@@ -333,7 +333,7 @@ table thead {
   vertical-align: bottom;
 }
 
-.pagebreak { page-break-before: always; border-bottom: 1px solid red; }
+.pagebreak { page-break-before: always;}
 
 
 .counters {
