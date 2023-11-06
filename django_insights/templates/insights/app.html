@@ -136,9 +136,19 @@
                                 </button>
                             </div>
                             {% chart bucket %}
+                            <div class="flex flex-row gap-2">
+                                <a type="button"
+                                data-insights-csv-copy="#insights-table-{{ bucket.label }}"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                >Copy as CSV</a>
+                                <a type="button"
+                                   data-insights-csv-download="#insights-table-{{ bucket.label }}"
+                                   class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                   >Download as CSV</a>
+                            </div>
                             <div class="h-full p-4 overflow-y-scroll">
                                 <!-- Table -->
-                                <table class="min-w-full">
+                                <table class="min-w-full" id="insights-table-{{ bucket.label }}">
                                     <thead class="bg-gray-50 dark:bg-slate-900">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
@@ -242,9 +252,19 @@
                                 </button>
                             </div>
                             {% chart bucket %}
+                            <div class="flex flex-row gap-2">
+                                <a type="button"
+                                data-insights-csv-copy="#insights-table-{{ bucket.label }}"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                >Copy as CSV</a>
+                                <a type="button"
+                                   data-insights-csv-download="#insights-table-{{ bucket.label }}"
+                                   class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                   >Download as CSV</a>
+                            </div>
                             <div class="h-full p-4 overflow-y-scroll">
                                 <!-- Table -->
-                                <table class="min-w-full">
+                                <table class="min-w-full" id="insights-table-{{ bucket.label }}">
                                     <thead class="bg-gray-50 dark:bg-slate-900">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
@@ -347,7 +367,7 @@
                                 </button>
                             </div>
                             {% chart bucket %}
-                            <div class="flex flex-row gap-2 px-4">
+                            <div class="flex flex-row gap-2">
                                 <a type="button"
                                 data-insights-csv-copy="#insights-table-{{ bucket.label }}"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
@@ -463,9 +483,19 @@
                                 </button>
                             </div>
                             {% chart bucket %}
+                            <div class="flex flex-row gap-2">
+                                <a type="button"
+                                data-insights-csv-copy="#insights-table-{{ bucket.label }}"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                >Copy as CSV</a>
+                                <a type="button"
+                                   data-insights-csv-download="#insights-table-{{ bucket.label }}"
+                                   class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
+                                   >Download as CSV</a>
+                            </div>
                             <div class="h-full p-4 overflow-y-scroll">
                                 <!-- Table -->
-                                <table class="min-w-full">
+                                <table class="min-w-full" id="insights-table-{{ bucket.label }}">
                                     <thead class="bg-gray-50 dark:bg-slate-900">
                                         <tr>
                                             <th scope="col" class="px-6 py-3 text-left">
