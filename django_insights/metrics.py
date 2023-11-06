@@ -18,6 +18,7 @@ from django_insights.metrics_types import (
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import registry
+from django_insights.utils import rebuild_chart_media_cache
 
 
 class InsightMetrics:
@@ -29,11 +30,10 @@ class InsightMetrics:
 
     apps: dict[str, App] = {}
 
-    def __init__(self, reset=True) -> None:
+    def __init__(self) -> None:
         self.create_counters = []
         self.create_gauges = []
         self.create_bucket_values = []
-        self.delete_metrics() if reset else None
 
     def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
@@ -361,11 +361,19 @@ class InsightMetrics:
 
         return decorator
 
-    def collect(self):
+    def collect(self, reset: bool = False):
         """
         Collect insights
 
         """
+
+        # Reset metrics
+        self.delete_metrics() if reset else None
+
+        # Break chart cache
+        rebuild_chart_media_cache()
+
+        # Collect insights
         registry.collect_insights()
 
         try:

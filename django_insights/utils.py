@@ -1,11 +1,25 @@
+import os
+import shutil
 from typing import Any, Callable
 
+from django.conf import settings
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
 
 
 class DjangoReadOnlyError(Exception):
     pass
+
+
+def rebuild_chart_media_cache() -> None:
+    """
+    Delete and recreate cache if cache is enabled and cache dir exists
+    """
+    if settings.INSIGHT_CHARTS_USE_MEDIA_CACHE and os.path.exists(
+        settings.INSIGHT_MEDIA_CACHE_ROOT
+    ):
+        shutil.rmtree(settings.INSIGHT_MEDIA_CACHE_ROOT)
+        os.mkdir(settings.INSIGHT_MEDIA_CACHE_ROOT)
 
 
 def should_block(sql: str) -> bool:
