@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any
+from typing import Any, Callable
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -23,12 +23,40 @@ from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.settings import settings
 
 
-class StaffMemberAndSuperUserRequiredMixin(UserPassesTestMixin):
+class CustomPermissionMixin(UserPassesTestMixin):
+
+    """
+    Run following permisssion
+
+    class IsSomeAdminUser:
+        def has_permission(self, request):
+            return
+    """
+
+    def run_permissions(self, permissions: list[Callable]) -> list[bool]:
+        """
+        Run all permission checks from INSIGHT_DASHBOARD_PERMISSIONS settings
+        and return output in array
+        """
+        return [
+            permission().has_permission(request=self.request)
+            for permission in permissions
+            if hasattr(permission(), 'has_permission')
+        ]
+
     def test_func(self):
-        return self.request.user.is_staff and self.request.user.is_superuser
+        return (
+            all(self.run_permissions(settings.INSIGHT_DASHBOARD_PERMISSIONS))
+            if settings.INSIGHT_DASHBOARD_PERMISSIONS
+            else True
+        )
 
 
-class InsightAppMixin(LoginRequiredMixin, StaffMemberAndSuperUserRequiredMixin, View):
+class InsightAppMixin(
+    LoginRequiredMixin,
+    CustomPermissionMixin,
+    View,
+):
     apps: list[App] = []
 
     def get_apps(self) -> QuerySet[App]:

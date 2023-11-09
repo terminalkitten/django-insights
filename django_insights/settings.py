@@ -18,6 +18,7 @@ class CustomSettings:
     INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
     INSIGHT_CHARTS_USE_MEDIA_CACHE = False
     INSIGHT_MEDIA_CACHE_ROOT = None
+    INSIGHT_DASHBOARD_PERMISSIONS = None
 
     def __getattribute__(self, name):
         try:
