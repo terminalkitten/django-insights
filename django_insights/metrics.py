@@ -96,7 +96,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 
@@ -128,7 +128,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 
@@ -183,7 +183,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 
@@ -241,7 +241,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 
@@ -299,7 +299,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 
@@ -357,7 +357,7 @@ class InsightMetrics:
                 func=inner,
             )
 
-            return None
+            return func
 
         return decorator
 

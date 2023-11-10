@@ -1,2 +1,2 @@
 """ Django Insights """
-__version__ = "0.2.8-alpha"
+__version__ = "0.2.9-alpha"

@@ -10,9 +10,6 @@ def check_settings():
         raise ImproperlyConfigured()
 
 
-check_settings()
-
-
 class Router:
     def db_for_read(self, model, **hints):
         if model._meta.app_label in app_labels:
