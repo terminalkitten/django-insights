@@ -69,3 +69,4 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
     if marker is None:
         return
     item.fixturenames.insert(0, 'insights_query')
+    item.fixturenames.insert(0, 'insights_config')
