@@ -16,7 +16,7 @@ project
     └── insights.py
 ```
 
-Each app can have it's own `insignts.py` file, these files are auto-discovered by Django Insights, so at any given location it would pick up your metrics.
+Each app can have it's own `insights.py` file, these files are auto-discovered by Django Insights, so at any given location it would pick up your metrics.
 
 In these insights files you write out any metric you would like to track. Each metric starts with a question and some values to store. Below is a example of the `@metrics.counter` function:
 
@@ -49,7 +49,10 @@ INSTALLED_APPS = [
 
 DATABASES = {
     ...
-    "insights": {"ENGINE": "django.db.backends.sqlite3", "NAME": "db/insights.db"},
+    "insights": {
+            "ENGINE": "django.db.backends.sqlite3", 
+            "NAME": os.path.join(BASE_DIR,"db/insights.db")
+        },
     ...
 }
 
@@ -73,5 +76,8 @@ python manage.py collect_insights
 ```
 
 You now have a database containing all insights from your application.
+
+Note: You need to run the `python manage.py collect_insights` command each time you want to update data on your dashboard. In production, you can setup a cron job to call this command at regular intervals depending on your use case. 
+
 
 You can inspect this database yourself with `sqlite3 db/insights.db` - or - you can use the Django Insights dashboard.
