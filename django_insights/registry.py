@@ -5,8 +5,6 @@ from typing import Any, Callable
 from django.utils.module_loading import autodiscover_modules
 from tqdm import tqdm
 
-from django_insights.utils import read_only_mode
-
 
 class InsightRegistry:
     registered_insights: list[tuple[str, str, str, Callable[[Any], Any]]] = list()
@@ -31,8 +29,8 @@ class InsightRegistry:
             progress_iterator.set_description(
                 desc=f"Create insights for {module}.{name}", refresh=True
             )
-            with read_only_mode(metric) as read_only_metric:
-                read_only_metric()
+
+            metric()
 
             progress_iterator.set_description(desc="Done!")
 
