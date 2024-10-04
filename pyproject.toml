@@ -37,8 +37,8 @@ dependencies = [
     "django",
     "matplotlib",
     "tqdm",
-    "weasyprint==52.5",
-    "django-weasyprint==1.1.0.post2",
+    "weasyprint>=53",
+    "django-weasyprint>=2.3",
 ]
 
 [project.optional-dependencies]
