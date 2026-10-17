@@ -9,6 +9,7 @@ from django.db import IntegrityError, transaction
 
 from django_insights.choices import BucketType
 from django_insights.database import database_entry
+from django_insights.exceptions import InsightsError
 from django_insights.metrics_types import (
     BarChartAnswer,
     BarChartResult,
@@ -23,7 +24,7 @@ from django_insights.metrics_types import (
     TimeSeriesType,
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
-from django_insights.registry import registry
+from django_insights.registry import InsightFailure, registry
 from django_insights.utils import rebuild_chart_media_cache
 
 P = ParamSpec('P')
@@ -41,6 +42,9 @@ class InsightMetrics:
     apps: dict[str, App]
 
     def __init__(self) -> None:
+        self.reset_state()
+
+    def reset_state(self) -> None:
         self.create_counters = []
         self.create_gauges = []
         self.create_bucket_values = []
@@ -48,11 +52,10 @@ class InsightMetrics:
 
     def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
-        with transaction.atomic(using=database_entry):
-            Counter.objects.all().delete()
-            Gauge.objects.all().delete()
-            Bucket.objects.all().delete()
-            BucketValue.objects.all().delete()
+        Counter.objects.all().delete()
+        Gauge.objects.all().delete()
+        Bucket.objects.all().delete()
+        BucketValue.objects.all().delete()
 
     def get_memoized_app(self, module: str, label: str | None = None) -> App:
         """Memoize apps so we reduce query count"""
@@ -370,33 +373,30 @@ class InsightMetrics:
 
         return decorator
 
-    def collect(self, reset: bool = False) -> None:
-        """
-        Collect insights
+    def collect(self, reset: bool = False) -> list[InsightFailure]:
+        """Collect all insights in one transaction on the insights database"""
+        self.reset_state()
+        try:
+            with transaction.atomic(using=database_entry):
+                if reset:
+                    self.delete_metrics()
+                failures = registry.collect_insights()
+                self.save_collected()
+        finally:
+            self.reset_state()
 
-        """
-
-        self.apps = {}
-
-        # Reset metrics
-        self.delete_metrics() if reset else None
-
-        # Break chart cache
         rebuild_chart_media_cache()
+        return failures
 
-        # Collect insights
-        registry.collect_insights()
-
+    def save_collected(self) -> None:
         try:
             Counter.objects.bulk_create(self.create_counters)
             Gauge.objects.bulk_create(self.create_gauges)
             BucketValue.objects.bulk_create(self.create_bucket_values)
         except IntegrityError as e:
-            raise IntegrityError(
+            raise InsightsError(
                 "Most likely you've redefined an insights method with the same name."
             ) from e
-        finally:
-            self.__init__()
 
 
 metrics = InsightMetrics()
