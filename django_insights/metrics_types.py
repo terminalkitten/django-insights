@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple
+
+TimeSeriesResult = Iterable[tuple[datetime.datetime, float]]
+ScatterPlotResult = Iterable[tuple[float, float, Any]]
+BarChartResult = Iterable[tuple[float, float, Any]]
 
 
 @dataclass
@@ -28,7 +33,7 @@ class TimeSeriesType:
 class ScatterPlotAnswer(NamedTuple):
     xvalue: float
     yvalue: float
-    category: Optional[Any]
+    category: Any | None
 
 
 @dataclass
@@ -39,7 +44,7 @@ class ScatterPlotType:
 class BarChartAnswer(NamedTuple):
     xvalue: float
     yvalue: float
-    category: Optional[Any]
+    category: Any | None
 
 
 @dataclass

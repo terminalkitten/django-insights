@@ -1,7 +1,8 @@
 import inspect
 from collections import namedtuple
+from collections.abc import Callable
 from importlib import import_module
-from typing import Callable
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -9,7 +10,7 @@ import pytest
 App = namedtuple('App', ('module'))
 
 
-def register_insights_modules(*args, **kwargs) -> dict[str, Callable]:
+def register_insights_modules(*args: str, **kwargs: Any) -> dict[str, Callable]:
     """
     Helper function to load insights functions into registry
     This way pytest can look them up and call them from a fixture,
@@ -28,7 +29,7 @@ def register_insights_modules(*args, **kwargs) -> dict[str, Callable]:
             try:
                 with patch('django_insights.metrics.InsightMetrics.get_app') as get_app:
                     get_app.return_value = ("foo", App(module="bar"))
-                    mod = import_module("%s.%s" % (app_config.name, module_to_search))
+                    mod = import_module(f"{app_config.name}.{module_to_search}")
                     functions = inspect.getmembers(mod, inspect.isfunction)
                     registry = {**registry, **dict(functions)}
             except Exception:
@@ -41,7 +42,7 @@ registry = register_insights_modules("insights")
 
 
 @pytest.fixture
-def insights_query(request) -> Callable | None:
+def insights_query(request: pytest.FixtureRequest) -> Callable | None:
     """
     Returns insights_query fixture, this function
     resolves wrapped function from registry
@@ -66,7 +67,6 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
         item (pytest.Item): pytest function description
     """
     marker = item.get_closest_marker("insights")
-    if marker is None:
+    if marker is None or not isinstance(item, pytest.Function):
         return
     item.fixturenames.insert(0, 'insights_query')
-    item.fixturenames.insert(0, 'insights_config')

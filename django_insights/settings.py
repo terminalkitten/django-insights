@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from django.conf import settings as django_settings
 
 __all__ = ["settings"]
@@ -20,7 +22,7 @@ class CustomSettings:
     INSIGHT_MEDIA_CACHE_ROOT = None
     INSIGHT_DASHBOARD_PERMISSIONS = None
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
         try:
             return getattr(django_settings, name)
         except AttributeError:

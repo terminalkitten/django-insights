@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import asyncio
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from asgiref.sync import sync_to_async
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
-from django.http import HttpResponse
-from django.utils.decorators import classonlymethod
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.views.generic import DetailView, ListView, View
-from django_weasyprint import WeasyTemplateResponseMixin
+from django.views.generic.base import ContextMixin
 
 from django_insights.charts import (
     barchart,
@@ -20,10 +20,14 @@ from django_insights.charts import (
     to_bytes_io,
 )
 from django_insights.models import App, Bucket, Counter, Gauge
+from django_insights.pdf import html_to_pdf
 from django_insights.settings import settings
+
+THEMES = ('light', 'dark')
 
 
 class CustomPermissionMixin(UserPassesTestMixin):
+    request: HttpRequest
 
     """
     Run following permisssion
@@ -44,7 +48,7 @@ class CustomPermissionMixin(UserPassesTestMixin):
             if hasattr(permission(), 'has_permission')
         ]
 
-    def test_func(self):
+    def test_func(self) -> bool:
         return (
             all(self.run_permissions(settings.INSIGHT_DASHBOARD_PERMISSIONS))
             if settings.INSIGHT_DASHBOARD_PERMISSIONS
@@ -55,11 +59,12 @@ class CustomPermissionMixin(UserPassesTestMixin):
 class InsightAppMixin(
     LoginRequiredMixin,
     CustomPermissionMixin,
+    ContextMixin,
     View,
 ):
-    apps: list[App] = []
+    apps: QuerySet | list[App] = []
 
-    def get_apps(self) -> QuerySet[App]:
+    def get_apps(self) -> QuerySet | list[App]:
         if not self.apps:
             self.apps = App.objects.all()
         return self.apps
@@ -89,7 +94,7 @@ class InsightsAppView(InsightAppMixin, DetailView):
 class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
-    def get_queryset(self) -> list[Any]:
+    def get_queryset(self) -> QuerySet[Counter]:
         # Get all metrics in one query?
         return Counter.objects.all()
 
@@ -99,22 +104,12 @@ class InsightsDashboardView(InsightAppMixin, ListView):
         return context
 
 
-@sync_to_async
-def get_bucket(bucket_id: int) -> Bucket:
-    """Get bucket from async context"""
-    return Bucket.objects.get(pk=bucket_id)
-
-
-class InsightsChartView(LoginRequiredMixin, View):
-    @classonlymethod
-    def as_view(cls, **initkwargs):
-        view = super().as_view(**initkwargs)
-        view._is_coroutine = asyncio.coroutines._is_coroutine
-        return view
-
-    async def get(self, request, bucket_id):
-        theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
-        bucket: Bucket = await get_bucket(bucket_id)
+class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
+    def get(self, request: HttpRequest, bucket_id: int) -> HttpResponse:
+        theme = self.request.COOKIES.get('theme')
+        if theme not in THEMES:  # cookie is user input, it ends up in a file path
+            theme = settings.INSIGHTS_DEFAULT_THEME
+        bucket = get_object_or_404(Bucket, pk=bucket_id)
 
         filename: str = (
             f"{settings.INSIGHT_MEDIA_CACHE_ROOT}/{bucket.type}-{bucket.pk}-{theme}.png"
@@ -129,13 +124,16 @@ class InsightsChartView(LoginRequiredMixin, View):
         fig = None
 
         if bucket.is_timeseries:
-            fig = await timeseries(bucket, theme=theme)
+            fig = timeseries(bucket, theme=theme)
         if bucket.is_scatterplot:
-            fig = await scatterplot(bucket, theme=theme)
+            fig = scatterplot(bucket, theme=theme)
         if bucket.is_barchart:
-            fig = await barchart(bucket, theme=theme)
+            fig = barchart(bucket, theme=theme)
         if bucket.is_hbarchart:
-            fig = await hbarchart(bucket, theme=theme)
+            fig = hbarchart(bucket, theme=theme)
+
+        if fig is None:
+            raise Http404("Unsupported bucket type")
 
         buffer = to_bytes_io(fig)
 
@@ -146,18 +144,20 @@ class InsightsChartView(LoginRequiredMixin, View):
         return HttpResponse(buffer, content_type='image/png')
 
 
-class InsightsPDFView(WeasyTemplateResponseMixin, InsightAppMixin, ListView):
+class InsightsPDFView(InsightAppMixin, ListView):
     """Render PDF"""
 
     queryset = App.objects.all()
-
-    pdf_stylesheets = [
-        settings.STATIC_ROOT + 'insights/css/pdf.css',
-    ]
-
     template_name = 'insights/pdf.html'
-    pdf_attachment = False
-    pdf_filename = 'foo.pdf'
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        self.object_list = self.get_queryset()
+        html = render_to_string(
+            self.get_template_names(), self.get_context_data(), request=request
+        )
+        response = HttpResponse(html_to_pdf(html), content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="insights.pdf"'
+        return response
 
 
 class InsightsPDFTestView(InsightAppMixin, ListView):
@@ -165,11 +165,7 @@ class InsightsPDFTestView(InsightAppMixin, ListView):
 
     queryset = App.objects.all()
 
-    pdf_stylesheets = [
-        settings.STATIC_ROOT + 'insights/css/pdf.css',
-    ]
-
-    def get_template_names(self):
+    def get_template_names(self) -> list[str]:
         return ['insights/pdf.html']
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

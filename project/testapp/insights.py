@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
-
 from django.db.models import Avg, Case, Count, Value, When
 from django.db.models.functions import Length, TruncMonth, TruncYear
 
 from django_insights.metrics import metrics
+from django_insights.metrics_types import (
+    BarChartResult,
+    ScatterPlotResult,
+    TimeSeriesResult,
+)
 from project.testapp.models import Author, Book
 
 label = "Books"
@@ -71,7 +73,7 @@ def count_authors_name_gt_20() -> int:
 
 
 @metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> int:
+def avg_books_per_author() -> float:
     avg_total_books = (
         Author.objects.prefetch_related('books')
         .annotate(total_books=Count('books'))
@@ -79,7 +81,7 @@ def avg_books_per_author() -> int:
         .get('total_books__avg')
     )
 
-    return avg_total_books
+    return avg_total_books or 0.0
 
 
 @metrics.timeseries(
@@ -89,7 +91,7 @@ def avg_books_per_author() -> int:
     xformat='%m',
     ylabel="Num of books",
 )
-def num_of_books_per_month() -> list[tuple[datetime, int]]:
+def num_of_books_per_month() -> TimeSeriesResult:
     return (
         Book.objects.all()
         .annotate(month=TruncMonth('created'))
@@ -107,7 +109,7 @@ def num_of_books_per_month() -> list[tuple[datetime, int]]:
     xformat='%Y',
     ylabel="Num of books",
 )
-def num_of_books_per_year() -> list[tuple[datetime, int]]:
+def num_of_books_per_year() -> TimeSeriesResult:
     return (
         Book.objects.all()
         .annotate(year=TruncYear('created'))
@@ -124,7 +126,7 @@ def num_of_books_per_year() -> list[tuple[datetime, int]]:
     xlabel="Age",
     ylabel="Num of books",
 )
-def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
+def author_age_vs_num_of_books() -> ScatterPlotResult:
     return (
         Author.objects.values('age')
         .annotate(num_of_books=Count('books'), category=Value("author"))
@@ -137,7 +139,7 @@ def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
     xlabel="Gender",
     ylabel="Num of books",
 )
-def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
+def author_gender_vs_num_of_books() -> BarChartResult:
     return (
         Author.objects.values('gender')
         .annotate(

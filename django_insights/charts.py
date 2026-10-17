@@ -1,27 +1,28 @@
 from __future__ import annotations
 
 import base64
+import datetime
 import io
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 
 import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
-import matplotlib.pyplot as plt
-from asgiref.sync import sync_to_async
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
-from django_insights.models import Bucket
+from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
 
-matplotlib.use('Agg')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
 
 
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = 'Ubuntu'
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['font.sans-serif'] = 'Ubuntu'
 
 
 class ChartSize(Enum):
@@ -63,6 +64,13 @@ themes = Theme(
 )
 
 
+FIGSIZES = {
+    ChartSize.SMALL: (8, 4),
+    ChartSize.MEDIUM: (16, 8),
+    ChartSize.LARGE: (32, 16),
+}
+
+
 def get_figsize(size: ChartSize) -> tuple[int, int]:
     """Size of charts
 
@@ -73,15 +81,10 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
         tuple[int, int]: return tuple of figure siza
     """
 
-    if size == ChartSize.SMALL:
-        return (8, 4)
-    if size == ChartSize.MEDIUM:
-        return (16, 8)
-    if size == ChartSize.LARGE:
-        return (32, 16)
+    return FIGSIZES[size]
 
 
-def to_bytes_io(fig) -> bytes:
+def to_bytes_io(fig: Figure) -> bytes:
     """Render Mathplotlib figure to file-like object"""
     flike = io.BytesIO()
     fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
@@ -89,18 +92,21 @@ def to_bytes_io(fig) -> bytes:
     return flike.getvalue()
 
 
-def to_base64img(fig) -> str:
+def to_base64img(fig: Figure) -> str:
     """Render Mathplotlib figure to Base64 encoded image"""
     return base64.b64encode(to_bytes_io(fig)).decode()
 
 
-def prepare_plot(bucket, theme, size: ChartSize = ChartSize.SMALL):
+def prepare_plot(
+    bucket: Bucket, theme: ThemeColor, size: ChartSize = ChartSize.SMALL
+) -> tuple[Figure, Axes]:
     """Default plot options, used for all charts"""
 
     figsize = get_figsize(size)
-
-    fig, ax = plt.subplots(figsize=figsize)
+    fig = Figure(figsize=figsize)
+    ax = fig.subplots()
     fig.set_facecolor(theme.face)
+
     ax.tick_params(axis='x', colors=theme.tick)
     ax.tick_params(axis='y', colors=theme.tick)
     ax.set_facecolor(theme.face)
@@ -114,7 +120,7 @@ def prepare_plot(bucket, theme, size: ChartSize = ChartSize.SMALL):
         linewidth=0.1,
         color=theme.grid,
         zorder=-10,
-        visible=False,
+        visible=True,
     )
 
     for spine in ax.spines.values():
@@ -123,7 +129,14 @@ def prepare_plot(bucket, theme, size: ChartSize = ChartSize.SMALL):
     return fig, ax
 
 
-def render_barchart(yaxis, xaxis, labels, bucket, theme, size) -> str:
+def render_barchart(
+    yaxis: Sequence[float],
+    xaxis: Sequence[float],
+    labels: Sequence[str],
+    bucket: Bucket,
+    theme: str,
+    size: ChartSize,
+) -> Figure:
     """Render barchart"""
     theme = getattr(themes, theme)
     fig, ax = prepare_plot(bucket, theme, size)
@@ -132,7 +145,15 @@ def render_barchart(yaxis, xaxis, labels, bucket, theme, size) -> str:
     return fig
 
 
-def render_hbarchart(yaxis, xaxis, labels, combined_labels, bucket, theme, size) -> str:
+def render_hbarchart(
+    yaxis: Sequence[float],
+    xaxis: Sequence[float],
+    labels: Sequence[str],
+    combined_labels: Sequence[str],
+    bucket: Bucket,
+    theme: str,
+    size: ChartSize,
+) -> Figure:
     """Render horizontal barchart"""
     theme = getattr(themes, theme)
     fig, ax = prepare_plot(bucket, theme, size)
@@ -156,13 +177,19 @@ def render_hbarchart(yaxis, xaxis, labels, combined_labels, bucket, theme, size)
     ax.set_ylabel(bucket.xlabel)
     ax.set_xlabel(bucket.ylabel)
 
-    _, xmax = plt.xlim()
-    plt.subplots_adjust(left=0.3, right=0.9)
-    plt.xlim(0, xmax + 100)
+    _, xmax = ax.get_xlim()
+    fig.subplots_adjust(left=0.3, right=0.9)
+    ax.set_xlim(0, xmax + 100)
     return fig
 
 
-def render_scatterplot(xaxis, yaxis, bucket, theme, size) -> str:
+def render_scatterplot(
+    xaxis: Sequence[float],
+    yaxis: Sequence[float],
+    bucket: Bucket,
+    theme: str,
+    size: ChartSize,
+) -> Figure:
     """Render scatterplot"""
     theme = getattr(themes, theme)
 
@@ -172,7 +199,13 @@ def render_scatterplot(xaxis, yaxis, bucket, theme, size) -> str:
     return fig
 
 
-def render_timeseries(xaxis, yaxis, bucket, theme, size) -> str:
+def render_timeseries(
+    xaxis: Sequence[datetime.datetime],
+    yaxis: Sequence[float],
+    bucket: Bucket,
+    theme: str,
+    size: ChartSize,
+) -> Figure:
     """Render timeseries"""
     theme = getattr(themes, theme)
 
@@ -185,10 +218,9 @@ def render_timeseries(xaxis, yaxis, bucket, theme, size) -> str:
     return fig
 
 
-@sync_to_async
-def barchart(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Barchart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
     labels = [bucket_value.category for bucket_value in values]
@@ -196,10 +228,9 @@ def barchart(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
 
-@sync_to_async
-def hbarchart(bucket: Bucket, theme: str, size: str = ChartSize.MEDIUM) -> str:
+def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> Figure:
     """Horizontal Barchart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
     labels = [bucket_value.category for bucket_value in values]
@@ -214,20 +245,20 @@ def hbarchart(bucket: Bucket, theme: str, size: str = ChartSize.MEDIUM) -> str:
     )
 
 
-@sync_to_async
-def scatterplot(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def scatterplot(
+    bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL
+) -> Figure:
     """Scatterplot chart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
 
     return render_scatterplot(yvalues, xvalues, bucket, theme, size)
 
 
-@sync_to_async
-def timeseries(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Timeseries chart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
 
     yvalues = [bucket_value.timestamp for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
