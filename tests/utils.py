@@ -10,3 +10,7 @@ class AllowAll:
 class DenyAll:
     def has_permission(self, request):
         return False
+
+
+class NoMethod:
+    pass
