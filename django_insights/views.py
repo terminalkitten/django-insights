@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
+from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
@@ -151,9 +152,14 @@ class InsightsPDFView(InsightAppMixin, ListView):
 
 
 class InsightsPDFTestView(InsightAppMixin, ListView):
-    """Render PDF HTML as test"""
+    """Render PDF HTML as test, only available when DEBUG is on"""
 
     queryset = App.objects.all()
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if not django_settings.DEBUG:
+            raise Http404("The PDF preview is only available when DEBUG is on")
+        return super().get(request, *args, **kwargs)
 
     def get_template_names(self) -> list[str]:
         return ['insights/pdf.html']
