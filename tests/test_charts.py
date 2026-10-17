@@ -1,5 +1,6 @@
 import sys
 
+import matplotlib
 import pytest
 from matplotlib.figure import Figure
 
@@ -51,3 +52,34 @@ def test_bars_without_a_category_still_render(render, bucket_type):
 def test_unknown_theme_is_rejected():
     with pytest.raises(ValueError, match='Unknown theme'):
         charts.get_theme('neon')
+
+
+def test_rendering_charts_leaves_the_host_matplotlib_config_alone(collected):
+    before = (
+        list(matplotlib.rcParams['font.family']),
+        list(matplotlib.rcParams['font.sans-serif']),
+    )
+
+    figure = charts.barchart(Bucket.objects.barcharts().earliest('pk'), theme='dark')
+    to_bytes_io(figure)
+
+    after = (
+        list(matplotlib.rcParams['font.family']),
+        list(matplotlib.rcParams['font.sans-serif']),
+    )
+    assert after == before
+
+
+def test_figures_are_saved_with_the_bundled_font(collected, monkeypatch):
+    figure = charts.barchart(Bucket.objects.barcharts().earliest('pk'), theme='dark')
+    save = figure.savefig
+    fonts = []
+
+    def recording_save(*args, **kwargs):
+        fonts.append(list(matplotlib.rcParams['font.sans-serif']))
+        return save(*args, **kwargs)
+
+    monkeypatch.setattr(figure, 'savefig', recording_save)
+    to_bytes_io(figure)
+
+    assert fonts == [['Ubuntu']]
