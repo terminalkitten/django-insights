@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import functools
 import importlib
+from collections.abc import Callable
+from typing import ParamSpec, TypeVar
 
 from django.db import IntegrityError, transaction
 
@@ -9,17 +11,25 @@ from django_insights.choices import BucketType
 from django_insights.database import database_entry
 from django_insights.metrics_types import (
     BarChartAnswer,
+    BarChartResult,
     BarChartType,
     CounterType,
     GaugeType,
     ScatterPlotAnswer,
+    ScatterPlotResult,
     ScatterPlotType,
     TimeSeriesAnswer,
+    TimeSeriesResult,
     TimeSeriesType,
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import registry
 from django_insights.utils import rebuild_chart_media_cache
+
+P = ParamSpec('P')
+TimeSeriesReturn = TypeVar('TimeSeriesReturn', bound=TimeSeriesResult)
+ScatterPlotReturn = TypeVar('ScatterPlotReturn', bound=ScatterPlotResult)
+BarChartReturn = TypeVar('BarChartReturn', bound=BarChartResult)
 
 
 class InsightMetrics:
@@ -55,24 +65,26 @@ class InsightMetrics:
 
         return app
 
-    def get_app(self, func) -> tuple[str, App]:
+    def get_app(self, func: Callable[..., object]) -> tuple[str, App]:
         """Describe the app of an insight"""
 
-        label = func.__name__
-        module = func.__module__
+        label = getattr(func, '__name__', repr(func))
+        module = getattr(func, '__module__', '')
         insights_module = importlib.import_module(module)
 
         app_label = getattr(insights_module, 'label', None)
         return label, App(module=module, label=app_label)
 
-    def counter(self, question: str | None = None, desc: str | None = None):
+    def counter(
+        self, question: str | None = None, desc: str | None = None
+    ) -> Callable[[Callable[P, int]], Callable[P, int]]:
         """Decorator to collect Counter metrics"""
 
-        def decorator(func):
+        def decorator(func: Callable[P, int]) -> Callable[P, int]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 counter_type = CounterType(value=func(*args, **kwargs))
                 counter = Counter(
                     app=self.get_memoized_app(app.module, app.label),
@@ -94,14 +106,16 @@ class InsightMetrics:
 
         return decorator
 
-    def gauge(self, question: str | None = None, desc: str | None = None):
+    def gauge(
+        self, question: str | None = None, desc: str | None = None
+    ) -> Callable[[Callable[P, float]], Callable[P, float]]:
         """Decorator to collect Gauge metric"""
 
-        def decorator(func):
+        def decorator(func: Callable[P, float]) -> Callable[P, float]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 gauge_type = GaugeType(value=func(*args, **kwargs))
                 gauge = Gauge(
                     app=self.get_memoized_app(app.module, app.label),
@@ -131,18 +145,20 @@ class InsightMetrics:
         xformat: str | None = None,
         ylabel: str | None = None,
         yformat: str | None = None,
-        title=None,
-    ):
+        title: str | None = None,
+    ) -> Callable[[Callable[P, TimeSeriesReturn]], Callable[P, TimeSeriesReturn]]:
         """
         Decorator to collect TimeSeries metrics
 
         """
 
-        def decorator(func):
+        def decorator(
+            func: Callable[P, TimeSeriesReturn],
+        ) -> Callable[P, TimeSeriesReturn]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 results = func(*args, **kwargs)
                 ts_type = TimeSeriesType(
                     values=[TimeSeriesAnswer(*result) for result in results]
@@ -186,18 +202,20 @@ class InsightMetrics:
         xformat: str | None = None,
         ylabel: str | None = None,
         yformat: str | None = None,
-        title=None,
-    ):
+        title: str | None = None,
+    ) -> Callable[[Callable[P, ScatterPlotReturn]], Callable[P, ScatterPlotReturn]]:
         """
         Decorator to collect Scatterplot metrics
 
         """
 
-        def decorator(func):
+        def decorator(
+            func: Callable[P, ScatterPlotReturn],
+        ) -> Callable[P, ScatterPlotReturn]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 results = func(*args, **kwargs)
                 scp_type = ScatterPlotType(
                     values=[ScatterPlotAnswer(*result) for result in results]
@@ -244,18 +262,18 @@ class InsightMetrics:
         xformat: str | None = None,
         ylabel: str | None = None,
         yformat: str | None = None,
-        title=None,
-    ):
+        title: str | None = None,
+    ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
         """
         Decorator to collect Barchart metrics
 
         """
 
-        def decorator(func):
+        def decorator(func: Callable[P, BarChartReturn]) -> Callable[P, BarChartReturn]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 results = func(*args, **kwargs)
                 bar_type = BarChartType(
                     values=[BarChartAnswer(*result) for result in results]
@@ -302,18 +320,18 @@ class InsightMetrics:
         xformat: str | None = None,
         ylabel: str | None = None,
         yformat: str | None = None,
-        title=None,
-    ):
+        title: str | None = None,
+    ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
         """
         Decorator to collect Horizontal Barchart metrics
 
         """
 
-        def decorator(func):
+        def decorator(func: Callable[P, BarChartReturn]) -> Callable[P, BarChartReturn]:
             label, app = self.get_app(func)
 
             @functools.wraps(func)
-            def inner(*args, **kwargs):
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
                 results = func(*args, **kwargs)
                 bar_type = BarChartType(
                     values=[BarChartAnswer(*result) for result in results]
@@ -352,7 +370,7 @@ class InsightMetrics:
 
         return decorator
 
-    def collect(self, reset: bool = False):
+    def collect(self, reset: bool = False) -> None:
         """
         Collect insights
 

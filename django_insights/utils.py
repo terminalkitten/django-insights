@@ -58,14 +58,14 @@ def install_hook(connection: BaseDatabaseWrapper, **kwargs: object) -> None:
 
 
 class ReadOnly:
-    def __init__(self, read_only_metric):
+    def __init__(self, read_only_metric: Callable[..., Any]) -> None:
         self.read_only_metric = read_only_metric
 
-    def __enter__(self):
+    def __enter__(self) -> Callable[..., Any]:
         connection_created.connect(install_hook)
         return self.read_only_metric
 
-    def __exit__(*args, **kwargs):
+    def __exit__(self, *args: object) -> None:
         connection_created.disconnect(install_hook)
 
 

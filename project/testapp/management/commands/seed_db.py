@@ -1,4 +1,5 @@
 from random import choice, randrange
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -13,7 +14,7 @@ fake = Faker()
 class Command(BaseCommand):
     """Seed TestApp database"""
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(self.style.HTTP_INFO('[TestApp] - Database seed'))
 
         AppUser.objects.get_or_create(email="user@example.com")

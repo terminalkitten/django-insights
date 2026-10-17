@@ -1,7 +1,7 @@
 from django import template
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeString, mark_safe
 
 from django_insights.charts import (
     barchart,
@@ -17,7 +17,7 @@ register = template.Library()
 
 
 @register.simple_tag
-def chart(bucket: Bucket, overlay: str | None = None):
+def chart(bucket: Bucket, overlay: str | None = None) -> SafeString:
     img_url = reverse("insights:insight_chart", args=[bucket.pk])
 
     overlay_attr = (
@@ -39,7 +39,7 @@ def chart(bucket: Bucket, overlay: str | None = None):
     )
 
 
-def base64img(bucket: Bucket, override_theme=None):
+def base64img(bucket: Bucket, override_theme: str | None = None) -> str:
     theme = override_theme or settings.INSIGHTS_DEFAULT_THEME
     fig = None
     if bucket.is_timeseries:
@@ -58,7 +58,7 @@ def base64img(bucket: Bucket, override_theme=None):
 
 
 @register.simple_tag
-def pdf_chart(bucket_id: int):
+def pdf_chart(bucket_id: int) -> SafeString:
     bucket = Bucket.objects.get(pk=bucket_id)
     img_data = base64img(bucket, override_theme="light")
 
