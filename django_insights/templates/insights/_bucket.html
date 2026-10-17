@@ -1,0 +1,61 @@
+{% load nice_format insight_chart %}
+<div class="card{% if bucket.is_hbarchart %} xl:col-span-2{% endif %}">
+  <header>
+    <h2>{{ bucket.question }}</h2>
+    {% if bucket.desc %}<p>{{ bucket.desc }}</p>{% endif %}
+    <div class="card-action">
+      <button type="button" class="btn" data-variant="outline" data-size="sm" data-dialog-open="#bucket-data-{{ bucket.pk }}">
+        {% include "insights/icons/table.html" %}
+        <span>Data</span>
+      </button>
+    </div>
+  </header>
+  <section>{% chart bucket %}</section>
+</div>
+<dialog id="bucket-data-{{ bucket.pk }}" class="dialog" aria-labelledby="bucket-title-{{ bucket.pk }}">
+  <div class="sm:max-w-3xl">
+    <header>
+      <h2 id="bucket-title-{{ bucket.pk }}">{{ bucket.question }}</h2>
+      {% if bucket.desc %}<p>{{ bucket.desc }}</p>{% endif %}
+    </header>
+    <section class="max-h-[60vh] overflow-y-auto">
+      <div class="table-container">
+        <table class="table" id="insights-table-{{ bucket.pk }}">
+          <thead>
+            <tr>
+              <th>{{ bucket.xlabel|default_if_none:"" }}</th>
+              <th class="text-end">{{ bucket.ylabel|default_if_none:"" }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for value in bucket.values.all %}
+              <tr>
+                {% if bucket.is_timeseries %}
+                  <td>{{ value.timestamp|date:bucket.xformat|clean_str:"%" }}</td>
+                  <td class="text-end">{{ value.xvalue|nice_float }}</td>
+                {% elif bucket.is_scatterplot %}
+                  <td>{{ value.yvalue }}</td>
+                  <td class="text-end">{{ value.xvalue|nice_float }}</td>
+                {% else %}
+                  <td>{{ value.category|default_if_none:"" }}</td>
+                  <td class="text-end">{{ value.xvalue|nice_float }}</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <footer>
+      <button type="button" class="btn" data-variant="outline" data-insights-csv-copy="#insights-table-{{ bucket.pk }}">
+        {% include "insights/icons/copy.html" %}
+        <span>Copy as CSV</span>
+      </button>
+      <button type="button" class="btn" data-variant="outline" data-insights-csv-download="#insights-table-{{ bucket.pk }}">
+        {% include "insights/icons/download.html" %}
+        <span>Download CSV</span>
+      </button>
+      <button type="button" class="btn" data-dialog-close>Close</button>
+    </footer>
+  </div>
+</dialog>

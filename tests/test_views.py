@@ -202,3 +202,70 @@ def test_app_page_queries_do_not_grow_with_the_number_of_charts(viewer_client):
 
     add_buckets(app, start=1, count=4)
     assert app_page_queries(viewer_client, app) == few
+
+
+def get_html(client, url):
+    response = client.get(url)
+    assert response.status_code == 200
+    return response.content.decode()
+
+
+def test_sidebar_links_every_app_and_marks_the_current_one(viewer_client, collected):
+    current = App.objects.get(label='Books')
+    html = get_html(viewer_client, reverse('insights:insight_app', args=[current.pk]))
+
+    for app in App.objects.all():
+        assert reverse('insights:insight_app', args=[app.pk]) in html
+    current_url = reverse('insights:insight_app', args=[current.pk])
+    assert f'href="{current_url}" aria-current="page"' in html
+    assert html.count('aria-current="page"') == 1
+
+
+def test_the_dashboard_link_is_current_on_the_dashboard(viewer_client, collected):
+    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
+    dashboard_url = reverse('insights:insight_dashboard')
+    assert f'href="{dashboard_url}" aria-current="page"' in html
+    assert html.count('aria-current="page"') == 1
+
+
+@pytest.mark.parametrize(
+    ('cookie', 'expected'),
+    [(None, 'dark'), ('light', 'light'), ('dark', 'dark'), ('neon', 'dark')],
+)
+def test_the_page_theme_follows_the_cookie(viewer_client, cookie, expected):
+    if cookie:
+        viewer_client.cookies['theme'] = cookie
+    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
+    assert f'<html lang="en" class="{expected}">' in html
+
+
+def test_the_dashboard_explains_how_to_collect_when_it_is_empty(viewer_client):
+    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
+    assert 'No insights yet' in html
+    assert 'collect_insights' in html
+
+
+def test_each_chart_has_one_image_and_a_data_dialog(viewer_client, collected):
+    app = App.objects.get(label='Books')
+    html = get_html(viewer_client, reverse('insights:insight_app', args=[app.pk]))
+
+    buckets = Bucket.objects.filter(app=app)
+    assert html.count('<img') == buckets.count()
+    for bucket in buckets:
+        assert f'id="bucket-data-{bucket.pk}"' in html
+        assert f'id="insights-table-{bucket.pk}"' in html
+
+
+def test_chart_texts_are_escaped(viewer_client):
+    app = App.objects.create(module='tests.escape')
+    Bucket.objects.create(
+        app=app,
+        label='x',
+        type=BucketType.BARCHART,
+        question='<script>alert(1)</script>',
+        desc='<b>bold</b>',
+    )
+    html = get_html(viewer_client, reverse('insights:insight_app', args=[app.pk]))
+    assert '<script>alert(1)</script>' not in html
+    assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
+    assert '<b>bold</b>' not in html

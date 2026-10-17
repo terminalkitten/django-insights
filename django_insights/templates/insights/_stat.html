@@ -1,0 +1,15 @@
+<div class="card" data-size="sm">
+  <header>
+    <p class="text-muted-foreground text-sm">{{ item.question|default:item.label }}</p>
+    <div class="card-action flex items-center gap-2">
+      <span class="badge" data-variant="secondary">{{ kind }}</span>
+      {% if item.desc %}
+        <span class="text-muted-foreground" data-tooltip="{{ item.desc }}" data-side="left">{% include "insights/icons/info.html" %}</span>
+      {% endif %}
+    </div>
+  </header>
+  <section class="mt-auto">
+    <p class="text-3xl font-semibold tabular-nums">{% if kind == "Gauge" %}{{ item.value|floatformat:"-2" }}{% else %}{{ item.value }}{% endif %}</p>
+    {% if show_app %}<p class="text-muted-foreground mt-1 text-xs">{{ item.app.name }}</p>{% endif %}
+  </section>
+</div>

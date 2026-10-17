@@ -1,133 +1,37 @@
-// Dialogs: open/close via data attributes, clicking the backdrop closes
-document.addEventListener('click', (event) => {
-  const opener = event.target.closest('[data-dialog-open]');
-  if (opener) {
-    document.querySelector(opener.dataset.dialogOpen)?.showModal();
-    return;
-  }
-
-  const closer = event.target.closest('[data-dialog-close]');
-  if (closer) {
-    closer.closest('dialog')?.close();
-    return;
-  }
-
-  if (event.target instanceof HTMLDialogElement) event.target.close();
-});
-
-function setCookie(theme) {
-  document.cookie = `theme=${theme}; path=/; max-age=${60 * 60 * 24 * 14}; SameSite=Lax`;
-}
-
-function getCookie(name) {
-  let value = `; ${document.cookie}`;
-  let parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-function darkMode(theme) {
-  const element = document.getElementById('html-root');
-  if (theme == 'light') {
-    element.classList.remove('dark');
-  } else {
-    element.classList.add('dark');
-  }
-}
-
-function toggleDarkMode() {
-  const element = document.getElementById('html-root');
-  if (element.classList.contains('dark')) {
-    element.classList.remove('dark');
-    return 'light';
-  } else {
-    element.classList.add('dark');
-    return 'dark';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  // set theme
-  const theme = getCookie('theme');
-  darkMode(theme);
-
-  const button = document.getElementById('mode-toggle');
-
-  button?.addEventListener('click', () => {
-    const theme = toggleDarkMode();
-    setCookie(theme);
-    window.location.reload();
-  });
-
-  // Enable CSV copy
-  const copyButtons = document.querySelectorAll('[data-insights-csv-copy]');
-
-  copyButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tableId = btn.getAttribute('data-insights-csv-copy');
-      copy_csv(tableId);
-    });
-  });
-
-  // Enable CSV downloads
-  const downloadButtons = document.querySelectorAll(
-    '[data-insights-csv-download]'
-  );
-
-  downloadButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tableId = btn.getAttribute('data-insights-csv-download');
-      download_csv(tableId);
-    });
-  });
-});
-
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 14;
 const FORMULA_START = /^[=+\-@\t\r]/;
 
 function neutralize_formula(text) {
-  return FORMULA_START.test(text) && Number.isNaN(Number(text)) ? `'${text}` : text;
+  return FORMULA_START.test(text) && Number.isNaN(Number(text))
+    ? `'${text}`
+    : text;
 }
 
 function generate_csv(table_id, separator = ',') {
-  // Select rows from table_id
-  var rows = document.querySelectorAll(`${table_id} tr`);
-  // Construct csv
-  var csv = [];
-  for (var i = 0; i < rows.length; i++) {
-    var row = [],
-      cols = rows[i].querySelectorAll('td, th');
-    for (var j = 0; j < cols.length; j++) {
-      // Clean innertext to remove multiple spaces and jumpline (break csv)
-      var data = cols[j].innerText
+  const rows = document.querySelectorAll(`${table_id} tr`);
+  const csv = [];
+  for (const row of rows) {
+    const cells = [];
+    for (const col of row.querySelectorAll('td, th')) {
+      let data = col.innerText
         .replace(/(\r\n|\n|\r)/gm, '')
         .replace(/(\s\s)/gm, ' ')
         .trim();
-      data = neutralize_formula(data);
-      // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
-      data = data.replace(/"/g, '""');
-      // Push escaped string
-      row.push('"' + data + '"');
+      data = neutralize_formula(data).replace(/"/g, '""');
+      cells.push(`"${data}"`);
     }
-    csv.push(row.join(separator));
+    csv.push(cells.join(separator));
   }
   return csv.join('\n');
 }
 
-function download_csv(tableId) {
-  var csv_string = generate_csv(tableId);
-
-  // Download it
-  const filename =
-    'export_' +
-    tableId.replace('#', '') +
-    '_' +
-    new Date().toLocaleDateString() +
-    '.csv';
+function download_csv(table_id) {
+  const filename = `export_${table_id.replace('#', '')}_${new Date().toLocaleDateString()}.csv`;
   const link = document.createElement('a');
   link.style.display = 'none';
-  link.setAttribute('target', '_blank');
   link.setAttribute(
     'href',
-    'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string)
+    `data:text/csv;charset=utf-8,${encodeURIComponent(generate_csv(table_id))}`
   );
   link.setAttribute('download', filename);
   document.body.appendChild(link);
@@ -135,15 +39,64 @@ function download_csv(tableId) {
   document.body.removeChild(link);
 }
 
-function copy_csv(tableId) {
-  var csv_string = generate_csv(tableId);
-  navigator.clipboard.writeText(csv_string).then(
-    () => {
-      const dataCopiedMsg = document.getElementById('data-copied-msg');
-      dataCopiedMsg.classList.remove('hidden');
-    },
-    (err) => {
-      alert(`Could not copy to clipboard: ${err}`);
-    }
+function flash_label(button, text) {
+  const label = button.querySelector('span');
+  const original = label.textContent;
+  label.textContent = text;
+  setTimeout(() => (label.textContent = original), 1500);
+}
+
+function copy_csv(button) {
+  navigator.clipboard.writeText(generate_csv(button.dataset.insightsCsvCopy)).then(
+    () => flash_label(button, 'Copied'),
+    () => flash_label(button, 'Copy failed')
   );
 }
+
+function toggle_theme() {
+  const dark = document.documentElement.classList.toggle('dark');
+  document.cookie = `theme=${dark ? 'dark' : 'light'}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; SameSite=Lax`;
+  window.location.reload();
+}
+
+document.addEventListener('click', (event) => {
+  const target = event.target;
+
+  const opener = target.closest('[data-dialog-open]');
+  if (opener) {
+    document.querySelector(opener.dataset.dialogOpen)?.showModal();
+    return;
+  }
+
+  const closer = target.closest('[data-dialog-close]');
+  if (closer) {
+    closer.closest('dialog')?.close();
+    return;
+  }
+
+  if (target instanceof HTMLDialogElement) {
+    target.close();
+    return;
+  }
+
+  if (target.closest('[data-sidebar-toggle]')) {
+    document.getElementById('sidebar')?.toggle();
+    return;
+  }
+
+  if (target.closest('[data-theme-toggle]')) {
+    toggle_theme();
+    return;
+  }
+
+  const copy = target.closest('[data-insights-csv-copy]');
+  if (copy) {
+    copy_csv(copy);
+    return;
+  }
+
+  const download = target.closest('[data-insights-csv-download]');
+  if (download) {
+    download_csv(download.dataset.insightsCsvDownload);
+  }
+});

@@ -104,7 +104,12 @@ class InsightAppMixin(
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context.update(
-            {'app_name': settings.INSIGHTS_APP_NAME, 'apps': self.get_apps()}
+            {
+                'app_name': settings.INSIGHTS_APP_NAME,
+                'apps': self.get_apps(),
+                'theme': chart_theme(self.request),
+                'current_app': None,
+            }
         )
         return context
 
@@ -117,7 +122,15 @@ class InsightsAppView(InsightAppMixin, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context.update({'app_label': self.object.name})
+        context.update(
+            {
+                'app_label': self.object.name,
+                'current_app': self.object,
+                'buckets': Bucket.objects.filter(app=self.object).prefetch_related(
+                    'values'
+                ),
+            }
+        )
         return context
 
 
@@ -125,12 +138,13 @@ class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
     def get_queryset(self) -> QuerySet[Counter]:
-        # Get all metrics in one query?
-        return Counter.objects.all()
+        return Counter.objects.select_related('app')
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context.update({'gauges': Gauge.objects.all(), 'app_label': 'Dashboard'})
+        context.update(
+            {'gauges': Gauge.objects.select_related('app'), 'app_label': 'Dashboard'}
+        )
         return context
 
 
