@@ -1,7 +1,7 @@
 import inspect
 from collections import namedtuple
+from collections.abc import Callable
 from importlib import import_module
-from typing import Callable
 from unittest.mock import patch
 
 import pytest
@@ -28,7 +28,7 @@ def register_insights_modules(*args, **kwargs) -> dict[str, Callable]:
             try:
                 with patch('django_insights.metrics.InsightMetrics.get_app') as get_app:
                     get_app.return_value = ("foo", App(module="bar"))
-                    mod = import_module("%s.%s" % (app_config.name, module_to_search))
+                    mod = import_module(f"{app_config.name}.{module_to_search}")
                     functions = inspect.getmembers(mod, inspect.isfunction)
                     registry = {**registry, **dict(functions)}
             except Exception:
@@ -69,4 +69,3 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
     if marker is None:
         return
     item.fixturenames.insert(0, 'insights_query')
-    item.fixturenames.insert(0, 'insights_config')
