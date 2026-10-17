@@ -30,7 +30,7 @@ class CustomPermissionMixin(UserPassesTestMixin):
     request: HttpRequest
 
     """
-    Run following permisssion
+    Run following permission
 
     class IsSomeAdminUser:
         def has_permission(self, request):
@@ -62,10 +62,10 @@ class InsightAppMixin(
     ContextMixin,
     View,
 ):
-    apps: QuerySet | list[App] = []
+    apps: QuerySet | list[App] | None = None
 
     def get_apps(self) -> QuerySet | list[App]:
-        if not self.apps:
+        if self.apps is None:
             self.apps = App.objects.all()
         return self.apps
 

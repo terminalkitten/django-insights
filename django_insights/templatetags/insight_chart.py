@@ -1,7 +1,7 @@
 from django import template
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.safestring import SafeString, mark_safe
+from django.utils.safestring import SafeString
 
 from django_insights.charts import (
     barchart,
@@ -62,11 +62,4 @@ def pdf_chart(bucket_id: int) -> SafeString:
     bucket = Bucket.objects.get(pk=bucket_id)
     img_data = base64img(bucket, override_theme="light")
 
-    return mark_safe(
-        f"""
-        <img
-            class="chart"
-            src="data:image/png;base64,{img_data}"
-        />
-    """
-    )
+    return format_html('<img class="chart" src="data:image/png;base64,{}" />', img_data)

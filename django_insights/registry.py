@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import ClassVar
 
 from django.utils.module_loading import autodiscover_modules
 from tqdm import tqdm
 
 
 class InsightRegistry:
-    registered_insights: list[tuple[str, str, str | None, Callable[..., None]]] = list()
+    registered_insights: ClassVar[
+        list[tuple[str, str, str | None, Callable[..., None]]]
+    ] = []
 
     @staticmethod
     def autodiscover_insights() -> None:

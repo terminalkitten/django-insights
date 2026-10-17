@@ -40,7 +40,7 @@ def test_stylesheet_is_required(monkeypatch):
     get_css.cache_clear()
     monkeypatch.setattr(finders, 'find', lambda path: None)
     try:
-        with pytest.raises(ImproperlyConfigured, match='pdf.css'):
+        with pytest.raises(ImproperlyConfigured, match=r'pdf\.css'):
             get_css()
     finally:
         get_css.cache_clear()

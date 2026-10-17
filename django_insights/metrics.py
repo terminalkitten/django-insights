@@ -38,13 +38,13 @@ class InsightMetrics:
     create_counters: list[Counter]
     create_gauges: list[Gauge]
     create_bucket_values: list[BucketValue]
-
-    apps: dict[str, App] = {}
+    apps: dict[str, App]
 
     def __init__(self) -> None:
         self.create_counters = []
         self.create_gauges = []
         self.create_bucket_values = []
+        self.apps = {}
 
     def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
