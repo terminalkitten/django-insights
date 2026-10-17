@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import os
 from typing import Any, Callable
 
-from asgiref.sync import sync_to_async
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
-from django.http import HttpResponse
-from django.utils.decorators import classonlymethod
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView, View
 from django_weasyprint import WeasyTemplateResponseMixin
 
@@ -22,9 +20,10 @@ from django_insights.charts import (
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.settings import settings
 
+THEMES = ('light', 'dark')
+
 
 class CustomPermissionMixin(UserPassesTestMixin):
-
     """
     Run following permisssion
 
@@ -99,22 +98,12 @@ class InsightsDashboardView(InsightAppMixin, ListView):
         return context
 
 
-@sync_to_async
-def get_bucket(bucket_id: int) -> Bucket:
-    """Get bucket from async context"""
-    return Bucket.objects.get(pk=bucket_id)
-
-
-class InsightsChartView(LoginRequiredMixin, View):
-    @classonlymethod
-    def as_view(cls, **initkwargs):
-        view = super().as_view(**initkwargs)
-        view._is_coroutine = asyncio.coroutines._is_coroutine
-        return view
-
-    async def get(self, request, bucket_id):
-        theme = self.request.COOKIES.get('theme') or settings.INSIGHTS_DEFAULT_THEME
-        bucket: Bucket = await get_bucket(bucket_id)
+class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
+    def get(self, request, bucket_id):
+        theme = self.request.COOKIES.get('theme')
+        if theme not in THEMES:  # cookie is user input, it ends up in a file path
+            theme = settings.INSIGHTS_DEFAULT_THEME
+        bucket = get_object_or_404(Bucket, pk=bucket_id)
 
         filename: str = (
             f"{settings.INSIGHT_MEDIA_CACHE_ROOT}/{bucket.type}-{bucket.pk}-{theme}.png"
@@ -129,13 +118,16 @@ class InsightsChartView(LoginRequiredMixin, View):
         fig = None
 
         if bucket.is_timeseries:
-            fig = await timeseries(bucket, theme=theme)
+            fig = timeseries(bucket, theme=theme)
         if bucket.is_scatterplot:
-            fig = await scatterplot(bucket, theme=theme)
+            fig = scatterplot(bucket, theme=theme)
         if bucket.is_barchart:
-            fig = await barchart(bucket, theme=theme)
+            fig = barchart(bucket, theme=theme)
         if bucket.is_hbarchart:
-            fig = await hbarchart(bucket, theme=theme)
+            fig = hbarchart(bucket, theme=theme)
+
+        if fig is None:
+            raise Http404("Unsupported bucket type")
 
         buffer = to_bytes_io(fig)
 

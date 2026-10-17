@@ -9,19 +9,17 @@ from enum import Enum
 import matplotlib
 import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
-import matplotlib.pyplot as plt
-from asgiref.sync import sync_to_async
+from matplotlib.figure import Figure
 
 from django_insights.models import Bucket
 from django_insights.settings import settings
 
-matplotlib.use('Agg')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
 
 
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = 'Ubuntu'
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['font.sans-serif'] = 'Ubuntu'
 
 
 class ChartSize(Enum):
@@ -98,9 +96,10 @@ def prepare_plot(bucket, theme, size: ChartSize = ChartSize.SMALL):
     """Default plot options, used for all charts"""
 
     figsize = get_figsize(size)
-
-    fig, ax = plt.subplots(figsize=figsize)
+    fig = Figure(figsize=figsize)
+    ax = fig.subplots()
     fig.set_facecolor(theme.face)
+
     ax.tick_params(axis='x', colors=theme.tick)
     ax.tick_params(axis='y', colors=theme.tick)
     ax.set_facecolor(theme.face)
@@ -114,7 +113,7 @@ def prepare_plot(bucket, theme, size: ChartSize = ChartSize.SMALL):
         linewidth=0.1,
         color=theme.grid,
         zorder=-10,
-        visible=False,
+        visible=True,
     )
 
     for spine in ax.spines.values():
@@ -156,9 +155,9 @@ def render_hbarchart(yaxis, xaxis, labels, combined_labels, bucket, theme, size)
     ax.set_ylabel(bucket.xlabel)
     ax.set_xlabel(bucket.ylabel)
 
-    _, xmax = plt.xlim()
-    plt.subplots_adjust(left=0.3, right=0.9)
-    plt.xlim(0, xmax + 100)
+    _, xmax = ax.get_xlim()
+    fig.subplots_adjust(left=0.3, right=0.9)
+    ax.set_xlim(0, xmax + 100)
     return fig
 
 
@@ -185,8 +184,7 @@ def render_timeseries(xaxis, yaxis, bucket, theme, size) -> str:
     return fig
 
 
-@sync_to_async
-def barchart(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Barchart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
@@ -196,8 +194,7 @@ def barchart(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
 
-@sync_to_async
-def hbarchart(bucket: Bucket, theme: str, size: str = ChartSize.MEDIUM) -> str:
+def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> str:
     """Horizontal Barchart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
@@ -214,8 +211,7 @@ def hbarchart(bucket: Bucket, theme: str, size: str = ChartSize.MEDIUM) -> str:
     )
 
 
-@sync_to_async
-def scatterplot(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def scatterplot(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Scatterplot chart"""
     values = bucket.values.all()
     yvalues = [bucket_value.yvalue for bucket_value in values]
@@ -224,8 +220,7 @@ def scatterplot(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
     return render_scatterplot(yvalues, xvalues, bucket, theme, size)
 
 
-@sync_to_async
-def timeseries(bucket: Bucket, theme: str, size: str = ChartSize.SMALL) -> str:
+def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Timeseries chart"""
     values = bucket.values.all()
 
