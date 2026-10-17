@@ -10,6 +10,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 dynamic = ["version"]
+keywords = ["django", "insights", "metrics", "dashboard", "analytics", "reporting"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
@@ -42,9 +43,14 @@ docs = ["mkdocs", "mkdocs-material"]
 
 [project.urls]
 Home = "https://github.com/terminalkitten/django-insights"
+Source = "https://github.com/terminalkitten/django-insights"
+Issues = "https://github.com/terminalkitten/django-insights/issues"
 
 [tool.setuptools.packages.find]
 include = ["django_insights*"]
+
+[tool.setuptools.package-data]
+django_insights = ["py.typed"]
 
 [tool.setuptools_scm]
 
