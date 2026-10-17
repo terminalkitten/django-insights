@@ -5,7 +5,6 @@ from django_insights.registry import registry
 
 
 class Command(BaseCommand):
-
     """Show all registered audit events"""
 
     def handle(self, *args, **options):

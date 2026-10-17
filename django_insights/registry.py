@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.utils.module_loading import autodiscover_modules
 from tqdm import tqdm
@@ -25,7 +26,7 @@ class InsightRegistry:
     def collect_insights(self):
         progress_iterator = tqdm(self.registered_insights, desc='Collect insights')
 
-        for module, name, question, metric in progress_iterator:
+        for module, name, _question, metric in progress_iterator:
             progress_iterator.set_description(
                 desc=f"Create insights for {module}.{name}", refresh=True
             )
