@@ -1,6 +1,5 @@
 import pytest
 
-from django_insights.choices import BucketType
 from django_insights.models import App, Bucket
 from django_insights.templatetags.insight_chart import base64img, chart, pdf_chart
 from django_insights.templatetags.nice_format import nice_float
@@ -30,6 +29,6 @@ def test_pdf_chart_renders_inline_png(collected):
 @pytest.mark.django_db(databases=['default', 'insights'])
 def test_unsupported_bucket_type_is_rejected():
     app = App.objects.create(module='tests.unsupported')
-    bucket = Bucket.objects.create(app=app, label='odd', type=BucketType.HISTOGRAM)
+    bucket = Bucket.objects.create(app=app, label='odd', type=99)
     with pytest.raises(ValueError, match='Unsupported bucket type'):
         base64img(bucket)
