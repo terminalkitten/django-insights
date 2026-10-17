@@ -151,3 +151,16 @@ def author_gender_vs_num_of_books() -> BarChartResult:
         )
         .values_list('num_of_books', 'gender', 'gender_category')
     )
+
+
+@metrics.hbarchart(
+    question="Which authors have the most books?",
+    xlabel="Author",
+    ylabel="Num of books",
+)
+def top_authors_by_num_of_books() -> BarChartResult:
+    return (
+        Author.objects.annotate(num_of_books=Count('books'))
+        .order_by('-num_of_books', 'name')[:10]
+        .values_list('num_of_books', 'num_of_books', 'name')
+    )

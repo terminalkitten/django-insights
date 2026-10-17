@@ -1,11 +1,12 @@
-import pytest
+SEED_AUTHORS = 20
+SEED_BOOKS = 60
 
-from django_insights.registry import registry
+
+class AllowAll:
+    def has_permission(self, request):
+        return True
 
 
-@pytest.mark.django_db(True)
-def collect_insights() -> None:
-    from django_insights.metrics import metrics
-
-    registry.autodiscover_insights()
-    metrics.collect()
+class DenyAll:
+    def has_permission(self, request):
+        return False
