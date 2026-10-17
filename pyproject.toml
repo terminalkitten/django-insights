@@ -38,7 +38,18 @@ dependencies = [
 pdf = ["pymupdf>=1.24"]
 
 [dependency-groups]
-dev = ["django-insights[pdf]", "pytest", "pytest-django", "ruff", "ty", "django-stubs", "faker", "tox", "tox-uv"]
+dev = [
+    "django-insights[pdf]",
+    "pytest",
+    "pytest-django",
+    "ruff",
+    "ty",
+    "django-stubs",
+    "faker",
+    "tox",
+    "tox-uv",
+    "pytest-cov>=7.1.0",
+]
 docs = ["mkdocs", "mkdocs-material"]
 
 [project.urls]
@@ -77,10 +88,23 @@ quote-style = "preserve"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-filterwarnings = ["error", "ignore:Overriding setting DATABASES:UserWarning"]
+filterwarnings = [
+    "error",
+    "ignore:Overriding setting DATABASES:UserWarning",
+    "ignore:builtin type .* has no __module__:DeprecationWarning",
+]
 addopts = """\
     --strict-config
     --strict-markers
     --ds=project.settings.test
+    --cov
+    --cov-report=term-missing:skip-covered
     """
 django_find_project = false
+
+[tool.coverage.run]
+source = ["django_insights"]
+omit = ["django_insights/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 90

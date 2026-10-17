@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from random import choice, randrange
 from typing import Any
 
@@ -14,8 +15,13 @@ fake = Faker()
 class Command(BaseCommand):
     """Seed TestApp database"""
 
+    def add_arguments(self, parser: ArgumentParser) -> None:
+        parser.add_argument('--authors', type=int, default=2000)
+        parser.add_argument('--books', type=int, default=5000)
+
     def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(self.style.HTTP_INFO('[TestApp] - Database seed'))
+        fake.unique.clear()
 
         AppUser.objects.get_or_create(email="user@example.com")
 
@@ -24,8 +30,10 @@ class Command(BaseCommand):
 
         authors = []
 
-        names = [fake.unique.name() for i in range(2000)]
-        titles = [fake.sentence(nb_words=randrange(30)) for i in range(5000)]
+        names = [fake.unique.name() for _ in range(options['authors'])]
+        titles = [
+            fake.sentence(nb_words=randrange(30)) for _ in range(options['books'])
+        ]
 
         for name in names:
             author_created = fake.date_time_between_dates(
