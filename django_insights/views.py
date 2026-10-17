@@ -79,10 +79,8 @@ class InsightsAppView(InsightAppMixin, DetailView):
     template_name = "insights/app.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        app = self.get_object()
-
         context = super().get_context_data(**kwargs)
-        context.update({'app_label': app.name})
+        context.update({'app_label': self.object.name})
         return context
 
 

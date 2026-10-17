@@ -58,8 +58,7 @@ def base64img(bucket: Bucket, override_theme: str | None = None) -> str:
 
 
 @register.simple_tag
-def pdf_chart(bucket_id: int) -> SafeString:
-    bucket = Bucket.objects.get(pk=bucket_id)
+def pdf_chart(bucket: Bucket) -> SafeString:
     img_data = base64img(bucket, override_theme="light")
 
     return format_html('<img class="chart" src="data:image/png;base64,{}" />', img_data)
