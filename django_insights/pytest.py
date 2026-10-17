@@ -1,72 +1,53 @@
-import inspect
-from collections import namedtuple
+from __future__ import annotations
+
 from collections.abc import Callable
-from importlib import import_module
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 
-App = namedtuple('App', ('module'))
 
+def find_insight(label: str) -> Callable[..., Any]:
+    """The function behind a registered insight, by name or by module.name"""
+    from django_insights.registry import registry
 
-def register_insights_modules(*args: str, **kwargs: Any) -> dict[str, Callable]:
-    """
-    Helper function to load insights functions into registry
-    This way pytest can look them up and call them from a fixture,
-    it also disables collecting parts with mocks
-
-    Returns:
-        dict[str, Callable]: registry with functions
-    """
-    from django.apps import apps
-
-    registry: dict[str, Callable] = {}
-
-    for app_config in apps.get_app_configs():
-        for module_to_search in args:
-            # Attempt to import the app's module.
-            try:
-                with patch('django_insights.metrics.InsightMetrics.get_app') as get_app:
-                    get_app.return_value = ("foo", App(module="bar"))
-                    mod = import_module(f"{app_config.name}.{module_to_search}")
-                    functions = inspect.getmembers(mod, inspect.isfunction)
-                    registry = {**registry, **dict(functions)}
-            except Exception:
-                continue
-
-    return registry
-
-
-registry = register_insights_modules("insights")
+    registry.autodiscover_insights()
+    matches = [
+        (module, getattr(func, '__wrapped__', func))
+        for module, name, _, func in registry.registered_insights
+        if label in (name, f'{module}.{name}')
+    ]
+    if not matches:
+        raise LookupError(
+            f"No insight named '{label}', is there an insights.py with that function?"
+        )
+    if len(matches) > 1:
+        modules = ', '.join(module for module, _ in matches)
+        raise LookupError(
+            f"Several insights are named '{label}' ({modules}), use module.name"
+        )
+    return matches[0][1]
 
 
 @pytest.fixture
-def insights_query(request: pytest.FixtureRequest) -> Callable | None:
-    """
-    Returns insights_query fixture, this function
-    resolves wrapped function from registry
+def insights_query(request: pytest.FixtureRequest) -> Callable[..., Any]:
+    """The insight function named by the marker, or by the test (test_<name>)"""
+    marker = request.node.get_closest_marker('insights')
+    if marker and marker.args:
+        label = marker.args[0]
+    else:
+        name = getattr(request.node, 'originalname', request.node.name)
+        label = name.removeprefix('test_')
 
-    Args:
-        request (_type_): Current calling context
+    try:
+        return find_insight(label)
+    except LookupError as error:
+        message = str(error)
 
-    Returns:
-        Callable | None: Return function to call query
-    """
-    if func := registry.get(request.node.name.replace("test_", "")):
-        return func
-
-    return None
+    pytest.fail(message, pytrace=False)
 
 
-def pytest_runtest_setup(item: pytest.Item) -> None:
-    """
-    Add insight fixture to insights marked tests
-
-    Args:
-        item (pytest.Item): pytest function description
-    """
-    marker = item.get_closest_marker("insights")
-    if marker is None or not isinstance(item, pytest.Function):
-        return
-    item.fixturenames.insert(0, 'insights_query')
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line(
+        'markers',
+        "insights(name=None): test of an insight, defaults to the test name without 'test_'",
+    )

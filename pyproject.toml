@@ -52,6 +52,9 @@ dev = [
 ]
 docs = ["mkdocs", "mkdocs-material"]
 
+[project.entry-points.pytest11]
+django_insights = "django_insights.pytest"
+
 [project.urls]
 Home = "https://github.com/terminalkitten/django-insights"
 Source = "https://github.com/terminalkitten/django-insights"
@@ -85,7 +88,6 @@ ignore = ["E501", "ANN401"]
 "project/**" = ["S105", "S311", "DJ008", "RUF012"]
 "project/settings/*.py" = ["F403", "F405"]
 "django_insights/models.py" = ["DJ001", "RUF012"]
-"django_insights/pytest.py" = ["S112"]
 
 [tool.ruff.format]
 quote-style = "preserve"
