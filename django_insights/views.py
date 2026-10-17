@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
@@ -57,9 +58,9 @@ class InsightAppMixin(
     CustomPermissionMixin,
     View,
 ):
-    apps: list[App] = []
+    apps: QuerySet | list[App] = []
 
-    def get_apps(self) -> QuerySet[App]:
+    def get_apps(self) -> QuerySet | list[App]:
         if not self.apps:
             self.apps = App.objects.all()
         return self.apps

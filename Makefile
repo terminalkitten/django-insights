@@ -1,4 +1,4 @@
-.PHONY: rs migrate dump shell seed collect_insights clean
+.PHONY: lint rs migrate dump shell seed collect_insights clean
 
 rs:
 	python manage.py runserver
@@ -16,6 +16,12 @@ seed:
 
 collect_insights:
 	python manage.py collect_insights
+
+lint:
+	ruff check --fix .
+	ruff format .
+	ty check
+	pytest
 
 clean:
 	rm -f db/*.db
