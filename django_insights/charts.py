@@ -3,10 +3,13 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from enum import Enum
+from functools import lru_cache, wraps
+from pathlib import Path
+from typing import ParamSpec
 
 import matplotlib
 import matplotlib.dates as mdates
@@ -17,12 +20,31 @@ from matplotlib.figure import Figure
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
+FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'ubuntu.ttf'
+P = ParamSpec('P')
 
 
-matplotlib.rcParams['font.family'] = 'sans-serif'
-matplotlib.rcParams['font.sans-serif'] = 'Ubuntu'
+@lru_cache
+def register_font() -> None:
+    fm.fontManager.addfont(str(FONT_FILE))
+
+
+def chart_style() -> AbstractContextManager[None]:
+    register_font()
+    return matplotlib.rc_context(
+        {'font.family': 'sans-serif', 'font.sans-serif': ['Ubuntu']}
+    )
+
+
+def styled(func: Callable[P, Figure]) -> Callable[P, Figure]:
+    """Apply the chart style only while the chart is built, never globally"""
+
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Figure:
+        with chart_style():
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 class ChartSize(Enum):
@@ -85,7 +107,8 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
 def to_bytes_io(fig: Figure) -> bytes:
     """Render Matplotlib figure to file-like object"""
     flike = io.BytesIO()
-    fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
+    with chart_style():
+        fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
 
     return flike.getvalue()
 
@@ -216,6 +239,7 @@ def render_timeseries(
     return fig
 
 
+@styled
 def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Barchart"""
     values = BucketValue.objects.filter(bucket=bucket)
@@ -226,6 +250,7 @@ def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> F
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
 
+@styled
 def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> Figure:
     """Horizontal Barchart"""
     values = BucketValue.objects.filter(bucket=bucket)
@@ -243,6 +268,7 @@ def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) ->
     )
 
 
+@styled
 def scatterplot(
     bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL
 ) -> Figure:
@@ -254,6 +280,7 @@ def scatterplot(
     return render_scatterplot(yvalues, xvalues, bucket, theme, size)
 
 
+@styled
 def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Timeseries chart"""
     values = BucketValue.objects.filter(bucket=bucket)
