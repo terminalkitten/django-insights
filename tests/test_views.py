@@ -69,21 +69,21 @@ def test_pdf_preview_is_hidden_outside_debug(viewer_client, collected):
 
 @pytest.mark.parametrize(('permission', 'status'), [(AllowAll, 200), (DenyAll, 403)])
 def test_dashboard_permissions(viewer_client, collected, permission, status):
-    with override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[permission]):
+    with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[permission]):
         response = viewer_client.get(reverse('insights:insight_dashboard'))
     assert response.status_code == status
 
 
 def test_permission_without_has_permission_fails_closed(viewer_client, collected):
     with (
-        override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[AllowAll, NoMethod]),
+        override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[AllowAll, NoMethod]),
         pytest.raises(ImproperlyConfigured, match='has_permission'),
     ):
         viewer_client.get(reverse('insights:insight_dashboard'))
 
 
 def test_chart_permissions_are_enforced(viewer_client, bucket):
-    with override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[DenyAll]):
+    with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[DenyAll]):
         response = viewer_client.get(
             reverse('insights:insight_chart', args=[bucket.pk])
         )
@@ -93,7 +93,7 @@ def test_chart_permissions_are_enforced(viewer_client, bucket):
 def test_chart_ignores_malicious_theme_cookie(viewer_client, bucket, tmp_path):
     viewer_client.cookies['theme'] = '../../evil'
     with override_settings(
-        INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=str(tmp_path)
+        INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=str(tmp_path)
     ):
         response = viewer_client.get(
             reverse('insights:insight_chart', args=[bucket.pk])
@@ -107,7 +107,7 @@ def test_chart_ignores_malicious_theme_cookie(viewer_client, bucket, tmp_path):
 def test_chart_cache_is_written_and_reused(viewer_client, bucket, tmp_path):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     with override_settings(
-        INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=str(tmp_path)
+        INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=str(tmp_path)
     ):
         first = viewer_client.get(url)
         cached = tmp_path / f'{bucket.type}-{bucket.pk}-dark.png'
@@ -119,9 +119,9 @@ def test_chart_cache_is_written_and_reused(viewer_client, bucket, tmp_path):
 def test_chart_cache_without_root_fails_loudly(viewer_client, bucket):
     with (
         override_settings(
-            INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=None
+            INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=None
         ),
-        pytest.raises(ImproperlyConfigured, match='INSIGHT_MEDIA_CACHE_ROOT'),
+        pytest.raises(ImproperlyConfigured, match='INSIGHTS_MEDIA_CACHE_ROOT'),
     ):
         viewer_client.get(reverse('insights:insight_chart', args=[bucket.pk]))
 
@@ -131,7 +131,7 @@ def test_chart_survives_a_cache_file_removed_after_the_lookup(
 ):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     with override_settings(
-        INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=str(tmp_path)
+        INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=str(tmp_path)
     ):
         viewer_client.get(url)
         (tmp_path / f'{bucket.type}-{bucket.pk}-dark.png').unlink()

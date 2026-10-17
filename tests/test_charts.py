@@ -46,3 +46,8 @@ def test_bars_without_a_category_still_render(render, bucket_type):
     BucketValue.objects.create(bucket=bucket, xvalue=5, yvalue=2, category='north')
 
     assert to_bytes_io(render(bucket, theme='dark')).startswith(b'\x89PNG')
+
+
+def test_unknown_theme_is_rejected():
+    with pytest.raises(ValueError, match='Unknown theme'):
+        charts.get_theme('neon')
