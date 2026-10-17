@@ -8,25 +8,25 @@ pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
 
 
 @pytest.mark.insights
-def test_count_authors(insights_query):
+def test_count_users(insights_query):
     assert insights_query() == 0
 
 
-@pytest.mark.insights('count_books')
+@pytest.mark.insights('count_messages')
 def test_the_marker_names_the_insight(insights_query):
     assert insights_query() == 0
 
 
 def test_an_insight_can_be_found_by_name():
-    assert find_insight('count_authors')() == 0
+    assert find_insight('count_users')() == 0
 
 
 def test_an_insight_can_be_found_by_module_and_name():
-    assert find_insight('project.testapp.insights.count_authors')() == 0
+    assert find_insight('project.testapp.users.insights.count_users')() == 0
 
 
 def test_the_insight_is_the_original_function_and_saves_nothing():
-    find_insight('count_authors')()
+    find_insight('count_users')()
     assert not Counter.objects.exists()
 
 

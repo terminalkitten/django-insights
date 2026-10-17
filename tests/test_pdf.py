@@ -11,7 +11,7 @@ from django_insights.pdf import PAGE_BREAK, get_css, html_to_pdf, pdf_available
 
 
 @pytest.mark.django_db(databases=['default', 'insights'])
-def test_pdf_view_renders_numbered_pages(viewer_client, collected):
+def test_pdf_view_renders_numbered_pages(collected, viewer_client):
     response = viewer_client.get(reverse('insights:insight_pdf'))
     assert response.status_code == 200
     assert response['Content-Type'] == 'application/pdf'

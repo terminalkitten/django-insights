@@ -23,19 +23,19 @@ def test_chart_requires_login(client, bucket):
     assert response.status_code == 302
 
 
-def test_dashboard_renders_counters(viewer_client, collected):
+def test_dashboard_renders_counters(collected, viewer_client):
     response = viewer_client.get(reverse('insights:insight_dashboard'))
     assert response.status_code == 200
-    assert 'How many books are there?' in response.content.decode()
+    assert 'How many messages have been sent?' in response.content.decode()
 
 
-def test_app_view_renders(viewer_client, collected):
+def test_app_view_renders(collected, viewer_client):
     for app in App.objects.all():
         response = viewer_client.get(reverse('insights:insight_app', args=[app.pk]))
         assert response.status_code == 200
 
 
-def test_every_bucket_renders_png(viewer_client, collected):
+def test_every_bucket_renders_png(collected, viewer_client):
     assert Bucket.objects.exists()
     for bucket in Bucket.objects.all():
         response = viewer_client.get(
@@ -59,26 +59,26 @@ def test_unsupported_bucket_type_is_404(viewer_client):
     assert response.status_code == 404
 
 
-def test_pdf_preview_renders_html_in_debug(viewer_client, collected):
+def test_pdf_preview_renders_html_in_debug(collected, viewer_client):
     with override_settings(DEBUG=True):
         response = viewer_client.get(reverse('insights:insight_pdf_test'))
     assert response.status_code == 200
     assert 'Insights' in response.content.decode()
 
 
-def test_pdf_preview_is_hidden_outside_debug(viewer_client, collected):
+def test_pdf_preview_is_hidden_outside_debug(collected, viewer_client):
     response = viewer_client.get(reverse('insights:insight_pdf_test'))
     assert response.status_code == 404
 
 
 @pytest.mark.parametrize(('permission', 'status'), [(AllowAll, 200), (DenyAll, 403)])
-def test_dashboard_permissions(viewer_client, collected, permission, status):
+def test_dashboard_permissions(collected, viewer_client, permission, status):
     with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[permission]):
         response = viewer_client.get(reverse('insights:insight_dashboard'))
     assert response.status_code == status
 
 
-def test_permission_without_has_permission_fails_closed(viewer_client, collected):
+def test_permission_without_has_permission_fails_closed(collected, viewer_client):
     with (
         override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[AllowAll, NoMethod]),
         pytest.raises(ImproperlyConfigured, match='has_permission'),
@@ -86,7 +86,7 @@ def test_permission_without_has_permission_fails_closed(viewer_client, collected
         viewer_client.get(reverse('insights:insight_dashboard'))
 
 
-def test_chart_permissions_are_enforced(viewer_client, bucket):
+def test_chart_permissions_are_enforced(bucket, viewer_client):
     with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[DenyAll]):
         response = viewer_client.get(
             reverse('insights:insight_chart', args=[bucket.pk])
@@ -94,7 +94,7 @@ def test_chart_permissions_are_enforced(viewer_client, bucket):
     assert response.status_code == 403
 
 
-def test_chart_ignores_malicious_theme_cookie(viewer_client, bucket, tmp_path):
+def test_chart_ignores_malicious_theme_cookie(bucket, viewer_client, tmp_path):
     viewer_client.cookies['theme'] = '../../evil'
     with override_settings(
         INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=str(tmp_path)
@@ -108,7 +108,7 @@ def test_chart_ignores_malicious_theme_cookie(viewer_client, bucket, tmp_path):
     ]
 
 
-def test_chart_cache_is_written_and_reused(viewer_client, bucket, tmp_path):
+def test_chart_cache_is_written_and_reused(bucket, viewer_client, tmp_path):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     with override_settings(
         INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=str(tmp_path)
@@ -120,7 +120,7 @@ def test_chart_cache_is_written_and_reused(viewer_client, bucket, tmp_path):
         assert viewer_client.get(url).content == b'cached'
 
 
-def test_chart_cache_without_root_fails_loudly(viewer_client, bucket):
+def test_chart_cache_without_root_fails_loudly(bucket, viewer_client):
     with (
         override_settings(
             INSIGHTS_CHARTS_USE_MEDIA_CACHE=True, INSIGHTS_MEDIA_CACHE_ROOT=None
@@ -131,7 +131,7 @@ def test_chart_cache_without_root_fails_loudly(viewer_client, bucket):
 
 
 def test_chart_survives_a_cache_file_removed_after_the_lookup(
-    viewer_client, bucket, tmp_path, monkeypatch
+    bucket, viewer_client, tmp_path, monkeypatch
 ):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     with override_settings(
@@ -143,14 +143,14 @@ def test_chart_survives_a_cache_file_removed_after_the_lookup(
     assert response.content.startswith(b'\x89PNG')
 
 
-def test_chart_is_private_and_has_a_validator(viewer_client, bucket):
+def test_chart_is_private_and_has_a_validator(bucket, viewer_client):
     response = viewer_client.get(reverse('insights:insight_chart', args=[bucket.pk]))
     assert response['ETag']
     assert 'private' in response['Cache-Control']
     assert 'no-cache' in response['Cache-Control']
 
 
-def test_unchanged_chart_is_not_rendered_again(viewer_client, bucket, monkeypatch):
+def test_unchanged_chart_is_not_rendered_again(bucket, viewer_client, monkeypatch):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     etag = viewer_client.get(url)['ETag']
 
@@ -164,7 +164,7 @@ def test_unchanged_chart_is_not_rendered_again(viewer_client, bucket, monkeypatc
     assert response.content == b''
 
 
-def test_chart_etag_depends_on_the_theme(viewer_client, bucket):
+def test_chart_etag_depends_on_the_theme(bucket, viewer_client):
     url = reverse('insights:insight_chart', args=[bucket.pk])
     dark = viewer_client.get(url)['ETag']
     viewer_client.cookies['theme'] = 'light'
@@ -210,8 +210,8 @@ def get_html(client, url):
     return response.content.decode()
 
 
-def test_sidebar_links_every_app_and_marks_the_current_one(viewer_client, collected):
-    current = App.objects.get(label='Books')
+def test_sidebar_links_every_app_and_marks_the_current_one(collected, viewer_client):
+    current = App.objects.get(label='Workspace')
     html = get_html(viewer_client, reverse('insights:insight_app', args=[current.pk]))
 
     for app in App.objects.all():
@@ -221,7 +221,7 @@ def test_sidebar_links_every_app_and_marks_the_current_one(viewer_client, collec
     assert html.count('aria-current="page"') == 1
 
 
-def test_the_dashboard_link_is_current_on_the_dashboard(viewer_client, collected):
+def test_the_dashboard_link_is_current_on_the_dashboard(collected, viewer_client):
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
     dashboard_url = reverse('insights:insight_dashboard')
     assert f'href="{dashboard_url}" aria-current="page"' in html
@@ -245,8 +245,8 @@ def test_the_dashboard_explains_how_to_collect_when_it_is_empty(viewer_client):
     assert 'collect_insights' in html
 
 
-def test_each_chart_has_one_image_and_a_data_dialog(viewer_client, collected):
-    app = App.objects.get(label='Books')
+def test_each_chart_has_one_image_and_a_data_dialog(collected, viewer_client):
+    app = App.objects.get(label='Workspace')
     html = get_html(viewer_client, reverse('insights:insight_app', args=[app.pk]))
 
     buckets = Bucket.objects.filter(app=app)

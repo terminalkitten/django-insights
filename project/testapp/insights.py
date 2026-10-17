@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from django.db.models import Avg, Case, Count, F, Value, When
-from django.db.models.functions import Length, TruncMonth, TruncYear
+from datetime import timedelta
+
+from django.db.models import Avg, Case, Count, F, FloatField, Sum, Value, When
+from django.db.models.functions import Concat, ExtractWeekDay, TruncDay, TruncMonth
+from django.utils import timezone
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import (
@@ -9,159 +12,183 @@ from django_insights.metrics_types import (
     ScatterPlotResult,
     TimeSeriesResult,
 )
-from project.testapp.models import Author, Book
+from project.testapp.models import Channel, Message, Report, Workspace
 
-label = "Books"
+label = "Workspace"
+
+WEEKDAYS = [
+    (2, 'Monday'),
+    (3, 'Tuesday'),
+    (4, 'Wednesday'),
+    (5, 'Thursday'),
+    (6, 'Friday'),
+    (7, 'Saturday'),
+    (1, 'Sunday'),
+]
+
+
+@metrics.counter(question="How many workspaces are there?")
+def count_workspaces() -> int:
+    return Workspace.objects.count()
 
 
 @metrics.counter(
-    question="How many authors are there in our store?",
-    desc="Number of authors we sell books for in our store",
+    question="How many messages have been sent?",
+    desc="Messages of people and of the AI assistant",
 )
-def count_authors() -> int:
-    return Author.objects.count()
+def count_messages() -> int:
+    return Message.objects.count()
 
 
-@metrics.counter(question="How many books are there?")
-def count_books() -> int:
-    return Book.objects.count()
+@metrics.counter(question="How many reports have been created?")
+def count_reports() -> int:
+    return Report.objects.count()
 
 
-@metrics.counter(question="Books with title longer than 20 chars?")
-def count_books_title_gt_20() -> int:
-    return (
-        Book.objects.annotate(title_len=Length('title'))
-        .filter(title_len__gt=20)
-        .count()
+@metrics.gauge(question="Average members per workspace?")
+def avg_members_per_workspace() -> float:
+    average = Workspace.objects.annotate(total=Count('memberships')).aggregate(
+        Avg('total')
     )
+    return average['total__avg'] or 0.0
 
 
-@metrics.counter(question="Books with title less than 10 chars?")
-def count_books_title_lt_10() -> int:
-    return (
-        Book.objects.annotate(title_len=Length('title'))
-        .filter(title_len__lt=10)
-        .count()
+@metrics.gauge(
+    question="How many percent of the messages are written by the AI assistant?"
+)
+def ai_share_of_messages() -> float:
+    total = Message.objects.count()
+    if not total:
+        return 0.0
+    return round(100 * Message.objects.filter(is_ai=True).count() / total, 1)
+
+
+@metrics.barchart(
+    question="Which weekday do people write the most messages?",
+    desc="Messages per weekday, busy from Tuesday to Thursday",
+    xlabel="Weekday",
+    ylabel="Num of messages",
+)
+def messages_per_weekday() -> BarChartResult:
+    totals = dict(
+        Message.objects.annotate(day=ExtractWeekDay('created_at'))
+        .values('day')
+        .annotate(total=Count('pk'))
+        .values_list('day', 'total')
     )
-
-
-@metrics.counter(question="Authors with two or more books?")
-def count_authors_with_two_or_more_books() -> int:
-    return (
-        Author.objects.prefetch_related('books')
-        .annotate(total_books=Count('books'))
-        .filter(total_books__gte=2)
-        .count()
-    )
-
-
-@metrics.counter(question="Authors without books?")
-def count_authors_without_books() -> int:
-    return (
-        Author.objects.prefetch_related('books')
-        .annotate(total_books=Count('books'))
-        .filter(total_books=0)
-        .count()
-    )
-
-
-@metrics.counter(question="Authors with name longer than 20 chars?")
-def count_authors_name_gt_20() -> int:
-    return (
-        Author.objects.annotate(name_len=Length('name')).filter(name_len__gt=20).count()
-    )
-
-
-@metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> float:
-    avg_total_books = (
-        Author.objects.prefetch_related('books')
-        .annotate(total_books=Count('books'))
-        .aggregate(Avg('total_books'))
-        .get('total_books__avg')
-    )
-
-    return avg_total_books or 0.0
+    return [(totals.get(day, 0), 0, name) for day, name in WEEKDAYS]
 
 
 @metrics.timeseries(
-    question="Num of books created per month?",
-    desc="How many books are added each month, since the opening of our store",
+    question="How big is the share of messages written by the AI assistant?",
+    desc="Percentage of the messages per month",
     xlabel="Month",
-    xformat='%m',
-    ylabel="Num of books",
+    xformat='%Y-%m',
+    ylabel="Percentage of messages",
 )
-def num_of_books_per_month() -> TimeSeriesResult:
+def ai_share_per_month() -> TimeSeriesResult:
+    ai = Case(When(is_ai=True, then=1.0), default=0.0, output_field=FloatField())
     return (
-        Book.objects.all()
-        .annotate(month=TruncMonth('created'))
+        Message.objects.annotate(month=TruncMonth('created_at'))
         .values('month')
-        .filter(month__isnull=False)
-        .annotate(total=Count('pk'))
-        .values_list('month', 'total')
+        .annotate(share=Avg(ai) * 100)
+        .values_list('month', 'share')
         .order_by('month')
     )
 
 
 @metrics.timeseries(
-    question="Num of books created per year?",
-    xlabel="Year",
-    xformat='%Y',
-    ylabel="Num of books",
+    question="What does the AI assistant cost per month?",
+    xlabel="Month",
+    xformat='%Y-%m',
+    ylabel="Cost in USD",
 )
-def num_of_books_per_year() -> TimeSeriesResult:
+def ai_cost_per_month() -> TimeSeriesResult:
     return (
-        Book.objects.all()
-        .annotate(year=TruncYear('created'))
-        .values('year')
-        .filter(year__isnull=False)
-        .annotate(total=Count('pk'))
-        .values_list('year', 'total')
-        .order_by('year')
-    )
-
-
-@metrics.scatterplot(
-    question="Num of books by age of author?",
-    xlabel="Age",
-    ylabel="Num of books",
-)
-def author_age_vs_num_of_books() -> ScatterPlotResult:
-    return (
-        Author.objects.values('age')
-        .annotate(num_of_books=Count('books'), category=Value("author"))
-        .values_list('num_of_books', 'age', 'category')
+        Message.objects.filter(is_ai=True)
+        .annotate(month=TruncMonth('created_at'))
+        .values('month')
+        .annotate(total=Sum('cost'))
+        .values_list('month', 'total')
+        .order_by('month')
     )
 
 
 @metrics.barchart(
-    question="Num of books by gender of author?",
-    xlabel="Gender",
-    ylabel="Num of books",
+    question="What does each AI model cost?",
+    xlabel="Model",
+    ylabel="Cost in USD",
 )
-def author_gender_vs_num_of_books() -> BarChartResult:
+def ai_cost_per_model() -> BarChartResult:
     return (
-        Author.objects.values('gender')
-        .annotate(
-            num_of_books=Count('books'),
-            gender_category=Case(
-                When(gender=1, then=Value('Male')),
-                When(gender=2, then=Value('Female')),
-            ),
-        )
-        .values_list('num_of_books', 'gender', 'gender_category')
+        Message.objects.filter(is_ai=True)
+        .values('model')
+        .annotate(total=Sum('cost'), messages=Count('pk'))
+        .order_by('-total')
+        .values_list('total', 'messages', 'model')
+    )
+
+
+@metrics.scatterplot(
+    question="What does a message of the AI assistant cost for its length?",
+    desc="The 500 latest messages of the AI assistant, a model has its own price per token",
+    xlabel="Tokens",
+    ylabel="Cost in USD",
+)
+def ai_cost_vs_tokens() -> ScatterPlotResult:
+    return (
+        Message.objects.filter(is_ai=True)
+        .order_by('-created_at', '-pk')[:500]
+        .values_list('cost', 'tokens', 'model')
+    )
+
+
+@metrics.timeseries(
+    question="How many reports are created per day?",
+    desc="The last 90 days",
+    xlabel="Day",
+    xformat='%Y-%m-%d',
+    ylabel="Num of reports",
+)
+def reports_per_day() -> TimeSeriesResult:
+    since = timezone.now() - timedelta(days=90)
+    return (
+        Report.objects.filter(created_at__gte=since)
+        .annotate(day=TruncDay('created_at'))
+        .values('day')
+        .annotate(total=Count('pk'))
+        .values_list('day', 'total')
+        .order_by('day')
+    )
+
+
+@metrics.barchart(
+    question="How are the reports doing?",
+    desc="Reports by status",
+    xlabel="Status",
+    ylabel="Num of reports",
+)
+def reports_by_status() -> BarChartResult:
+    return (
+        Report.objects.values('status')
+        .annotate(total=Count('pk'))
+        .annotate(reports=F('total'))
+        .order_by('-total')
+        .values_list('total', 'reports', 'status')
     )
 
 
 @metrics.hbarchart(
-    question="Which authors have the most books?",
-    xlabel="Author",
-    ylabel="Num of books",
+    question="Which channels are the busiest?",
+    desc="Top 10 channels by number of messages",
+    xlabel="Channel",
+    ylabel="Num of messages",
 )
-def top_authors_by_num_of_books() -> BarChartResult:
+def top_channels_by_messages() -> BarChartResult:
     return (
-        Author.objects.annotate(num_of_books=Count('books'))
-        .annotate(total=F('num_of_books'))
-        .order_by('-num_of_books', 'name')[:10]
-        .values_list('num_of_books', 'total', 'name')
+        Channel.objects.annotate(total=Count('messages'))
+        .annotate(share=F('total'))
+        .annotate(title=Concat(F('workspace__name'), Value(' #'), F('name')))
+        .order_by('-total', 'title')[:10]
+        .values_list('total', 'share', 'title')
     )
