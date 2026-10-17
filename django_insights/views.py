@@ -7,8 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.views.generic import DetailView, ListView, View
-from django_weasyprint import WeasyTemplateResponseMixin
 
 from django_insights.charts import (
     barchart,
@@ -18,6 +18,7 @@ from django_insights.charts import (
     to_bytes_io,
 )
 from django_insights.models import App, Bucket, Counter, Gauge
+from django_insights.pdf import html_to_pdf
 from django_insights.settings import settings
 
 THEMES = ('light', 'dark')
@@ -138,28 +139,26 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
         return HttpResponse(buffer, content_type='image/png')
 
 
-class InsightsPDFView(WeasyTemplateResponseMixin, InsightAppMixin, ListView):
+class InsightsPDFView(InsightAppMixin, ListView):
     """Render PDF"""
 
     queryset = App.objects.all()
-
-    pdf_stylesheets = [
-        settings.STATIC_ROOT + 'insights/css/pdf.css',
-    ]
-
     template_name = 'insights/pdf.html'
-    pdf_attachment = False
-    pdf_filename = 'foo.pdf'
+
+    def get(self, request, *args, **kwargs):
+        self.object_list = self.get_queryset()
+        html = render_to_string(
+            self.template_name, self.get_context_data(), request=request
+        )
+        response = HttpResponse(html_to_pdf(html), content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="insights.pdf"'
+        return response
 
 
 class InsightsPDFTestView(InsightAppMixin, ListView):
     """Render PDF HTML as test"""
 
     queryset = App.objects.all()
-
-    pdf_stylesheets = [
-        settings.STATIC_ROOT + 'insights/css/pdf.css',
-    ]
 
     def get_template_names(self):
         return ['insights/pdf.html']
