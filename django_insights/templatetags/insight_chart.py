@@ -17,25 +17,10 @@ register = template.Library()
 
 
 @register.simple_tag
-def chart(bucket: Bucket, overlay: str | None = None) -> SafeString:
-    img_url = reverse("insights:insight_chart", args=[bucket.pk])
-
-    overlay_attr = (
-        format_html('data-dialog-open="#insights-modal-{}"', overlay) if overlay else ""
-    )
-
+def chart(bucket: Bucket) -> SafeString:
     return format_html(
-        """
-        <img
-            {}
-            loading="lazy"
-            class="w-full h-auto border-gray-200 cursor-pointer border-t-1"
-            src="{}"
-            alt="{}"
-        />
-    """,
-        overlay_attr,
-        img_url,
+        '<img loading="lazy" class="h-auto w-full" src="{}" alt="{}" />',
+        reverse("insights:insight_chart", args=[bucket.pk]),
         bucket.question,
     )
 

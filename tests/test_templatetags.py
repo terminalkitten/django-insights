@@ -17,11 +17,10 @@ def test_chart_images_load_lazily():
     assert 'loading="lazy"' in chart(Bucket(pk=7, question='q'))
 
 
-def test_chart_tag_escapes_question_and_overlay():
-    html = chart(Bucket(pk=7, question='"><script>x</script>'), overlay='a"b')
+def test_chart_tag_escapes_the_question():
+    html = chart(Bucket(pk=7, question='"><script>x</script>'))
     assert '<script>' not in html
     assert '&quot;&gt;&lt;script&gt;' in html
-    assert 'a&quot;b' in html
 
 
 @pytest.mark.django_db(databases=['default', 'insights'])

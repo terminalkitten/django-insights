@@ -3,11 +3,13 @@
   "private": true,
   "description": "Builds the dashboard stylesheet",
   "scripts": {
-    "build": "tailwindcss -i src/input.css -o ../static/insights/css/insights.css --minify",
+    "vendor": "cp node_modules/basecoat-css/dist/js/basecoat.min.js node_modules/basecoat-css/dist/js/sidebar.min.js ../static/insights/js/",
+    "build": "pnpm run vendor && tailwindcss -i src/input.css -o ../static/insights/css/insights.css --minify",
     "dev": "tailwindcss -i src/input.css -o ../static/insights/css/insights.css --watch"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "basecoat-css": "^1.0.2",
     "tailwindcss": "^4.3.3"
   }
 }
