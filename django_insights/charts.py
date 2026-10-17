@@ -11,7 +11,7 @@ import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 from matplotlib.figure import Figure
 
-from django_insights.models import Bucket
+from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -186,7 +186,7 @@ def render_timeseries(xaxis, yaxis, bucket, theme, size) -> str:
 
 def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Barchart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
     labels = [bucket_value.category for bucket_value in values]
@@ -196,7 +196,7 @@ def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> s
 
 def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> str:
     """Horizontal Barchart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
     labels = [bucket_value.category for bucket_value in values]
@@ -213,7 +213,7 @@ def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) ->
 
 def scatterplot(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Scatterplot chart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
 
@@ -222,7 +222,7 @@ def scatterplot(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -
 
 def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> str:
     """Timeseries chart"""
-    values = bucket.values.all()
+    values = BucketValue.objects.filter(bucket=bucket)
 
     yvalues = [bucket_value.timestamp for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]

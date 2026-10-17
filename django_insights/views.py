@@ -6,10 +6,11 @@ from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models.query import QuerySet
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.views.generic import DetailView, ListView, View
+from django.views.generic.base import ContextMixin
 
 from django_insights.charts import (
     barchart,
@@ -26,6 +27,8 @@ THEMES = ('light', 'dark')
 
 
 class CustomPermissionMixin(UserPassesTestMixin):
+    request: HttpRequest
+
     """
     Run following permisssion
 
@@ -56,6 +59,7 @@ class CustomPermissionMixin(UserPassesTestMixin):
 class InsightAppMixin(
     LoginRequiredMixin,
     CustomPermissionMixin,
+    ContextMixin,
     View,
 ):
     apps: QuerySet | list[App] = []
@@ -90,7 +94,7 @@ class InsightsAppView(InsightAppMixin, DetailView):
 class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
-    def get_queryset(self) -> list[Any]:
+    def get_queryset(self) -> QuerySet[Counter]:
         # Get all metrics in one query?
         return Counter.objects.all()
 
@@ -149,7 +153,7 @@ class InsightsPDFView(InsightAppMixin, ListView):
     def get(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
         html = render_to_string(
-            self.template_name, self.get_context_data(), request=request
+            self.get_template_names(), self.get_context_data(), request=request
         )
         response = HttpResponse(html_to_pdf(html), content_type='application/pdf')
         response['Content-Disposition'] = 'inline; filename="insights.pdf"'

@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import warnings
 from functools import lru_cache
+from pathlib import Path
 
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ImproperlyConfigured
@@ -15,8 +16,12 @@ MAX_PAGES = 500
 @lru_cache
 def get_css() -> str:
     # finders work without collectstatic
-    with open(finders.find('insights/css/pdf.css')) as css:
-        return css.read()
+    path = finders.find('insights/css/pdf.css')
+    if not isinstance(path, str):
+        raise ImproperlyConfigured(
+            'insights/css/pdf.css not found, add django_insights to INSTALLED_APPS'
+        )
+    return Path(path).read_text()
 
 
 def html_to_pdf(html: str) -> bytes:

@@ -66,6 +66,6 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
         item (pytest.Item): pytest function description
     """
     marker = item.get_closest_marker("insights")
-    if marker is None:
+    if marker is None or not isinstance(item, pytest.Function):
         return
     item.fixturenames.insert(0, 'insights_query')
