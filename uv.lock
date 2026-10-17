@@ -596,8 +596,8 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "django", specifier = ">=5.2" },
-    { name = "matplotlib", specifier = ">=3.7" },
-    { name = "pymupdf", marker = "extra == 'pdf'", specifier = ">=1.24" },
+    { name = "matplotlib", specifier = ">=3.8" },
+    { name = "pymupdf", marker = "extra == 'pdf'", specifier = ">=1.24.3" },
     { name = "tqdm", specifier = ">=4.66" },
 ]
 provides-extras = ["pdf"]

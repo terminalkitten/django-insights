@@ -30,12 +30,12 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "django>=5.2",
-    "matplotlib>=3.7",
+    "matplotlib>=3.8",
     "tqdm>=4.66",
 ]
 
 [project.optional-dependencies]
-pdf = ["pymupdf>=1.24"]
+pdf = ["pymupdf>=1.24.3"]
 
 [dependency-groups]
 dev = [
@@ -92,6 +92,7 @@ filterwarnings = [
     "error",
     "ignore:Overriding setting DATABASES:UserWarning",
     "ignore:builtin type .* has no __module__:DeprecationWarning",
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
 ]
 addopts = """\
     --strict-config
