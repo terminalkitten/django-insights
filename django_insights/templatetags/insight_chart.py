@@ -1,6 +1,6 @@
-from asgiref.sync import async_to_sync
 from django import template
 from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from django_insights.charts import (
@@ -17,36 +17,42 @@ register = template.Library()
 
 
 @register.simple_tag
-def chart(bucket: Bucket, overlay: str = None):
+def chart(bucket: Bucket, overlay: str | None = None):
     img_url = reverse("insights:insight_chart", args=[bucket.pk])
 
-    overlay_attr = ""
-    if overlay:
-        overlay_attr = f'data-hs-overlay="#hs-full-screen-modal-{overlay}"'
+    overlay_attr = (
+        format_html('data-hs-overlay="#hs-full-screen-modal-{}"', overlay) if overlay else ""
+    )
 
-    return mark_safe(
-        f"""
+    return format_html(
+        """
         <img
-            {overlay_attr}
+            {}
             class="w-full h-auto border-gray-200 cursor-pointer border-t-1"
-            src="{img_url}"
-            alt="{bucket.question}"
+            src="{}"
+            alt="{}"
         />
-    """
+    """,
+        overlay_attr,
+        img_url,
+        bucket.question,
     )
 
 
-@async_to_sync
-async def base64img(bucket: Bucket, override_theme=None):
+def base64img(bucket: Bucket, override_theme=None):
     theme = override_theme or settings.INSIGHTS_DEFAULT_THEME
+    fig = None
     if bucket.is_timeseries:
-        fig = await timeseries(bucket, theme=theme)
+        fig = timeseries(bucket, theme=theme)
     if bucket.is_scatterplot:
-        fig = await scatterplot(bucket, theme=theme)
+        fig = scatterplot(bucket, theme=theme)
     if bucket.is_barchart:
-        fig = await barchart(bucket, theme=theme)
+        fig = barchart(bucket, theme=theme)
     if bucket.is_hbarchart:
-        fig = await hbarchart(bucket, theme=theme)
+        fig = hbarchart(bucket, theme=theme)
+
+    if fig is None:
+        raise ValueError(f"Unsupported bucket type: {bucket.type}")
 
     return to_base64img(fig)
 
