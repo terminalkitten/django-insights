@@ -4,13 +4,13 @@
     <div class="grid gap-4 px-2 py-2 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         {% for counter in app.counters.all %}
             {% if counter %}
-                <div class="flex flex-col border shadow-sm bg-background border-slate-200 dark:border-slate-900 text-foreground dark:bg-foreground dark:text-background rounded-xl">
+                <div class="flex flex-col border shadow-xs bg-background border-slate-200 dark:border-slate-900 text-foreground dark:bg-foreground dark:text-background rounded-xl">
                     <div class="p-4 md:p-5">
                         <div class="flex items-center gap-x-2">
                             <p class="text-xs tracking-wide text-gray-500 uppercase">{{ counter.question }}</p>
                             {% if counter.desc %}
-                                <div class="hs-tooltip">
-                                    <div class="hs-tooltip-toggle">
+                                <div class="relative group">
+                                    <div class="cursor-help">
                                         <svg class="w-3.5 h-3.5 text-gray-500"
                                              xmlns="http://www.w3.org/2000/svg"
                                              width="16"
@@ -20,7 +20,7 @@
                                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
                                             <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
                                         </svg>
-                                        <span class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity bg-gray-900 rounded-md shadow-sm opacity-0 dark:text-gray-50 hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible dark:bg-slate-900"
+                                        <span class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity bg-gray-900 rounded-md shadow-xs opacity-0 dark:text-gray-50 group-hover:opacity-100 group-hover:visible dark:bg-slate-900"
                                               role="tooltip">{{ counter.desc }}</span>
                                     </div>
                                 </div>
@@ -38,13 +38,13 @@
         {% endfor %}
         {% for gauge in app.gauges.all %}
             {% if gauge %}
-                <div class="flex flex-col border shadow-sm bg-background border-slate-200 dark:border-slate-900 text-foreground dark:bg-foreground dark:text-background rounded-xl">
+                <div class="flex flex-col border shadow-xs bg-background border-slate-200 dark:border-slate-900 text-foreground dark:bg-foreground dark:text-background rounded-xl">
                     <div class="p-4 md:p-5">
                         <div class="flex items-center gap-x-2">
                             <p class="text-xs tracking-wide text-gray-500 uppercase">{{ gauge.question }}</p>
-                            {% if counter.desc %}
-                                <div class="hs-tooltip">
-                                    <div class="hs-tooltip-toggle">
+                            {% if gauge.desc %}
+                                <div class="relative group">
+                                    <div class="cursor-help">
                                         <svg class="w-3.5 h-3.5 text-gray-500"
                                              xmlns="http://www.w3.org/2000/svg"
                                              width="16"
@@ -54,7 +54,7 @@
                                             <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
                                             <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
                                         </svg>
-                                        <span class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity bg-gray-900 rounded-md shadow-sm opacity-0 dark:text-gray-50 hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible dark:bg-slate-900"
+                                        <span class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity bg-gray-900 rounded-md shadow-xs opacity-0 dark:text-gray-50 group-hover:opacity-100 group-hover:visible dark:bg-slate-900"
                                               role="tooltip">{{ gauge.desc }}</span>
                                     </div>
                                 </div>
@@ -75,7 +75,7 @@
         {% for bucket in app.buckets.timeseries %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
+                    <div class="mb-5 flex flex-col bg-white border shadow-xs rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 md:flex md:justify-between md:items-center">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
@@ -84,16 +84,13 @@
                         </div>
                         <!-- Chart -->
                         {% chart bucket bucket.label %}
-                        <div id="hs-full-screen-modal-{{ bucket.label }}"
-                             class="hs-overlay hidden w-full h-full fixed top-0 left-0 z-[60] overflow-x-hidden overflow-y-auto">
-                            <div class="w-full max-w-full mt-10 transition-all opacity-0 hs-overlay-open:mt-0 hs-overlay-open:opacity-100 hs-overlay-open:duration-500">
+                        <dialog id="insights-modal-{{ bucket.label }}" class="w-full h-full max-w-full max-h-full m-0 p-0 bg-transparent backdrop:bg-black/50">
                                 <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
                                     <div class="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
                                         <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                         <button type="button"
-                                                class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hs-dropdown-toggle hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                                data-hs-overlay="#hs-full-screen-modal-{{ bucket.label }}">
-                                            <span class="sr-only">Sluiten</span>
+                                                class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hover:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                            <span class="sr-only">Close</span>
                                             <svg class="w-3.5 h-3.5"
                                                  width="8"
                                                  height="8"
@@ -106,25 +103,21 @@
                                     </div>
                                     <div class="p-4 overflow-y-auto">{% chart bucket %}</div>
                                 </div>
-                            </div>
-                        </div>
+</dialog>
                         <!-- End Chart -->
                         <!-- Card details -->
                         <div class="px-4">
                             <a type="button"
                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
-                               data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">Toon meer</a>
+                               data-dialog-open="#insights-detail-panel-{{ bucket.label }}">Show more</a>
                         </div>
                         <!-- Off-grid panel -->
-                        <div id="insights-detail-panel-{{ bucket.label }}"
-                             class="hs-overlay hs-overlay-open:translate-x-0 translate-x-full fixed top-0 right-0 transition-all duration-100 transform h-full max-w-full md:max-w-md w-full z-[60] bg-white dark:bg-foreground hidden"
-                             tabindex="-1">
+                        <dialog id="insights-detail-panel-{{ bucket.label }}" class="h-full max-h-full w-full max-w-full md:max-w-md m-0 ml-auto p-0 bg-white text-foreground dark:bg-foreground dark:text-background backdrop:bg-black/50">
                             <div class="flex items-center justify-between px-4 py-3">
                                 <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                 <button type="button"
-                                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                        data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">
-                                    <span class="sr-only">Close modal</span>
+                                        class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                    <span class="sr-only">Close</span>
                                     <svg class="w-3.5 h-3.5"
                                          width="8"
                                          height="8"
@@ -182,7 +175,7 @@
                                 </table>
                                 <!-- End Table Section -->
                             </div>
-                        </div>
+                        </dialog>
                         <!-- END off-grid panel -->
                     </div>
                 </div>
@@ -191,7 +184,7 @@
         {% for bucket in app.buckets.scatterplots %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
+                    <div class="mb-5 flex flex-col bg-white border shadow-xs rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 md:flex md:justify-between md:items-center">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
@@ -200,16 +193,13 @@
                         </div>
                         <!-- Chart -->
                         {% chart bucket bucket.label %}
-                        <div id="hs-full-screen-modal-{{ bucket.label }}"
-                             class="hs-overlay hidden w-full h-full fixed top-0 left-0 z-[60] overflow-x-hidden overflow-y-auto">
-                            <div class="w-full max-w-full mt-10 transition-all opacity-0 hs-overlay-open:mt-0 hs-overlay-open:opacity-100 hs-overlay-open:duration-500">
+                        <dialog id="insights-modal-{{ bucket.label }}" class="w-full h-full max-w-full max-h-full m-0 p-0 bg-transparent backdrop:bg-black/50">
                                 <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
                                     <div class="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
                                         <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                         <button type="button"
-                                                class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hs-dropdown-toggle hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                                data-hs-overlay="#hs-full-screen-modal-{{ bucket.label }}">
-                                            <span class="sr-only">Sluiten</span>
+                                                class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hover:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                            <span class="sr-only">Close</span>
                                             <svg class="w-3.5 h-3.5"
                                                  width="8"
                                                  height="8"
@@ -222,25 +212,21 @@
                                     </div>
                                     <div class="p-4 overflow-y-auto">{% chart bucket %}</div>
                                 </div>
-                            </div>
-                        </div>
+</dialog>
                         <!-- End Chart -->
                         <!-- Card details -->
                         <div class="px-4">
                             <a type="button"
                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
-                               data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">Toon meer</a>
+                               data-dialog-open="#insights-detail-panel-{{ bucket.label }}">Show more</a>
                         </div>
                         <!-- Off-grid panel -->
-                        <div id="insights-detail-panel-{{ bucket.label }}"
-                             class="hs-overlay hs-overlay-open:translate-x-0 translate-x-full fixed top-0 right-0 transition-all duration-100 transform h-full max-w-full md:max-w-md w-full z-[60] bg-white dark:bg-foreground hidden"
-                             tabindex="-1">
+                        <dialog id="insights-detail-panel-{{ bucket.label }}" class="h-full max-h-full w-full max-w-full md:max-w-md m-0 ml-auto p-0 bg-white text-foreground dark:bg-foreground dark:text-background backdrop:bg-black/50">
                             <div class="flex items-center justify-between px-4 py-3">
                                 <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                 <button type="button"
-                                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                        data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">
-                                    <span class="sr-only">Close modal</span>
+                                        class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                    <span class="sr-only">Close</span>
                                     <svg class="w-3.5 h-3.5"
                                          width="8"
                                          height="8"
@@ -297,7 +283,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </dialog>
                         <!-- END off-grid panel -->
                     </div>
                 </div>
@@ -306,7 +292,7 @@
         {% for bucket in app.buckets.barcharts %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
+                    <div class="mb-5 flex flex-col bg-white border shadow-xs rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 md:flex md:justify-between md:items-center">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
@@ -315,16 +301,13 @@
                         </div>
                         <!-- Chart -->
                         {% chart bucket bucket.label %}
-                        <div id="hs-full-screen-modal-{{ bucket.label }}"
-                             class="hs-overlay hidden w-full h-full fixed top-0 left-0 z-[60] overflow-x-hidden overflow-y-auto">
-                            <div class="w-full max-w-full mt-10 transition-all opacity-0 hs-overlay-open:mt-0 hs-overlay-open:opacity-100 hs-overlay-open:duration-500">
+                        <dialog id="insights-modal-{{ bucket.label }}" class="w-full h-full max-w-full max-h-full m-0 p-0 bg-transparent backdrop:bg-black/50">
                                 <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
                                     <div class="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
                                         <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                         <button type="button"
-                                                class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hs-dropdown-toggle hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                                data-hs-overlay="#hs-full-screen-modal-{{ bucket.label }}">
-                                            <span class="sr-only">Sluiten</span>
+                                                class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hover:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                            <span class="sr-only">Close</span>
                                             <svg class="w-3.5 h-3.5"
                                                  width="8"
                                                  height="8"
@@ -337,25 +320,21 @@
                                     </div>
                                     <div class="p-4 overflow-y-auto">{% chart bucket %}</div>
                                 </div>
-                            </div>
-                        </div>
+</dialog>
                         <!-- End Chart -->
                         <!-- Card details -->
                         <div class="px-4">
                             <a type="button"
                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
-                               data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">Toon meer</a>
+                               data-dialog-open="#insights-detail-panel-{{ bucket.label }}">Show more</a>
                         </div>
                         <!-- Off-grid panel -->
-                        <div id="insights-detail-panel-{{ bucket.label }}"
-                             class="hs-overlay hs-overlay-open:translate-x-0 translate-x-full fixed top-0 right-0 transition-all duration-100 transform h-full max-w-full md:max-w-md w-full z-[60] bg-white dark:bg-foreground hidden"
-                             tabindex="-1">
+                        <dialog id="insights-detail-panel-{{ bucket.label }}" class="h-full max-h-full w-full max-w-full md:max-w-md m-0 ml-auto p-0 bg-white text-foreground dark:bg-foreground dark:text-background backdrop:bg-black/50">
                             <div class="flex items-center justify-between px-4 py-3">
                                 <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                 <button type="button"
-                                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                        data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">
-                                    <span class="sr-only">Close modal</span>
+                                        class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                    <span class="sr-only">Close</span>
                                     <svg class="w-3.5 h-3.5"
                                          width="8"
                                          height="8"
@@ -413,7 +392,7 @@
                                 </table>
                                 <!-- End Table Section -->
                             </div>
-                        </div>
+                        </dialog>
                         <!-- END off-grid panel -->
                     </div>
                 </div>
@@ -422,7 +401,7 @@
         {% for bucket in app.buckets.hbarcharts %}
             {% if bucket %}
                 <div class="px-2 w-1/1 md:w-1/2">
-                    <div class="mb-5 flex flex-col bg-white border shadow-sm rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
+                    <div class="mb-5 flex flex-col bg-white border shadow-xs rounded-xl dark:bg-foreground/[.7] dark:border-foreground">
                         <div class="grid gap-3 px-6 py-4 md:flex md:justify-between md:items-center">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">{{ bucket.question }}</h2>
@@ -431,16 +410,13 @@
                         </div>
                         <!-- Chart -->
                         {% chart bucket bucket.label %}
-                        <div id="hs-full-screen-modal-{{ bucket.label }}"
-                             class="hs-overlay hidden w-full h-full fixed top-0 left-0 z-[60] overflow-x-hidden overflow-y-auto">
-                            <div class="w-full max-w-full mt-10 transition-all opacity-0 hs-overlay-open:mt-0 hs-overlay-open:opacity-100 hs-overlay-open:duration-500">
+                        <dialog id="insights-modal-{{ bucket.label }}" class="w-full h-full max-w-full max-h-full m-0 p-0 bg-transparent backdrop:bg-black/50">
                                 <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
                                     <div class="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
                                         <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                         <button type="button"
-                                                class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hs-dropdown-toggle hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                                data-hs-overlay="#hs-full-screen-modal-{{ bucket.label }}">
-                                            <span class="sr-only">Sluiten</span>
+                                                class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 transition-all rounded-md hover:text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                            <span class="sr-only">Close</span>
                                             <svg class="w-3.5 h-3.5"
                                                  width="8"
                                                  height="8"
@@ -453,25 +429,21 @@
                                     </div>
                                     <div class="p-4 overflow-y-auto">{% chart bucket %}</div>
                                 </div>
-                            </div>
-                        </div>
+</dialog>
                         <!-- End Chart -->
                         <!-- Card details -->
                         <div class="px-4">
                             <a type="button"
                                class="inline-flex items-center justify-center gap-2 px-4 py-3 m-1 ml-0 text-sm font-semibold cursor-pointer hover:text-blue-600 text-foreground dark:text-background"
-                               data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">Toon meer</a>
+                               data-dialog-open="#insights-detail-panel-{{ bucket.label }}">Show more</a>
                         </div>
                         <!-- Off-grid panel -->
-                        <div id="insights-detail-panel-{{ bucket.label }}"
-                             class="hs-overlay hs-overlay-open:translate-x-0 translate-x-full fixed top-0 right-0 transition-all duration-100 transform h-full max-w-full md:max-w-md w-full z-[60] bg-white dark:bg-foreground hidden"
-                             tabindex="-1">
+                        <dialog id="insights-detail-panel-{{ bucket.label }}" class="h-full max-h-full w-full max-w-full md:max-w-md m-0 ml-auto p-0 bg-white text-foreground dark:bg-foreground dark:text-background backdrop:bg-black/50">
                             <div class="flex items-center justify-between px-4 py-3">
                                 <h3 class="font-bold text-gray-800 dark:text-white">{{ bucket.question }}</h3>
                                 <button type="button"
-                                        class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
-                                        data-hs-overlay="#insights-detail-panel-{{ bucket.label }}">
-                                    <span class="sr-only">Close modal</span>
+                                        class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-sm text-gray-500 rounded-md hover:text-gray-700 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:text-gray-500 dark:hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800" data-dialog-close>
+                                    <span class="sr-only">Close</span>
                                     <svg class="w-3.5 h-3.5"
                                          width="8"
                                          height="8"
@@ -529,7 +501,7 @@
                                 </table>
                                 <!-- End Table Section -->
                             </div>
-                        </div>
+                        </dialog>
                         <!-- END off-grid panel -->
                     </div>
                 </div>

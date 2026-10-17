@@ -1,5 +1,51 @@
-@import url(https://fonts.bunny.net/css?family=ubuntu:300,300i,400,400i,500,500i,700,700i);
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source '../../templates';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: 'Ubuntu';
+  src: url('../fonts/ubuntu.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Ubuntu', sans-serif;
+
+  --color-background: #f0f3f6;
+  --color-foreground: #0d1117;
+
+  --color-gray-50: #f6f8fa;
+  --color-gray-100: #eaeef2;
+  --color-gray-200: #d0d7de;
+  --color-gray-300: #afb8c1;
+  --color-gray-400: #8c959f;
+  --color-gray-500: #6e7781;
+  --color-gray-600: #57606a;
+  --color-gray-700: #424a53;
+  --color-gray-800: #32383f;
+  --color-gray-900: #24292f;
+
+  --color-slate-50: #f6f8fa;
+  --color-slate-100: #eaeef2;
+  --color-slate-200: #d0d7de;
+  --color-slate-300: #afb8c1;
+  --color-slate-400: #8c959f;
+  --color-slate-500: #6e7781;
+  --color-slate-600: #57606a;
+  --color-slate-700: #424a53;
+  --color-slate-800: #32383f;
+  --color-slate-900: #24292f;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}

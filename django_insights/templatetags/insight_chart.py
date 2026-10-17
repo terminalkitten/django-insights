@@ -21,7 +21,7 @@ def chart(bucket: Bucket, overlay: str | None = None):
     img_url = reverse("insights:insight_chart", args=[bucket.pk])
 
     overlay_attr = (
-        format_html('data-hs-overlay="#hs-full-screen-modal-{}"', overlay) if overlay else ""
+        format_html('data-dialog-open="#insights-modal-{}"', overlay) if overlay else ""
     )
 
     return format_html(
