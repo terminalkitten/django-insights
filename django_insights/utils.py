@@ -1,10 +1,11 @@
-import os
-import shutil
-from typing import Any, Callable
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
 
-from django.conf import settings
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
+
+from django_insights.settings import settings
 
 
 class DjangoReadOnlyError(Exception):
@@ -12,14 +13,16 @@ class DjangoReadOnlyError(Exception):
 
 
 def rebuild_chart_media_cache() -> None:
-    """
-    Delete and recreate cache if cache is enabled and cache dir exists
-    """
-    if settings.INSIGHT_CHARTS_USE_MEDIA_CACHE and os.path.exists(
-        settings.INSIGHT_MEDIA_CACHE_ROOT
+    """Delete cached chart images, other files in the cache root are left alone"""
+    if not (
+        settings.INSIGHT_CHARTS_USE_MEDIA_CACHE and settings.INSIGHT_MEDIA_CACHE_ROOT
     ):
-        shutil.rmtree(settings.INSIGHT_MEDIA_CACHE_ROOT)
-        os.mkdir(settings.INSIGHT_MEDIA_CACHE_ROOT)
+        return
+
+    root = Path(settings.INSIGHT_MEDIA_CACHE_ROOT)
+    root.mkdir(parents=True, exist_ok=True)
+    for image in root.glob('*-*-*.png'):
+        image.unlink()
 
 
 def should_block(sql: str) -> bool:
