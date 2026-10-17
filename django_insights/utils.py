@@ -1,7 +1,10 @@
+import os
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
 
@@ -10,6 +13,32 @@ from django_insights.settings import settings
 
 class DjangoReadOnlyError(Exception):
     pass
+
+
+def chart_cache_path(bucket_type: int, bucket_id: int, theme: str) -> Path | None:
+    """Cache file of a rendered chart, None when the media cache is disabled"""
+    if not settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
+        return None
+
+    root = settings.INSIGHT_MEDIA_CACHE_ROOT
+    if not root:
+        raise ImproperlyConfigured(
+            'INSIGHT_MEDIA_CACHE_ROOT is required when INSIGHT_CHARTS_USE_MEDIA_CACHE is enabled'
+        )
+    return Path(root) / f'{bucket_type}-{bucket_id}-{theme}.png'
+
+
+def write_atomic(path: Path, data: bytes) -> None:
+    """Write through a temp file so readers never see a partial file"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temp_name = tempfile.mkstemp(dir=path.parent, suffix='.tmp')
+    try:
+        with os.fdopen(handle, 'wb') as temp_file:
+            temp_file.write(data)
+        os.replace(temp_name, path)
+    except BaseException:
+        Path(temp_name).unlink(missing_ok=True)
+        raise
 
 
 def rebuild_chart_media_cache() -> None:

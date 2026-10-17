@@ -10,6 +10,24 @@ from django_insights.settings import settings
 
 
 @register()
+def check_media_cache(
+    app_configs: Sequence[AppConfig] | None, **kwargs: Any
+) -> list[CheckMessage]:
+    if (
+        settings.INSIGHT_CHARTS_USE_MEDIA_CACHE
+        and not settings.INSIGHT_MEDIA_CACHE_ROOT
+    ):
+        return [
+            Error(
+                'INSIGHT_MEDIA_CACHE_ROOT is required when '
+                'INSIGHT_CHARTS_USE_MEDIA_CACHE is enabled.',
+                id='insights.E003',
+            )
+        ]
+    return []
+
+
+@register()
 def check_dashboard_permissions(
     app_configs: Sequence[AppConfig] | None, **kwargs: Any
 ) -> list[CheckMessage]:

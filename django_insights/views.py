@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from collections.abc import Iterable
 from typing import Any
 
@@ -23,6 +22,7 @@ from django_insights.charts import (
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.pdf import html_to_pdf
 from django_insights.settings import settings
+from django_insights.utils import chart_cache_path, write_atomic
 
 THEMES = ('light', 'dark')
 
@@ -105,15 +105,12 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
             theme = settings.INSIGHTS_DEFAULT_THEME
         bucket = get_object_or_404(Bucket, pk=bucket_id)
 
-        filename: str = (
-            f"{settings.INSIGHT_MEDIA_CACHE_ROOT}/{bucket.type}-{bucket.pk}-{theme}.png"
-        )
-
-        if os.path.exists(filename) and settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
-            with open(filename, 'rb') as cached_image:
-                buffer = cached_image.read()
-
-            return HttpResponse(buffer, content_type='image/png')
+        cache_path = chart_cache_path(bucket.type, bucket.pk, theme)
+        if cache_path is not None:
+            try:
+                return HttpResponse(cache_path.read_bytes(), content_type='image/png')
+            except FileNotFoundError:
+                pass
 
         fig = None
 
@@ -131,9 +128,8 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
 
         buffer = to_bytes_io(fig)
 
-        if settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
-            with open(filename, 'wb') as cached_image:
-                cached_image.write(buffer)
+        if cache_path is not None:
+            write_atomic(cache_path, buffer)
 
         return HttpResponse(buffer, content_type='image/png')
 
