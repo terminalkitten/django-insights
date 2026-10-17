@@ -1,16 +1,9 @@
 from typing import Any
 
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Model
 
 app_labels = {"insights"}
 database_entry = "insights"
-
-
-def check_settings() -> None:
-    if database_entry not in settings.DATABASES:
-        raise ImproperlyConfigured()
 
 
 class Router:

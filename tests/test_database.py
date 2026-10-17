@@ -1,26 +1,10 @@
 import pytest
-from django.core.exceptions import ImproperlyConfigured
-from django.test import override_settings
 
-from django_insights.database import Router, check_settings
+from django_insights.database import Router
 from django_insights.models import Bucket, Counter
-from project.settings.test import DATABASES
 from project.testapp.users.models import AppUser
 
 router = Router()
-
-
-def test_check_settings_requires_insights_database():
-    without_insights = {k: v for k, v in DATABASES.items() if k != 'insights'}
-    with (
-        override_settings(DATABASES=without_insights),
-        pytest.raises(ImproperlyConfigured),
-    ):
-        check_settings()
-
-
-def test_check_settings_passes_with_insights_database():
-    check_settings()
 
 
 @pytest.mark.parametrize(
