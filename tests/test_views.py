@@ -5,6 +5,7 @@ from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
+from django_insights import views
 from django_insights.choices import BucketType
 from django_insights.models import App, Bucket, BucketValue
 from tests.utils import AllowAll, DenyAll, NoMethod
@@ -140,6 +141,34 @@ def test_chart_survives_a_cache_file_removed_after_the_lookup(
         (tmp_path / f'{bucket.type}-{bucket.pk}-dark.png').unlink()
         response = viewer_client.get(url)
     assert response.content.startswith(b'\x89PNG')
+
+
+def test_chart_is_private_and_has_a_validator(viewer_client, bucket):
+    response = viewer_client.get(reverse('insights:insight_chart', args=[bucket.pk]))
+    assert response['ETag']
+    assert 'private' in response['Cache-Control']
+    assert 'no-cache' in response['Cache-Control']
+
+
+def test_unchanged_chart_is_not_rendered_again(viewer_client, bucket, monkeypatch):
+    url = reverse('insights:insight_chart', args=[bucket.pk])
+    etag = viewer_client.get(url)['ETag']
+
+    def fail(*args, **kwargs):
+        raise AssertionError('the chart was rendered again')
+
+    monkeypatch.setattr(views, 'to_bytes_io', fail)
+    response = viewer_client.get(url, HTTP_IF_NONE_MATCH=etag)
+
+    assert response.status_code == 304
+    assert response.content == b''
+
+
+def test_chart_etag_depends_on_the_theme(viewer_client, bucket):
+    url = reverse('insights:insight_chart', args=[bucket.pk])
+    dark = viewer_client.get(url)['ETag']
+    viewer_client.cookies['theme'] = 'light'
+    assert viewer_client.get(url)['ETag'] != dark
 
 
 def add_buckets(app, start, count):

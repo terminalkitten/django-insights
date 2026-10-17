@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Iterable
 from typing import Any
 
@@ -10,6 +11,9 @@ from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils.cache import patch_cache_control
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import condition
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
@@ -26,6 +30,39 @@ from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
 
 THEMES = ('light', 'dark')
+
+
+def chart_theme(request: HttpRequest) -> str:
+    theme = request.COOKIES.get('theme')
+    return theme if theme in THEMES else settings.INSIGHTS_DEFAULT_THEME
+
+
+def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
+    """Identifies one rendered chart, a collect creates new buckets so it never changes"""
+    created_at = (
+        Bucket.objects.filter(pk=bucket_id).values_list('created_at', flat=True).first()
+    )
+    if created_at is None:
+        return None
+
+    key = '|'.join(
+        str(part)
+        for part in (
+            bucket_id,
+            created_at.isoformat(),
+            chart_theme(request),
+            settings.INSIGHTS_CHART_DPI,
+            settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
+            settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
+        )
+    )
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+def png_response(content: bytes) -> HttpResponse:
+    response = HttpResponse(content, content_type='image/png')
+    patch_cache_control(response, private=True, no_cache=True)
+    return response
 
 
 class CustomPermissionMixin(UserPassesTestMixin):
@@ -98,16 +135,15 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 
 
 class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
+    @method_decorator(condition(etag_func=chart_etag))
     def get(self, request: HttpRequest, bucket_id: int) -> HttpResponse:
-        theme = self.request.COOKIES.get('theme')
-        if theme not in THEMES:  # cookie is user input, it ends up in a file path
-            theme = settings.INSIGHTS_DEFAULT_THEME
+        theme = chart_theme(request)
         bucket = get_object_or_404(Bucket, pk=bucket_id)
 
         cache_path = chart_cache_path(bucket.type, bucket.pk, theme)
         if cache_path is not None:
             try:
-                return HttpResponse(cache_path.read_bytes(), content_type='image/png')
+                return png_response(cache_path.read_bytes())
             except FileNotFoundError:
                 pass
 
@@ -130,7 +166,7 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
         if cache_path is not None:
             write_atomic(cache_path, buffer)
 
-        return HttpResponse(buffer, content_type='image/png')
+        return png_response(buffer)
 
 
 class InsightsPDFView(InsightAppMixin, ListView):
