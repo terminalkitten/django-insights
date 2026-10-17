@@ -18,6 +18,9 @@ class App(models.Model):
     module = models.CharField(max_length=254, db_index=True, unique=True)
     label = models.CharField(max_length=254, null=True)
 
+    def __str__(self) -> str:
+        return self.name
+
     @property
     def name(self) -> str:
         return self.label or self.module
@@ -31,6 +34,9 @@ class ExecutionDelta(models.Model):
 
     executed_at = models.DateTimeField(db_index=True, default=timezone.now)
     uuid = models.UUIDField(default=uuid.uuid4)
+
+    def __str__(self) -> str:
+        return f"Insight execution: {self.uuid}"
 
 
 class MetricModel(models.Model):
@@ -74,13 +80,6 @@ class Gauge(MetricModel):
     value = models.FloatField(default=0.0)
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
 
-    def gauge(self, value: float = 1, delta: bool = False) -> None:
-        """Set gauge value"""
-        if not delta:
-            self.value = value
-        else:
-            self.value = self.value + value
-
     class Meta:
         app_label = database_entry
         constraints = [
@@ -91,6 +90,13 @@ class Gauge(MetricModel):
 
     def __str__(self) -> str:
         return f"Insight Gauge: {self.label} = {self.value}"
+
+    def gauge(self, value: float = 1, delta: bool = False) -> None:
+        """Set gauge value"""
+        if not delta:
+            self.value = value
+        else:
+            self.value = self.value + value
 
 
 class Bucket(MetricModel):
@@ -108,6 +114,23 @@ class Bucket(MetricModel):
 
     # title for plot
     title = models.CharField(max_length=254, blank=True, null=True)
+
+    objects = BucketManager()
+
+    class Meta:
+        app_label = database_entry
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    'app',
+                    'label',
+                ],
+                name='bucket_unique_app_label_timestamp',
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"Insight Bucket: {self.label}"
 
     @property
     def is_timeseries(self) -> bool:
@@ -129,24 +152,10 @@ class Bucket(MetricModel):
     def is_hbarchart(self) -> bool:
         return self.type == BucketType.HBARCHART
 
-    objects = BucketManager()
-
-    class Meta:
-        app_label = database_entry
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    'app',
-                    'label',
-                ],
-                name='bucket_unique_app_label_timestamp',
-            )
-        ]
-
 
 class BucketValue(models.Model):
     """
-    Bucket values matrix: used for time-series, histogram and scatterpltos.
+    Bucket values matrix: used for time-series, histogram and scatterplots.
     Combination of timestamp, label and app are unique.
 
     """

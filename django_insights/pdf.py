@@ -43,7 +43,9 @@ def html_to_pdf(html: str) -> bytes:
     body = html.split('<body>', 1)[-1].split('</body>', 1)[0]
     css = get_css()
     mediabox = pymupdf.paper_rect('a4')
-    where = mediabox + (MARGIN, MARGIN, -MARGIN, -MARGIN)
+    where = pymupdf.Rect(
+        MARGIN, MARGIN, mediabox.width - MARGIN, mediabox.height - MARGIN
+    )
 
     buffer = io.BytesIO()
     writer = pymupdf.DocumentWriter(buffer)

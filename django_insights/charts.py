@@ -78,14 +78,14 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
         size (ChartSize): SMALL, MEDIUM, LARGE
 
     Returns:
-        tuple[int, int]: return tuple of figure siza
+        tuple[int, int]: return tuple of figure size
     """
 
     return FIGSIZES[size]
 
 
 def to_bytes_io(fig: Figure) -> bytes:
-    """Render Mathplotlib figure to file-like object"""
+    """Render Matplotlib figure to file-like object"""
     flike = io.BytesIO()
     fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
 
@@ -93,7 +93,7 @@ def to_bytes_io(fig: Figure) -> bytes:
 
 
 def to_base64img(fig: Figure) -> str:
-    """Render Mathplotlib figure to Base64 encoded image"""
+    """Render Matplotlib figure to Base64 encoded image"""
     return base64.b64encode(to_bytes_io(fig)).decode()
 
 
