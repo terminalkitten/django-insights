@@ -14,23 +14,27 @@ Django Insights collects six types of metrics. Each one is a decorator for a fun
 Every decorator takes a `question` and optionally a `desc`. The chart types also take `xlabel`, `ylabel`, `xformat`, `yformat` and `title`.
 
 ```python
+from django.db.models import Count, F
+
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult
+from project.testapp.models import Message, Report
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 
 
 @metrics.barchart(
-    question="Num of books by gender of author?", xlabel="Gender", ylabel="Num of books"
+    question="How are the reports doing?", xlabel="Status", ylabel="Num of reports"
 )
-def books_by_gender() -> BarChartResult:
+def reports_by_status() -> BarChartResult:
     return (
-        Author.objects.values('gender')
-        .annotate(n=Count('books'))
-        .values_list('n', 'gender', 'name')
+        Report.objects.values('status')
+        .annotate(total=Count('pk'))
+        .annotate(reports=F('total'))
+        .values_list('total', 'reports', 'status')
     )
 ```
 

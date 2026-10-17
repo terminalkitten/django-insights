@@ -43,14 +43,14 @@ In these insights files you write out any metric you would like to track. Each m
 ```python
 # project/testapp/insights.py
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Message
 
-label = "Bookstore"
+label = "Workspace"
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 ```
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
@@ -149,12 +149,12 @@ Every decorator takes a `question` and optionally a `desc`. The chart types also
 
 ```python
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Message
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 ```
 
 ### Gauge:
@@ -163,46 +163,40 @@ def count_authors() -> int:
 from django.db.models import Avg, Count
 
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Workspace
 
 
-@metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> float:
-    avg_total_books = (
-        Author.objects.prefetch_related('books')
-        .annotate(total_books=Count('books'))
-        .aggregate(Avg('total_books'))
-        .get('total_books__avg')
+@metrics.gauge(question="Average members per workspace?")
+def avg_members_per_workspace() -> float:
+    average = Workspace.objects.annotate(total=Count('memberships')).aggregate(
+        Avg('total')
     )
-
-    return avg_total_books or 0.0
+    return average['total__avg'] or 0.0
 ```
 
 ### Timeseries:
 
 ```python
-from django.db.models import Count
+from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import TimeSeriesResult
-from project.testapp.models import Book
+from project.testapp.models import Message
 
 
 @metrics.timeseries(
-    question="Num of books created per month?",
-    desc="How many books are added each month, since the opening of our store",
+    question="What does the AI assistant cost per month?",
     xlabel="Month",
-    xformat='%m',
-    ylabel="Num of books",
+    xformat='%Y-%m',
+    ylabel="Cost in USD",
 )
-def num_of_books_per_month() -> TimeSeriesResult:
+def ai_cost_per_month() -> TimeSeriesResult:
     return (
-        Book.objects.all()
-        .annotate(month=TruncMonth('created'))
+        Message.objects.filter(is_ai=True)
+        .annotate(month=TruncMonth('created_at'))
         .values('month')
-        .filter(month__isnull=False)
-        .annotate(total=Count('pk'))
+        .annotate(total=Sum('cost'))
         .values_list('month', 'total')
         .order_by('month')
     )
@@ -211,52 +205,45 @@ def num_of_books_per_month() -> TimeSeriesResult:
 ### Scatterplot:
 
 ```python
-from django.db.models import Count, Value
-
 from django_insights.metrics import metrics
 from django_insights.metrics_types import ScatterPlotResult
-from project.testapp.models import Author
+from project.testapp.models import Message
 
 
 @metrics.scatterplot(
-    question="Num of books by age of author?",
-    xlabel="Age",
-    ylabel="Num of books",
+    question="What does a message of the AI assistant cost for its length?",
+    xlabel="Tokens",
+    ylabel="Cost in USD",
 )
-def author_age_vs_num_of_books() -> ScatterPlotResult:
+def ai_cost_vs_tokens() -> ScatterPlotResult:
     return (
-        Author.objects.values('age')
-        .annotate(num_of_books=Count('books'), category=Value("author"))
-        .values_list('num_of_books', 'age', 'category')
+        Message.objects.filter(is_ai=True)
+        .order_by('-created_at', '-pk')[:500]
+        .values_list('cost', 'tokens', 'model')
     )
 ```
 
 ### Barchart:
 
 ```python
-from django.db.models import Case, Count, Value, When
+from django.db.models import Count, F
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult
-from project.testapp.models import Author
+from project.testapp.models import Report
 
 
 @metrics.barchart(
-    question="Num of books by gender of author?",
-    xlabel="Gender",
-    ylabel="Num of books",
+    question="How are the reports doing?",
+    xlabel="Status",
+    ylabel="Num of reports",
 )
-def author_gender_vs_num_of_books() -> BarChartResult:
+def reports_by_status() -> BarChartResult:
     return (
-        Author.objects.values('gender')
-        .annotate(
-            num_of_books=Count('books'),
-            gender_category=Case(
-                When(gender=1, then=Value('Male')),
-                When(gender=2, then=Value('Female')),
-            ),
-        )
-        .values_list('num_of_books', 'gender', 'gender_category')
+        Report.objects.values('status')
+        .annotate(total=Count('pk'))
+        .annotate(reports=F('total'))
+        .values_list('total', 'reports', 'status')
     )
 ```
 
@@ -267,20 +254,20 @@ from django.db.models import Count, F
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult
-from project.testapp.models import Author
+from project.testapp.models import Channel
 
 
 @metrics.hbarchart(
-    question="Which authors have the most books?",
-    xlabel="Author",
-    ylabel="Num of books",
+    question="Which channels are the busiest?",
+    xlabel="Channel",
+    ylabel="Num of messages",
 )
-def top_authors_by_num_of_books() -> BarChartResult:
+def top_channels_by_messages() -> BarChartResult:
     return (
-        Author.objects.annotate(num_of_books=Count('books'))
-        .annotate(total=F('num_of_books'))
-        .order_by('-num_of_books', 'name')[:10]
-        .values_list('num_of_books', 'total', 'name')
+        Channel.objects.annotate(total=Count('messages'))
+        .annotate(share=F('total'))
+        .order_by('-total', 'name')[:10]
+        .values_list('total', 'share', 'name')
     )
 ```
 
@@ -347,18 +334,22 @@ The pytest plugin comes with Django Insights, there is nothing to configure. It 
 import pytest
 from django.utils import timezone
 
-from project.testapp.models import Author
+from project.testapp.models import Channel, Message, Workspace
 
 
 @pytest.mark.insights
 @pytest.mark.django_db
-def test_count_authors(insights_query):
-    Author.objects.create(created=timezone.now(), name='Ada', age=36, gender=1)
+def test_count_messages(insights_query):
+    workspace = Workspace.objects.create(name='Acme', created_at=timezone.now())
+    channel = Channel.objects.create(
+        workspace=workspace, name='general', created_at=timezone.now()
+    )
+    Message.objects.create(channel=channel, created_at=timezone.now())
 
     assert insights_query() == 1
 ```
 
-The insight is found by the name of the test without `test_`. To choose another one, give the marker a name: `@pytest.mark.insights('count_authors')`. When two apps have an insight with the same name, use `module.name`, for example `'shop.insights.count_orders'`. A name that does not exist fails the test with a message.
+The insight is found by the name of the test without `test_`. To choose another one, give the marker a name: `@pytest.mark.insights('count_messages')`. When two apps have an insight with the same name, use `module.name`, for example `'shop.insights.count_orders'`. A name that does not exist fails the test with a message.
 
 ## Use-cases
 

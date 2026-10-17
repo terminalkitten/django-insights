@@ -6,13 +6,17 @@ The pytest plugin comes with Django Insights, there is nothing to configure. It 
 import pytest
 from django.utils import timezone
 
-from project.testapp.models import Author
+from project.testapp.models import Channel, Message, Workspace
 
 
 @pytest.mark.insights
 @pytest.mark.django_db
-def test_count_authors(insights_query):
-    Author.objects.create(created=timezone.now(), name='Ada', age=36, gender=1)
+def test_count_messages(insights_query):
+    workspace = Workspace.objects.create(name='Acme', created_at=timezone.now())
+    channel = Channel.objects.create(
+        workspace=workspace, name='general', created_at=timezone.now()
+    )
+    Message.objects.create(channel=channel, created_at=timezone.now())
 
     assert insights_query() == 1
 ```
@@ -23,8 +27,8 @@ The `insights_query` fixture returns the insight named after the test, without `
 
 | You want | Do this |
 | --- | --- |
-| the insight named after the test | `def test_count_authors(insights_query)` |
-| another insight | `@pytest.mark.insights('count_authors')` |
+| the insight named after the test | `def test_count_messages(insights_query)` |
+| another insight | `@pytest.mark.insights('count_messages')` |
 | one of two insights with the same name | `@pytest.mark.insights('shop.insights.count_orders')` |
 
 A name that does not exist, or that matches several insights, fails the test with a message that says which.
