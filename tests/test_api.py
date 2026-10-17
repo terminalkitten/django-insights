@@ -16,7 +16,7 @@ COPY_DATABASES.pop('insights')
 
 
 class ApiTests(TestCase):
-    databases = ['default', 'insights']
+    databases = {'default', 'insights'}
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -45,7 +45,7 @@ class ApiTests(TestCase):
 
 
 class ViewTests(TestCase):
-    databases = ['default', 'insights']
+    databases = {'default', 'insights'}
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -62,6 +62,7 @@ class ViewTests(TestCase):
 
     def test_chart_requires_login(self):
         bucket = Bucket.objects.first()
+        assert bucket is not None
         response = self.client.get(reverse('insights:insight_chart', args=[bucket.pk]))
         assert response.status_code == 302
 
@@ -95,6 +96,7 @@ class ViewTests(TestCase):
         self.client.force_login(self.user)
         self.client.cookies['theme'] = '../../evil'
         bucket = Bucket.objects.first()
+        assert bucket is not None
         response = self.client.get(reverse('insights:insight_chart', args=[bucket.pk]))
         assert response.status_code == 200
 

@@ -8,7 +8,9 @@ from tqdm import tqdm
 
 
 class InsightRegistry:
-    registered_insights: list[tuple[str, str, str, Callable[[Any], Any]]] = list()
+    registered_insights: list[tuple[str, str, str | None, Callable[[Any], Any]]] = (
+        list()
+    )
 
     @staticmethod
     def autodiscover_insights():
@@ -18,7 +20,7 @@ class InsightRegistry:
         self,
         label: str,
         module: str,
-        question: str,
+        question: str | None,
         func: Callable[[Any], Any],
     ):
         self.registered_insights.append((module, label, question, func))

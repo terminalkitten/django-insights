@@ -71,7 +71,7 @@ def count_authors_name_gt_20() -> int:
 
 
 @metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> int:
+def avg_books_per_author() -> float:
     avg_total_books = (
         Author.objects.prefetch_related('books')
         .annotate(total_books=Count('books'))
@@ -79,7 +79,7 @@ def avg_books_per_author() -> int:
         .get('total_books__avg')
     )
 
-    return avg_total_books
+    return avg_total_books or 0.0
 
 
 @metrics.timeseries(
@@ -90,7 +90,7 @@ def avg_books_per_author() -> int:
     ylabel="Num of books",
 )
 def num_of_books_per_month() -> list[tuple[datetime, int]]:
-    return (
+    return list(
         Book.objects.all()
         .annotate(month=TruncMonth('created'))
         .values('month')
@@ -108,7 +108,7 @@ def num_of_books_per_month() -> list[tuple[datetime, int]]:
     ylabel="Num of books",
 )
 def num_of_books_per_year() -> list[tuple[datetime, int]]:
-    return (
+    return list(
         Book.objects.all()
         .annotate(year=TruncYear('created'))
         .values('year')
@@ -125,7 +125,7 @@ def num_of_books_per_year() -> list[tuple[datetime, int]]:
     ylabel="Num of books",
 )
 def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
-    return (
+    return list(
         Author.objects.values('age')
         .annotate(num_of_books=Count('books'), category=Value("author"))
         .values_list('num_of_books', 'age', 'category')
@@ -138,7 +138,7 @@ def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
     ylabel="Num of books",
 )
 def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
-    return (
+    return list(
         Author.objects.values('gender')
         .annotate(
             num_of_books=Count('books'),
