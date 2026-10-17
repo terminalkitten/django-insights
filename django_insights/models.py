@@ -71,10 +71,10 @@ class Gauge(MetricModel):
 
     """
 
-    value = models.FloatField(default=float(0.0))
+    value = models.FloatField(default=0.0)
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
 
-    def gauge(self, value=1, delta=False) -> int:
+    def gauge(self, value=1, delta=False) -> None:
         """Set gauge value"""
         if not delta:
             self.value = value
@@ -155,8 +155,8 @@ class BucketValue(models.Model):
     timestamp = models.DateTimeField(db_index=True, blank=True, null=True)
 
     # Matrix
-    xvalue = models.FloatField(default=float(0.0))
-    yvalue = models.FloatField(default=float(0.0))
+    xvalue = models.FloatField(default=0.0)
+    yvalue = models.FloatField(default=0.0)
     category = models.CharField(db_index=True, max_length=254, null=True)
 
     bucket = models.ForeignKey(Bucket, related_name='values', on_delete=models.CASCADE)
