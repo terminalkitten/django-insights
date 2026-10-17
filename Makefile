@@ -1,9 +1,10 @@
-.PHONY: rs migrate dump shell seed collect_insights compilereqtxt clean
+.PHONY: rs migrate dump shell seed collect_insights clean
 
 rs:
 	python manage.py runserver
 
 migrate:
+	mkdir -p db
 	python manage.py migrate
 	python manage.py migrate insights --database=insights
 
@@ -15,9 +16,6 @@ seed:
 
 collect_insights:
 	python manage.py collect_insights
-
-compilereq:
-	python requirements/compile.py
 
 clean:
 	rm -f db/*.db

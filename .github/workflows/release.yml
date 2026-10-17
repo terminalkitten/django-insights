@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "[0-9]*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - name: Version must come from the tag, not be a dev build
+        run: "! ls dist | grep -E '\\.dev|\\+'"
+      - run: uvx twine check dist/*
+      - run: uv publish

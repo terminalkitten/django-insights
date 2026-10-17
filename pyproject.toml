@@ -1,82 +1,66 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
-[distutils]
-index-servers = ["pypi"]
-
-[pypi]
-repository = "https://upload.pypi.org/legacy/"
-username = "terminalkitten"
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-insights"
+description = "Create insights for your Django app, written right next to your application logic"
 authors = [{ name = "DK", email = "dk@terminalkitten.com" }]
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
     "Framework :: Django",
-    "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
-    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Framework :: Matplotlib",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-dynamic = ["version", "description"]
+requires-python = ">=3.11"
 dependencies = [
-    "django",
-    "matplotlib",
-    "tqdm",
-    "weasyprint>=53",
-    "django-weasyprint>=2.3",
+    "django>=5.2",
+    "matplotlib>=3.7",
+    "tqdm>=4.66",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "black",
-    "ipython",
-    "flit",
-    "flake8",
-    "pytest",
-    "pytest-django",
-    "mypy",
-    "isort",
-    "wheel",
-    "faker",
-]
-doc = ["pdoc"]
-
-[project.scripts]
-insights = "django_insights.cli:cli"
+pdf = ["pymupdf>=1.24"]
+dev = ["django-insights[pdf]", "pytest", "pytest-django", "ruff", "faker", "tox", "tox-uv"]
+doc = ["mkdocs", "mkdocs-material"]
 
 [project.urls]
 Home = "https://github.com/terminalkitten/django-insights"
 
-[tool.django-stubs]
-django_settings_module = "project.settings"
+[tool.setuptools.packages.find]
+include = ["django_insights*"]
 
-[tool.black]
+[tool.setuptools_scm]
+
+[tool.ruff]
 line-length = 88
-skip-string-normalization = true
-target-version = ['py39', 'py310', 'py311']
+target-version = "py311"
+extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations"]
 
-[tool.isort]
-profile = "black"
-line_length = 88
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PT"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "preserve"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-filterwarnings = ["error", "ignore::UserWarning"]
+filterwarnings = ["error", "ignore:Overriding setting DATABASES:UserWarning"]
 addopts = """\
     --strict-config
     --strict-markers

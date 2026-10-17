@@ -2,8 +2,8 @@
 
 !["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/banner.png)
 
-> [!IMPORTANT]
-> **Version 0.3.x is coming and it is a big update.** It is newer than this release, so expect changes: new dashboard, `INSIGHT_*` settings renamed to `INSIGHTS_*`, Python 3.11+ and Django 5.2+, and a database migration. Pin `django-insights<0.3` if you are not ready to upgrade. The upgrade steps are in `MIGRATE-V2.md` on the `feat/v2` branch.
+> [!NOTE]
+> **v2 is in the works.** We are currently working on a new major release on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard, optional PDF export and a lot of fixes. The documentation below describes the current state of that branch and may change before release.
 
 ## Features
 
@@ -15,8 +15,8 @@ Still working on some small things, extending tests and improving the documentat
 
 For now focus is on:
 
-- Django 3.2 (LTS), 4.0,4.1 and 4.2;
-- Python ≥ 3.8
+- Django 5.2 (LTS), 6.0 and 6.1;
+- Python 3.11 – 3.14
 
 ## Installation
 
@@ -47,10 +47,10 @@ from project.testapp.models import Author
 
 label = "Bookstore"
 
+
 @metrics.counter(question="How many authors are there?")
 def count_authors() -> int:
     return Author.objects.count()
-
 ```
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
@@ -142,13 +142,11 @@ from project.testapp.models import Author
 @metrics.counter(question="How many authors are there?")
 def count_authors() -> int:
     return Author.objects.count()
-
 ```
 
 ### Gauge:
 
 ```python
-
 from django.db.models import Avg, Count
 
 from django_insights.metrics import metrics
@@ -250,7 +248,6 @@ def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
         )
         .values_list('num_of_books', 'gender', 'gender_category')
     )
-
 ```
 
 ## Settings
@@ -268,7 +265,6 @@ INSIGHTS_THEME = "dark"
 # Change primary color of dashboard
 INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
 INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
-
 ```
 
 ## Use-cases
