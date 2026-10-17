@@ -1,9 +1,12 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connections
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
-from django_insights.models import App, Bucket
+from django_insights.choices import BucketType
+from django_insights.models import App, Bucket, BucketValue
 from tests.utils import AllowAll, DenyAll, NoMethod
 
 pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
@@ -137,3 +140,36 @@ def test_chart_survives_a_cache_file_removed_after_the_lookup(
         (tmp_path / f'{bucket.type}-{bucket.pk}-dark.png').unlink()
         response = viewer_client.get(url)
     assert response.content.startswith(b'\x89PNG')
+
+
+def add_buckets(app, start, count):
+    for number in range(start, start + count):
+        for bucket_type in (
+            BucketType.TIMESERIES,
+            BucketType.SCATTERPLOT,
+            BucketType.BARCHART,
+            BucketType.HBARCHART,
+        ):
+            bucket = Bucket.objects.create(
+                app=app, label=f'{bucket_type}-{number}', type=bucket_type
+            )
+            BucketValue.objects.bulk_create(
+                BucketValue(bucket=bucket, xvalue=n, yvalue=n, category=str(n))
+                for n in range(3)
+            )
+
+
+def app_page_queries(client, app):
+    with CaptureQueriesContext(connections['insights']) as captured:
+        response = client.get(reverse('insights:insight_app', args=[app.pk]))
+    assert response.status_code == 200
+    return len(captured)
+
+
+def test_app_page_queries_do_not_grow_with_the_number_of_charts(viewer_client):
+    app = App.objects.create(module='tests.many')
+    add_buckets(app, start=0, count=1)
+    few = app_page_queries(viewer_client, app)
+
+    add_buckets(app, start=1, count=4)
+    assert app_page_queries(viewer_client, app) == few

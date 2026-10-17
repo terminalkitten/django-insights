@@ -23,7 +23,7 @@ def test_chart_tag_escapes_question_and_overlay():
 @pytest.mark.django_db(databases=['default', 'insights'])
 def test_pdf_chart_renders_inline_png(collected):
     bucket = Bucket.objects.earliest('pk')
-    assert 'data:image/png;base64,' in pdf_chart(bucket.pk)
+    assert 'data:image/png;base64,' in pdf_chart(bucket)
 
 
 @pytest.mark.django_db(databases=['default', 'insights'])
