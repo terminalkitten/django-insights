@@ -40,28 +40,26 @@ class ThemeColor:
     edge: str
 
 
-@dataclass
-class Theme:
-    dark: ThemeColor
-    light: ThemeColor
-
-
-themes = Theme(
-    light=ThemeColor(
-        primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
-        face="#FEFEFE",
-        tick="#333333",
-        grid="#333333",
-        edge="#FFFFFF",
-    ),
-    dark=ThemeColor(
-        primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
-        face="#0d1117",
-        tick="#FEFEFE",
-        grid="#FEFEFE",
-        edge="#0d1117",
-    ),
-)
+def get_theme(name: str) -> ThemeColor:
+    """Theme colors, read from the settings on every call"""
+    match name:
+        case 'light':
+            return ThemeColor(
+                primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
+                face="#FEFEFE",
+                tick="#333333",
+                grid="#333333",
+                edge="#FFFFFF",
+            )
+        case 'dark':
+            return ThemeColor(
+                primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
+                face="#0d1117",
+                tick="#FEFEFE",
+                grid="#FEFEFE",
+                edge="#0d1117",
+            )
+    raise ValueError(f"Unknown theme: {name}")
 
 
 FIGSIZES = {
@@ -138,9 +136,9 @@ def render_barchart(
     size: ChartSize,
 ) -> Figure:
     """Render barchart"""
-    theme = getattr(themes, theme)
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.bar(labels, xaxis, color=theme.primary)
+    colors = get_theme(theme)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.bar(labels, xaxis, color=colors.primary)
 
     return fig
 
@@ -155,12 +153,12 @@ def render_hbarchart(
     size: ChartSize,
 ) -> Figure:
     """Render horizontal barchart"""
-    theme = getattr(themes, theme)
-    fig, ax = prepare_plot(bucket, theme, size)
+    colors = get_theme(theme)
+    fig, ax = prepare_plot(bucket, colors, size)
     bars = ax.barh(
         combined_labels,
         xaxis,
-        color=theme.primary,
+        color=colors.primary,
         align='center',
         height=0.9,
     )
@@ -191,10 +189,10 @@ def render_scatterplot(
     size: ChartSize,
 ) -> Figure:
     """Render scatterplot"""
-    theme = getattr(themes, theme)
+    colors = get_theme(theme)
 
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.scatter(xaxis, yaxis, color=theme.primary)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.scatter(xaxis, yaxis, color=colors.primary)
 
     return fig
 
@@ -207,10 +205,10 @@ def render_timeseries(
     size: ChartSize,
 ) -> Figure:
     """Render timeseries"""
-    theme = getattr(themes, theme)
+    colors = get_theme(theme)
 
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.plot(xaxis, yaxis, '--o', markersize=5, color=theme.primary)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.plot(xaxis, yaxis, '--o', markersize=5, color=colors.primary)
 
     # Date formatting
     ax.fmt_xdata = mdates.DateFormatter(bucket.xformat)

@@ -9,13 +9,13 @@ from django_insights.settings import settings
 
 def chart_cache_path(bucket_type: int, bucket_id: int, theme: str) -> Path | None:
     """Cache file of a rendered chart, None when the media cache is disabled"""
-    if not settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
+    if not settings.INSIGHTS_CHARTS_USE_MEDIA_CACHE:
         return None
 
-    root = settings.INSIGHT_MEDIA_CACHE_ROOT
+    root = settings.INSIGHTS_MEDIA_CACHE_ROOT
     if not root:
         raise ImproperlyConfigured(
-            'INSIGHT_MEDIA_CACHE_ROOT is required when INSIGHT_CHARTS_USE_MEDIA_CACHE is enabled'
+            'INSIGHTS_MEDIA_CACHE_ROOT is required when INSIGHTS_CHARTS_USE_MEDIA_CACHE is enabled'
         )
     return Path(root) / f'{bucket_type}-{bucket_id}-{theme}.png'
 
@@ -36,11 +36,11 @@ def write_atomic(path: Path, data: bytes) -> None:
 def rebuild_chart_media_cache() -> None:
     """Delete cached chart images, other files in the cache root are left alone"""
     if not (
-        settings.INSIGHT_CHARTS_USE_MEDIA_CACHE and settings.INSIGHT_MEDIA_CACHE_ROOT
+        settings.INSIGHTS_CHARTS_USE_MEDIA_CACHE and settings.INSIGHTS_MEDIA_CACHE_ROOT
     ):
         return
 
-    root = Path(settings.INSIGHT_MEDIA_CACHE_ROOT)
+    root = Path(settings.INSIGHTS_MEDIA_CACHE_ROOT)
     root.mkdir(parents=True, exist_ok=True)
     for image in root.glob('*-*-*.png'):
         image.unlink()

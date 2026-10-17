@@ -14,13 +14,13 @@ def check_media_cache(
     app_configs: Sequence[AppConfig] | None, **kwargs: Any
 ) -> list[CheckMessage]:
     if (
-        settings.INSIGHT_CHARTS_USE_MEDIA_CACHE
-        and not settings.INSIGHT_MEDIA_CACHE_ROOT
+        settings.INSIGHTS_CHARTS_USE_MEDIA_CACHE
+        and not settings.INSIGHTS_MEDIA_CACHE_ROOT
     ):
         return [
             Error(
-                'INSIGHT_MEDIA_CACHE_ROOT is required when '
-                'INSIGHT_CHARTS_USE_MEDIA_CACHE is enabled.',
+                'INSIGHTS_MEDIA_CACHE_ROOT is required when '
+                'INSIGHTS_CHARTS_USE_MEDIA_CACHE is enabled.',
                 id='insights.E003',
             )
         ]
@@ -31,21 +31,21 @@ def check_media_cache(
 def check_dashboard_permissions(
     app_configs: Sequence[AppConfig] | None, **kwargs: Any
 ) -> list[CheckMessage]:
-    permissions = settings.INSIGHT_DASHBOARD_PERMISSIONS
+    permissions = settings.INSIGHTS_DASHBOARD_PERMISSIONS
     if permissions is None:
         return []
 
     if not isinstance(permissions, list | tuple):
         return [
             Error(
-                'INSIGHT_DASHBOARD_PERMISSIONS must be a list or tuple of classes.',
+                'INSIGHTS_DASHBOARD_PERMISSIONS must be a list or tuple of classes.',
                 id='insights.E001',
             )
         ]
 
     return [
         Error(
-            f'{permission!r} in INSIGHT_DASHBOARD_PERMISSIONS must be a class '
+            f'{permission!r} in INSIGHTS_DASHBOARD_PERMISSIONS must be a class '
             'with a has_permission(request) method.',
             id='insights.E002',
         )

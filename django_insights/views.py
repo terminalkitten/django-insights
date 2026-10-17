@@ -29,7 +29,7 @@ THEMES = ('light', 'dark')
 
 
 class CustomPermissionMixin(UserPassesTestMixin):
-    """Deny access unless every INSIGHT_DASHBOARD_PERMISSIONS class grants it"""
+    """Deny access unless every INSIGHTS_DASHBOARD_PERMISSIONS class grants it"""
 
     request: HttpRequest
 
@@ -40,14 +40,14 @@ class CustomPermissionMixin(UserPassesTestMixin):
             has_permission = getattr(permission_class(), 'has_permission', None)
             if not callable(has_permission):
                 raise ImproperlyConfigured(
-                    f'{permission_class!r} in INSIGHT_DASHBOARD_PERMISSIONS '
+                    f'{permission_class!r} in INSIGHTS_DASHBOARD_PERMISSIONS '
                     'has no has_permission(request) method'
                 )
             results.append(bool(has_permission(request=self.request)))
         return results
 
     def test_func(self) -> bool:
-        permissions = settings.INSIGHT_DASHBOARD_PERMISSIONS or []
+        permissions = settings.INSIGHTS_DASHBOARD_PERMISSIONS or []
         return all(self.run_permissions(permissions))
 
 
