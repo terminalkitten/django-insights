@@ -27,6 +27,8 @@ from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import InsightFailure, registry
 from django_insights.utils import rebuild_chart_media_cache
 
+__all__ = ['InsightMetrics', 'metrics']
+
 P = ParamSpec('P')
 TimeSeriesReturn = TypeVar('TimeSeriesReturn', bound=TimeSeriesResult)
 ScatterPlotReturn = TypeVar('ScatterPlotReturn', bound=ScatterPlotResult)

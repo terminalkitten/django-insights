@@ -5,6 +5,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, NamedTuple
 
+__all__ = ['BarChartResult', 'ScatterPlotResult', 'TimeSeriesResult']
+
 TimeSeriesResult = Iterable[tuple[datetime.datetime, float]]
 ScatterPlotResult = Iterable[tuple[float, float, Any]]
 BarChartResult = Iterable[tuple[float, float, Any]]

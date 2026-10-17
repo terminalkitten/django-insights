@@ -55,7 +55,7 @@ def count_authors() -> int:
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
 
-### Settings
+### Configure Django
 
 Add django_insights package, insights database and router to your settings
 
@@ -120,17 +120,30 @@ urlpatterns = [
 
 !["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_2.png)
 
-Now you can visit https://localhost:8000/insights to inspect your Django Insights database.
+Now you can visit http://localhost:8000/insights/ to inspect your Django Insights database.
+
+### PDF report
+
+The dashboard has a PDF report at `insights/pdf/`. It needs PyMuPDF, which is optional:
+
+```bash
+pip install 'django-insights[pdf]'
+```
+
+PyMuPDF is licensed under the AGPL-3.0 (a commercial license is available from Artifex), so it is not installed by default. Without it everything else works and the report explains what to install.
 
 ## Metrics
 
-Django insights contains 5 types of metrics it can collect:
+Django Insights collects six types of metrics, each one is a decorator for a function in an `insights.py` file:
 
-- `@metrics.counter`
-- `@metrics.gauge`
-- `@metrics.timeseries`
-- `@metrics.scatterplot`
-- `@metrics.barchart`
+- `@metrics.counter`: a whole number, `-> int`
+- `@metrics.gauge`: a decimal number, `-> float`
+- `@metrics.timeseries`: values over time, shown as a line chart
+- `@metrics.scatterplot`: pairs of values, shown as a scatter plot
+- `@metrics.barchart`: values per category, shown as a bar chart
+- `@metrics.hbarchart`: values per category, shown as a horizontal bar chart
+
+Every decorator takes a `question` and optionally a `desc`. The chart types also take `xlabel`, `ylabel`, `xformat`, `yformat` and `title`. The functions run your own queries, a `QuerySet` can be returned as is.
 
 ### Counter:
 
@@ -154,7 +167,7 @@ from project.testapp.models import Author
 
 
 @metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> int:
+def avg_books_per_author() -> float:
     avg_total_books = (
         Author.objects.prefetch_related('books')
         .annotate(total_books=Count('books'))
@@ -162,18 +175,17 @@ def avg_books_per_author() -> int:
         .get('total_books__avg')
     )
 
-    return avg_total_books
+    return avg_total_books or 0.0
 ```
 
 ### Timeseries:
 
 ```python
-from datetime import datetime
-
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 
 from django_insights.metrics import metrics
+from django_insights.metrics_types import TimeSeriesResult
 from project.testapp.models import Book
 
 
@@ -184,7 +196,7 @@ from project.testapp.models import Book
     xformat='%m',
     ylabel="Num of books",
 )
-def num_of_books_per_month() -> list[tuple[datetime, int]]:
+def num_of_books_per_month() -> TimeSeriesResult:
     return (
         Book.objects.all()
         .annotate(month=TruncMonth('created'))
@@ -199,11 +211,10 @@ def num_of_books_per_month() -> list[tuple[datetime, int]]:
 ### Scatterplot:
 
 ```python
-from datetime import datetime
-
 from django.db.models import Count, Value
 
 from django_insights.metrics import metrics
+from django_insights.metrics_types import ScatterPlotResult
 from project.testapp.models import Author
 
 
@@ -212,7 +223,7 @@ from project.testapp.models import Author
     xlabel="Age",
     ylabel="Num of books",
 )
-def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
+def author_age_vs_num_of_books() -> ScatterPlotResult:
     return (
         Author.objects.values('age')
         .annotate(num_of_books=Count('books'), category=Value("author"))
@@ -223,11 +234,10 @@ def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
 ### Barchart:
 
 ```python
-from datetime import datetime
-
 from django.db.models import Case, Count, Value, When
 
 from django_insights.metrics import metrics
+from django_insights.metrics_types import BarChartResult
 from project.testapp.models import Author
 
 
@@ -236,7 +246,7 @@ from project.testapp.models import Author
     xlabel="Gender",
     ylabel="Num of books",
 )
-def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
+def author_gender_vs_num_of_books() -> BarChartResult:
     return (
         Author.objects.values('gender')
         .annotate(
@@ -250,22 +260,84 @@ def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
     )
 ```
 
-## Settings
+### Horizontal barchart:
 
 ```python
-# Custom app name
-INSIGHTS_APP_NAME = "Bezamon"
+from django.db.models import Count, F
 
-# Quality of chart images
-INSIGHTS_CHART_DPI = 180
+from django_insights.metrics import metrics
+from django_insights.metrics_types import BarChartResult
+from project.testapp.models import Author
 
-# Default theme for dashboard
-INSIGHTS_THEME = "dark"
 
-# Change primary color of dashboard
-INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
-INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+@metrics.hbarchart(
+    question="Which authors have the most books?",
+    xlabel="Author",
+    ylabel="Num of books",
+)
+def top_authors_by_num_of_books() -> BarChartResult:
+    return (
+        Author.objects.annotate(num_of_books=Count('books'))
+        .annotate(total=F('num_of_books'))
+        .order_by('-num_of_books', 'name')[:10]
+        .values_list('num_of_books', 'total', 'name')
+    )
 ```
+
+### What to return
+
+Return an iterable of tuples, a `QuerySet` from `values_list(...)` works. The position of each value matters:
+
+| Type | Row | Notes |
+| --- | --- | --- |
+| `timeseries` | `(timestamp, value)` | `timestamp` is a `datetime`, `xformat` formats the timestamp in the table |
+| `scatterplot` | `(vertical, horizontal, category)` | the first value is drawn on the vertical axis |
+| `barchart` | `(height, unused, label)` | the second value is stored, but not drawn |
+| `hbarchart` | `(length, number, label)` | `number` is shown behind the label, as `label..:number` |
+
+A missing label (`None`) is shown as an empty label. Use the result types `TimeSeriesResult`, `ScatterPlotResult` and `BarChartResult` from `django_insights.metrics_types` to annotate the functions.
+
+## Collecting
+
+```bash
+python manage.py collect_insights
+```
+
+All insights are collected in one transaction on the insights database: either everything is replaced, or nothing is. Your own databases are only read by the queries you write in your insights.
+
+When an insight raises an exception it is logged (logger `django_insights.registry`) and reported, the other insights still run. The command prints every failed insight and exits with an error, for example `1 of 14 insights failed`. The progress bar is hidden when the output is not a terminal, so it is safe in cron.
+
+Run `python manage.py check` after changing the settings below, it warns about a missing insights database, a missing router, an invalid permission or a renamed setting. These checks only warn, they never stop your project from starting.
+
+## Settings
+
+All settings are optional and read from your Django settings.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `INSIGHTS_APP_NAME` | `"MyApp"` | Name shown in the dashboard |
+| `INSIGHTS_DEFAULT_THEME` | `"dark"` | `"light"` or `"dark"`, used until a visitor chooses a theme |
+| `INSIGHTS_CHART_DPI` | `180` | Resolution of the chart images |
+| `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` | `"#2563EB"` | Chart color in the light theme |
+| `INSIGHTS_CHART_DARK_PRIMARY_COLOR` | `"#BFDBFE"` | Chart color in the dark theme |
+| `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False` | Keep rendered charts as files instead of rendering them on every request |
+| `INSIGHTS_MEDIA_CACHE_ROOT` | `None` | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
+| `INSIGHTS_DASHBOARD_PERMISSIONS` | `None` | List of permission classes, see below |
+
+The dashboard always requires a logged in user. To restrict it further, add permission classes, every class must return `True`:
+
+```python
+class IsStaff:
+    def has_permission(self, request):
+        return request.user.is_staff
+
+
+INSIGHTS_DASHBOARD_PERMISSIONS = [IsStaff]
+```
+
+A class without a `has_permission` method denies access, it never grants it.
+
+Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
 
 ## Use-cases
 
@@ -288,10 +360,6 @@ I'm currently working at a small company that is in the process of renewing some
 We ended up with many exports that where spread out over multiple people. Additionally, exporting data directly from the database also posed a security risk, as it required constant movement of possible sensitive information. After several months of working with CSV files, which were often outdated and required conversion by other (paid) tools, we where looking for a better solution.
 
 I wanted an easy-to-configure file within our various apps that would allow me to create "insights" easily, so Django Insights was born. I decided to switch to a local SQLite database which could be share on request, as a plus these files can be tracked by a security officer.
-
-## Documentation
-
-Write more about where to find documentation
 
 ## Ideas
 

@@ -35,7 +35,7 @@ def count_authors() -> int:
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
 
-### Settings
+### Configure Django
 
 Add django_insights package, insights database and router to your settings
 
@@ -61,6 +61,8 @@ DATABASE_ROUTERS = ['django_insights.database.Router']
 ```
 
 Note: please make sure you exclude the database in your `.gitignore` file
+
+Run `python manage.py check` to verify the configuration, it warns about a missing insights database or router. All options are listed on the [settings](settings.md) page.
 
 ### Migrate database
 
