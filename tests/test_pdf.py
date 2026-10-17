@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 
 from django_insights import pdf
-from django_insights.pdf import PAGE_BREAK, get_css, html_to_pdf
+from django_insights.pdf import PAGE_BREAK, get_css, html_to_pdf, pdf_available
 
 
 @pytest.mark.django_db(databases=['default', 'insights'])
@@ -51,3 +51,12 @@ def test_page_limit_stops_runaway_documents(monkeypatch):
     html = f'<body><p>one</p>{PAGE_BREAK}<p>two</p></body>'
     with pytest.raises(RuntimeError, match='more than 1 pages'):
         html_to_pdf(html)
+
+
+def test_pdf_is_available_when_pymupdf_is_installed():
+    assert pdf_available() is True
+
+
+def test_pdf_is_unavailable_without_pymupdf(monkeypatch):
+    monkeypatch.setattr(pdf, 'find_spec', lambda name: None)
+    assert pdf_available() is False

@@ -25,7 +25,7 @@ from django_insights.charts import (
     to_bytes_io,
 )
 from django_insights.models import App, Bucket, Counter, Gauge
-from django_insights.pdf import html_to_pdf
+from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
 
@@ -109,6 +109,7 @@ class InsightAppMixin(
                 'apps': self.get_apps(),
                 'theme': chart_theme(self.request),
                 'current_app': None,
+                'pdf_available': pdf_available(),
             }
         )
         return context
