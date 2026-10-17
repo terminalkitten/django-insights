@@ -23,14 +23,14 @@ In these insights files you write out any metric you would like to track. Each m
 ```python
 # project/testapp/insights.py
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Message
 
-label = "Bookstore"
+label = "Workspace"
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 ```
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
