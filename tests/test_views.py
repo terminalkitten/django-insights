@@ -55,10 +55,16 @@ def test_unsupported_bucket_type_is_404(viewer_client):
     assert response.status_code == 404
 
 
-def test_pdf_preview_renders_html(viewer_client, collected):
-    response = viewer_client.get(reverse('insights:insight_pdf_test'))
+def test_pdf_preview_renders_html_in_debug(viewer_client, collected):
+    with override_settings(DEBUG=True):
+        response = viewer_client.get(reverse('insights:insight_pdf_test'))
     assert response.status_code == 200
     assert 'Insights' in response.content.decode()
+
+
+def test_pdf_preview_is_hidden_outside_debug(viewer_client, collected):
+    response = viewer_client.get(reverse('insights:insight_pdf_test'))
+    assert response.status_code == 404
 
 
 @pytest.mark.parametrize(('permission', 'status'), [(AllowAll, 200), (DenyAll, 403)])
