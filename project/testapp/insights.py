@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db.models import Avg, Case, Count, Value, When
+from django.db.models import Avg, Case, Count, F, Value, When
 from django.db.models.functions import Length, TruncMonth, TruncYear
 
 from django_insights.metrics import metrics
@@ -161,6 +161,7 @@ def author_gender_vs_num_of_books() -> BarChartResult:
 def top_authors_by_num_of_books() -> BarChartResult:
     return (
         Author.objects.annotate(num_of_books=Count('books'))
+        .annotate(total=F('num_of_books'))
         .order_by('-num_of_books', 'name')[:10]
-        .values_list('num_of_books', 'num_of_books', 'name')
+        .values_list('num_of_books', 'total', 'name')
     )
