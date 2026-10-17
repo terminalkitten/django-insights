@@ -81,6 +81,12 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
+const FORMULA_START = /^[=+\-@\t\r]/;
+
+function neutralize_formula(text) {
+  return FORMULA_START.test(text) && Number.isNaN(Number(text)) ? `'${text}` : text;
+}
+
 function generate_csv(table_id, separator = ',') {
   // Select rows from table_id
   var rows = document.querySelectorAll(`${table_id} tr`);
@@ -93,7 +99,9 @@ function generate_csv(table_id, separator = ',') {
       // Clean innertext to remove multiple spaces and jumpline (break csv)
       var data = cols[j].innerText
         .replace(/(\r\n|\n|\r)/gm, '')
-        .replace(/(\s\s)/gm, ' ');
+        .replace(/(\s\s)/gm, ' ')
+        .trim();
+      data = neutralize_formula(data);
       // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
       data = data.replace(/"/g, '""');
       // Push escaped string
