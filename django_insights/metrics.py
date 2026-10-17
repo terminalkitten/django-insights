@@ -3,9 +3,10 @@ from __future__ import annotations
 import functools
 import importlib
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 
 from django_insights.choices import BucketType
+from django_insights.database import database_entry
 from django_insights.metrics_types import (
     BarChartAnswer,
     BarChartType,
@@ -37,12 +38,13 @@ class InsightMetrics:
 
     def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
-        Counter.objects.all().delete()
-        Gauge.objects.all().delete()
-        Bucket.objects.all().delete()
-        BucketValue.objects.all().delete()
+        with transaction.atomic(using=database_entry):
+            Counter.objects.all().delete()
+            Gauge.objects.all().delete()
+            Bucket.objects.all().delete()
+            BucketValue.objects.all().delete()
 
-    def get_memoized_app(self, module: str, label: str = None) -> App:
+    def get_memoized_app(self, module: str, label: str | None = None) -> App:
         """Memoize apps so we reduce query count"""
         if app := self.apps.get(module):
             return app
@@ -54,25 +56,17 @@ class InsightMetrics:
         return app
 
     def get_app(self, func) -> tuple[str, App]:
-        """
-        Get memoized app
-
-        """
+        """Describe the app of an insight"""
 
         label = func.__name__
         module = func.__module__
         insights_module = importlib.import_module(module)
 
         app_label = getattr(insights_module, 'label', None)
-        app = self.get_memoized_app(module=module, label=app_label)
+        return label, App(module=module, label=app_label)
 
-        return label, app
-
-    def counter(self, question: str = None, desc: str = None):
-        """
-        Decorator to collect Counter metrics
-
-        """
+    def counter(self, question: str | None = None, desc: str | None = None):
+        """Decorator to collect Counter metrics"""
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -81,7 +75,7 @@ class InsightMetrics:
             def inner(*args, **kwargs):
                 counter_type = CounterType(value=func(*args, **kwargs))
                 counter = Counter(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=counter_type.value,
                     question=question,
@@ -100,11 +94,8 @@ class InsightMetrics:
 
         return decorator
 
-    def gauge(self, question: str = None, desc: str = None):
-        """
-        Decorator to collect Gauge metric
-
-        """
+    def gauge(self, question: str | None = None, desc: str | None = None):
+        """Decorator to collect Gauge metric"""
 
         def decorator(func):
             label, app = self.get_app(func)
@@ -113,7 +104,7 @@ class InsightMetrics:
             def inner(*args, **kwargs):
                 gauge_type = GaugeType(value=func(*args, **kwargs))
                 gauge = Gauge(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=gauge_type.value,
                     question=question,
@@ -134,12 +125,12 @@ class InsightMetrics:
 
     def timeseries(
         self,
-        question: str = None,
-        desc: str = None,
-        xlabel: str = None,
-        xformat: str = None,
-        ylabel: str = None,
-        yformat: str = None,
+        question: str | None = None,
+        desc: str | None = None,
+        xlabel: str | None = None,
+        xformat: str | None = None,
+        ylabel: str | None = None,
+        yformat: str | None = None,
         title=None,
     ):
         """
@@ -158,7 +149,7 @@ class InsightMetrics:
                 )
 
                 bucket = Bucket.objects.create(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     question=question,
                     desc=desc,
@@ -189,12 +180,12 @@ class InsightMetrics:
 
     def scatterplot(
         self,
-        question: str = None,
-        desc: str = None,
-        xlabel: str = None,
-        xformat: str = None,
-        ylabel: str = None,
-        yformat: str = None,
+        question: str | None = None,
+        desc: str | None = None,
+        xlabel: str | None = None,
+        xformat: str | None = None,
+        ylabel: str | None = None,
+        yformat: str | None = None,
         title=None,
     ):
         """
@@ -213,7 +204,7 @@ class InsightMetrics:
                 )
 
                 bucket = Bucket.objects.create(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     question=question,
                     desc=desc,
@@ -247,12 +238,12 @@ class InsightMetrics:
 
     def barchart(
         self,
-        question: str = None,
-        desc: str = None,
-        xlabel: str = None,
-        xformat: str = None,
-        ylabel: str = None,
-        yformat: str = None,
+        question: str | None = None,
+        desc: str | None = None,
+        xlabel: str | None = None,
+        xformat: str | None = None,
+        ylabel: str | None = None,
+        yformat: str | None = None,
         title=None,
     ):
         """
@@ -271,7 +262,7 @@ class InsightMetrics:
                 )
 
                 bucket = Bucket.objects.create(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     question=question,
                     desc=desc,
@@ -305,12 +296,12 @@ class InsightMetrics:
 
     def hbarchart(
         self,
-        question: str = None,
-        desc: str = None,
-        xlabel: str = None,
-        xformat: str = None,
-        ylabel: str = None,
-        yformat: str = None,
+        question: str | None = None,
+        desc: str | None = None,
+        xlabel: str | None = None,
+        xformat: str | None = None,
+        ylabel: str | None = None,
+        yformat: str | None = None,
         title=None,
     ):
         """
@@ -329,7 +320,7 @@ class InsightMetrics:
                 )
 
                 bucket = Bucket.objects.create(
-                    app=app,
+                    app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     question=question,
                     desc=desc,
@@ -367,6 +358,8 @@ class InsightMetrics:
 
         """
 
+        self.apps = {}
+
         # Reset metrics
         self.delete_metrics() if reset else None
 
@@ -380,13 +373,12 @@ class InsightMetrics:
             Counter.objects.bulk_create(self.create_counters)
             Gauge.objects.bulk_create(self.create_gauges)
             BucketValue.objects.bulk_create(self.create_bucket_values)
-
         except IntegrityError as e:
-            print(
-                "Something went wrong, most likely a you've redefined a insights method with the same name."
-            )
-            print("Stacktrace:", e)
-            exit()
+            raise IntegrityError(
+                "Most likely you've redefined an insights method with the same name."
+            ) from e
+        finally:
+            self.__init__()
 
 
 metrics = InsightMetrics()
