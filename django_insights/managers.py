@@ -9,9 +9,6 @@ class BucketQuerySet(models.QuerySet):
     def timeseries(self) -> Self:
         return self.filter(type=BucketType.TIMESERIES)
 
-    def histograms(self) -> Self:
-        return self.filter(type=BucketType.HISTOGRAM)
-
     def scatterplots(self) -> Self:
         return self.filter(type=BucketType.SCATTERPLOT)
 
@@ -28,9 +25,6 @@ class BucketManager(models.Manager):
 
     def timeseries(self) -> BucketQuerySet:
         return self.get_queryset().timeseries()
-
-    def histograms(self) -> BucketQuerySet:
-        return self.get_queryset().histograms()
 
     def scatterplots(self) -> BucketQuerySet:
         return self.get_queryset().scatterplots()

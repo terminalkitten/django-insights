@@ -14,9 +14,12 @@ class App(models.Model):
 
     """
 
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    module = models.CharField(max_length=254, db_index=True, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    module = models.CharField(max_length=254, unique=True)
     label = models.CharField(max_length=254, null=True)
+
+    class Meta:
+        ordering = ['module']
 
     def __str__(self) -> str:
         return self.name
@@ -26,22 +29,9 @@ class App(models.Model):
         return self.label or self.module
 
 
-class ExecutionDelta(models.Model):
-    """
-    Delta is stored on every run and used for filtering, these values should never change
-
-    """
-
-    executed_at = models.DateTimeField(db_index=True, default=timezone.now)
-    uuid = models.UUIDField(default=uuid.uuid4)
-
-    def __str__(self) -> str:
-        return f"Insight execution: {self.uuid}"
-
-
 class MetricModel(models.Model):
     created_at = models.DateTimeField(db_index=True, default=timezone.now)
-    label = models.CharField(max_length=254, db_index=True, unique=True)
+    label = models.CharField(max_length=254)
 
     question = models.TextField(blank=True, null=True)
     desc = models.TextField(blank=True, null=True)
@@ -51,16 +41,14 @@ class MetricModel(models.Model):
 
 
 class Counter(MetricModel):
-    """
-    Simple counter, can incr or decr, label and app are unique
+    """Counter value, the label is unique per app"""
 
-    """
-
-    value = models.IntegerField(default=0)
+    value = models.BigIntegerField(default=0)
     app = models.ForeignKey(App, related_name='counters', on_delete=models.CASCADE)
 
     class Meta:
         app_label = database_entry
+        ordering = ['pk']
         constraints = [
             models.UniqueConstraint(
                 fields=['app', 'label'], name='counter_unique_app_label'
@@ -72,16 +60,14 @@ class Counter(MetricModel):
 
 
 class Gauge(MetricModel):
-    """
-    Simple gauge, can be set or set with delta, label and app are unique
-
-    """
+    """Gauge value, the label is unique per app"""
 
     value = models.FloatField(default=0.0)
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
 
     class Meta:
         app_label = database_entry
+        ordering = ['pk']
         constraints = [
             models.UniqueConstraint(
                 fields=['app', 'label'], name='gauge_unique_app_label'
@@ -90,13 +76,6 @@ class Gauge(MetricModel):
 
     def __str__(self) -> str:
         return f"Insight Gauge: {self.label} = {self.value}"
-
-    def gauge(self, value: float = 1, delta: bool = False) -> None:
-        """Set gauge value"""
-        if not delta:
-            self.value = value
-        else:
-            self.value = self.value + value
 
 
 class Bucket(MetricModel):
@@ -119,13 +98,10 @@ class Bucket(MetricModel):
 
     class Meta:
         app_label = database_entry
+        ordering = ['pk']
         constraints = [
             models.UniqueConstraint(
-                fields=[
-                    'app',
-                    'label',
-                ],
-                name='bucket_unique_app_label_timestamp',
+                fields=['app', 'label'], name='bucket_unique_app_label'
             )
         ]
 
@@ -135,10 +111,6 @@ class Bucket(MetricModel):
     @property
     def is_timeseries(self) -> bool:
         return self.type == BucketType.TIMESERIES
-
-    @property
-    def is_histogram(self) -> bool:
-        return self.type == BucketType.HISTOGRAM
 
     @property
     def is_scatterplot(self) -> bool:
@@ -154,11 +126,7 @@ class Bucket(MetricModel):
 
 
 class BucketValue(models.Model):
-    """
-    Bucket values matrix: used for time-series, histogram and scatterplots.
-    Combination of timestamp, label and app are unique.
-
-    """
+    """Bucket values matrix, used by every chart type"""
 
     # Timestamp for timeseries
     timestamp = models.DateTimeField(db_index=True, blank=True, null=True)
@@ -172,6 +140,7 @@ class BucketValue(models.Model):
 
     class Meta:
         app_label = database_entry
+        ordering = ['timestamp', 'pk']
         constraints = [
             models.UniqueConstraint(
                 fields=['bucket', 'timestamp'],

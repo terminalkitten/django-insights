@@ -25,10 +25,4 @@ lint:
 
 clean:
 	rm -f db/*.db
-	rm -rf django_insights/migrations
-	rm -rf project/testapp/migrations
-
-	uv run python manage.py makemigrations testapp users
-	uv run python manage.py makemigrations insights
-	uv run python manage.py migrate
-	uv run python manage.py migrate insights --database=insights
+	$(MAKE) migrate
