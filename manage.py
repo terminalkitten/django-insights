@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Define the Django Insights management entry."""
+
 import os
 import sys
 
