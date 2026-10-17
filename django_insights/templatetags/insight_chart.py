@@ -28,6 +28,7 @@ def chart(bucket: Bucket, overlay: str | None = None) -> SafeString:
         """
         <img
             {}
+            loading="lazy"
             class="w-full h-auto border-gray-200 cursor-pointer border-t-1"
             src="{}"
             alt="{}"

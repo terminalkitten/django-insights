@@ -13,6 +13,10 @@ def test_nice_float(value, expected):
     assert nice_float(value) == expected
 
 
+def test_chart_images_load_lazily():
+    assert 'loading="lazy"' in chart(Bucket(pk=7, question='q'))
+
+
 def test_chart_tag_escapes_question_and_overlay():
     html = chart(Bucket(pk=7, question='"><script>x</script>'), overlay='a"b')
     assert '<script>' not in html
