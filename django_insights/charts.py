@@ -223,7 +223,7 @@ def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> F
     values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category for bucket_value in values]
+    labels = [bucket_value.category or '' for bucket_value in values]
 
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
@@ -233,10 +233,10 @@ def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) ->
     values = BucketValue.objects.filter(bucket=bucket)
     yvalues = [bucket_value.yvalue for bucket_value in values]
     xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category for bucket_value in values]
+    labels = [bucket_value.category or '' for bucket_value in values]
 
     combined_labels = [
-        f"{bucket_value.category[0:30]}..:{int(bucket_value.yvalue)}"
+        f"{(bucket_value.category or '')[0:30]}..:{int(bucket_value.yvalue)}"
         for bucket_value in values
     ]
 
