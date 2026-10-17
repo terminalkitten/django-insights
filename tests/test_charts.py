@@ -83,3 +83,16 @@ def test_figures_are_saved_with_the_bundled_font(collected, monkeypatch):
     to_bytes_io(figure)
 
     assert fonts == [['Ubuntu']]
+
+
+def test_horizontal_bars_scale_to_small_values():
+    app = App.objects.create(module='tests.small')
+    bucket = Bucket.objects.create(app=app, label='bars', type=BucketType.HBARCHART)
+    for xvalue, category in ((3, 'a'), (5, 'b')):
+        BucketValue.objects.create(
+            bucket=bucket, xvalue=xvalue, yvalue=xvalue, category=category
+        )
+
+    figure = charts.hbarchart(bucket, theme='dark')
+
+    assert figure.axes[0].get_xlim()[1] < 10

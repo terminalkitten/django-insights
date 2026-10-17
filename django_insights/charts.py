@@ -9,10 +9,9 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
-from typing import ParamSpec
+from typing import Any, ParamSpec
 
 import matplotlib
-import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -102,6 +101,11 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
     """
 
     return FIGSIZES[size]
+
+
+def bucket_rows(bucket: Bucket, *fields: str) -> list[tuple[Any, ...]]:
+    """Plain rows in chart order, cheaper than loading a model per value"""
+    return list(BucketValue.objects.filter(bucket=bucket).values_list(*fields))
 
 
 def to_bytes_io(fig: Figure) -> bytes:
@@ -200,7 +204,7 @@ def render_hbarchart(
 
     _, xmax = ax.get_xlim()
     fig.subplots_adjust(left=0.3, right=0.9)
-    ax.set_xlim(0, xmax + 100)
+    ax.set_xlim(0, xmax * 1.1)
     return fig
 
 
@@ -233,19 +237,16 @@ def render_timeseries(
     fig, ax = prepare_plot(bucket, colors, size)
     ax.plot(xaxis, yaxis, '--o', markersize=5, color=colors.primary)
 
-    # Date formatting
-    ax.fmt_xdata = mdates.DateFormatter(bucket.xformat)
-
     return fig
 
 
 @styled
 def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Barchart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category or '' for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
+    xvalues = [xvalue for xvalue, _, _ in rows]
+    yvalues = [yvalue for _, yvalue, _ in rows]
+    labels = [category or '' for _, _, category in rows]
 
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
@@ -253,14 +254,13 @@ def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> F
 @styled
 def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> Figure:
     """Horizontal Barchart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category or '' for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
+    xvalues = [xvalue for xvalue, _, _ in rows]
+    yvalues = [yvalue for _, yvalue, _ in rows]
+    labels = [category or '' for _, _, category in rows]
 
     combined_labels = [
-        f"{(bucket_value.category or '')[0:30]}..:{int(bucket_value.yvalue)}"
-        for bucket_value in values
+        f"{(category or '')[0:30]}..:{int(yvalue)}" for _, yvalue, category in rows
     ]
 
     return render_hbarchart(
@@ -273,9 +273,9 @@ def scatterplot(
     bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL
 ) -> Figure:
     """Scatterplot chart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue')
+    xvalues = [xvalue for xvalue, _ in rows]
+    yvalues = [yvalue for _, yvalue in rows]
 
     return render_scatterplot(yvalues, xvalues, bucket, theme, size)
 
@@ -283,9 +283,8 @@ def scatterplot(
 @styled
 def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Timeseries chart"""
-    values = BucketValue.objects.filter(bucket=bucket)
+    rows = bucket_rows(bucket, 'timestamp', 'xvalue')
+    timestamps = [timestamp for timestamp, _ in rows]
+    xvalues = [xvalue for _, xvalue in rows]
 
-    yvalues = [bucket_value.timestamp for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-
-    return render_timeseries(yvalues, xvalues, bucket, theme, size)
+    return render_timeseries(timestamps, xvalues, bucket, theme, size)
