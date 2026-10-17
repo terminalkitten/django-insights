@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Iterable
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -27,33 +28,26 @@ THEMES = ('light', 'dark')
 
 
 class CustomPermissionMixin(UserPassesTestMixin):
+    """Deny access unless every INSIGHT_DASHBOARD_PERMISSIONS class grants it"""
+
     request: HttpRequest
 
-    """
-    Run following permission
-
-    class IsSomeAdminUser:
-        def has_permission(self, request):
-            return
-    """
-
-    def run_permissions(self, permissions: list[Callable]) -> list[bool]:
-        """
-        Run all permission checks from INSIGHT_DASHBOARD_PERMISSIONS settings
-        and return output in array
-        """
-        return [
-            permission().has_permission(request=self.request)
-            for permission in permissions
-            if hasattr(permission(), 'has_permission')
-        ]
+    def run_permissions(self, permissions: Iterable[type]) -> list[bool]:
+        """Run has_permission(request) of every configured permission class"""
+        results = []
+        for permission_class in permissions:
+            has_permission = getattr(permission_class(), 'has_permission', None)
+            if not callable(has_permission):
+                raise ImproperlyConfigured(
+                    f'{permission_class!r} in INSIGHT_DASHBOARD_PERMISSIONS '
+                    'has no has_permission(request) method'
+                )
+            results.append(bool(has_permission(request=self.request)))
+        return results
 
     def test_func(self) -> bool:
-        return (
-            all(self.run_permissions(settings.INSIGHT_DASHBOARD_PERMISSIONS))
-            if settings.INSIGHT_DASHBOARD_PERMISSIONS
-            else True
-        )
+        permissions = settings.INSIGHT_DASHBOARD_PERMISSIONS or []
+        return all(self.run_permissions(permissions))
 
 
 class InsightAppMixin(

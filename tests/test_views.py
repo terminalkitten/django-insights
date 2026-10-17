@@ -1,9 +1,10 @@
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 from django.urls import reverse
 
 from django_insights.models import App, Bucket
-from tests.utils import AllowAll, DenyAll
+from tests.utils import AllowAll, DenyAll, NoMethod
 
 pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
 
@@ -65,6 +66,14 @@ def test_dashboard_permissions(viewer_client, collected, permission, status):
     with override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[permission]):
         response = viewer_client.get(reverse('insights:insight_dashboard'))
     assert response.status_code == status
+
+
+def test_permission_without_has_permission_fails_closed(viewer_client, collected):
+    with (
+        override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[AllowAll, NoMethod]),
+        pytest.raises(ImproperlyConfigured, match='has_permission'),
+    ):
+        viewer_client.get(reverse('insights:insight_dashboard'))
 
 
 def test_chart_permissions_are_enforced(viewer_client, bucket):
