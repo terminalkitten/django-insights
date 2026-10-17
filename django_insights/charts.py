@@ -67,7 +67,7 @@ def get_theme(name: str) -> ThemeColor:
         case 'light':
             return ThemeColor(
                 primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
-                face="#FEFEFE",
+                face="#FFFFFF",
                 tick="#333333",
                 grid="#333333",
                 edge="#FFFFFF",
@@ -75,10 +75,10 @@ def get_theme(name: str) -> ThemeColor:
         case 'dark':
             return ThemeColor(
                 primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
-                face="#0d1117",
+                face="#171717",
                 tick="#FEFEFE",
                 grid="#FEFEFE",
-                edge="#0d1117",
+                edge="#171717",
             )
     raise ValueError(f"Unknown theme: {name}")
 
@@ -193,11 +193,11 @@ def render_hbarchart(
     for bar in bars:
         width = bar.get_width()
         label_y_pos = bar.get_y() + bar.get_height() / 2
-        ax.text(width, label_y_pos, s=f'{width}', va='center', size=4)
+        ax.text(width, label_y_pos, s=f'{width}', va='center', size=9)
 
     for tick in ax.yaxis.get_major_ticks():
-        tick.label1.set_fontsize(6)
-        tick.label2.set_fontsize(6)
+        tick.label1.set_fontsize(11)
+        tick.label2.set_fontsize(11)
 
     ax.set_ylabel(bucket.xlabel)
     ax.set_xlabel(bucket.ylabel)
