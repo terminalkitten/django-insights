@@ -108,3 +108,26 @@ def test_chart_cache_is_written_and_reused(viewer_client, bucket, tmp_path):
         assert cached.read_bytes() == first.content
         cached.write_bytes(b'cached')
         assert viewer_client.get(url).content == b'cached'
+
+
+def test_chart_cache_without_root_fails_loudly(viewer_client, bucket):
+    with (
+        override_settings(
+            INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=None
+        ),
+        pytest.raises(ImproperlyConfigured, match='INSIGHT_MEDIA_CACHE_ROOT'),
+    ):
+        viewer_client.get(reverse('insights:insight_chart', args=[bucket.pk]))
+
+
+def test_chart_survives_a_cache_file_removed_after_the_lookup(
+    viewer_client, bucket, tmp_path, monkeypatch
+):
+    url = reverse('insights:insight_chart', args=[bucket.pk])
+    with override_settings(
+        INSIGHT_CHARTS_USE_MEDIA_CACHE=True, INSIGHT_MEDIA_CACHE_ROOT=str(tmp_path)
+    ):
+        viewer_client.get(url)
+        (tmp_path / f'{bucket.type}-{bucket.pk}-dark.png').unlink()
+        response = viewer_client.get(url)
+    assert response.content.startswith(b'\x89PNG')
