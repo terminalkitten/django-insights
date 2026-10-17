@@ -27,10 +27,10 @@ from project.testapp.models import Author
 
 label = "Bookstore"
 
+
 @metrics.counter(question="How many authors are there?")
 def count_authors() -> int:
     return Author.objects.count()
-
 ```
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
@@ -81,3 +81,13 @@ Note: You need to run the `python manage.py collect_insights` command each time 
 
 
 You can inspect this database yourself with `sqlite3 db/insights.db` - or - you can use the Django Insights dashboard.
+
+### PDF export
+
+The report at `/pdf/` needs PyMuPDF, install it with the `pdf` extra:
+
+```bash
+pip install 'django-insights[pdf]'
+```
+
+Note: PyMuPDF is licensed under the AGPL-3.0 (a commercial license is available from Artifex), so it is optional. Without it everything else works and `/pdf/` raises an error that says what to install. It has no system dependencies. Its layout engine only supports basic CSS, the report is styled by `insights/css/pdf.css`.

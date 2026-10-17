@@ -12,8 +12,10 @@
     <article id="cover">
       <h1>Insights {{ app_name }}</h1>
     </article>
+    <!--pagebreak-->
     {% for app in object_list %}
       <article id="columns">
+        {% if not forloop.first %}<!--pagebreak-->{% endif %}
         <h2>{{ app.name }}</h2>
         <div class="counters">
           {% for counter in app.counters.all %}
@@ -47,7 +49,7 @@
             {% endif %}
           {% endfor %}
         </div>
-        <div class="pagebreak" />
+        <!--pagebreak-->
         {% for bucket in app.buckets.timeseries %}
           {% if bucket %}
             <h3>{{ bucket.question }}</h3>
@@ -73,7 +75,7 @@
               </table>
               <!-- End Table Section -->
             </section>
-            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+            {% if not forloop.last %}<!--pagebreak-->{% endif %}
           {% endif %}
         {% endfor %}
         {% for bucket in app.buckets.barcharts %}
@@ -101,7 +103,7 @@
               </table>
               <!-- End Table Section -->
             </section>
-            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+            {% if not forloop.last %}<!--pagebreak-->{% endif %}
           {% endif %}
         {% endfor %}
         {% for bucket in app.buckets.hbarcharts %}
@@ -129,10 +131,10 @@
               </table>
               <!-- End Table Section -->
             </section>
-            {% if not forloop.last %}<div class="pagebreak" />{% endif %}
+            {% if not forloop.last %}<!--pagebreak-->{% endif %}
           {% endif %}
         {% endfor %}
-        {% if forloop.last %}<div class="pagebreak" />{% endif %}
+        {% if forloop.last %}<!--pagebreak-->{% endif %}
       </article>
     {% endfor %}
   </body>
