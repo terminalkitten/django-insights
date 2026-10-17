@@ -48,7 +48,7 @@ class CustomPermissionMixin(UserPassesTestMixin):
             if hasattr(permission(), 'has_permission')
         ]
 
-    def test_func(self):
+    def test_func(self) -> bool:
         return (
             all(self.run_permissions(settings.INSIGHT_DASHBOARD_PERMISSIONS))
             if settings.INSIGHT_DASHBOARD_PERMISSIONS
@@ -105,7 +105,7 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 
 
 class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
-    def get(self, request, bucket_id):
+    def get(self, request: HttpRequest, bucket_id: int) -> HttpResponse:
         theme = self.request.COOKIES.get('theme')
         if theme not in THEMES:  # cookie is user input, it ends up in a file path
             theme = settings.INSIGHTS_DEFAULT_THEME
@@ -150,7 +150,7 @@ class InsightsPDFView(InsightAppMixin, ListView):
     queryset = App.objects.all()
     template_name = 'insights/pdf.html'
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.object_list = self.get_queryset()
         html = render_to_string(
             self.get_template_names(), self.get_context_data(), request=request
@@ -165,7 +165,7 @@ class InsightsPDFTestView(InsightAppMixin, ListView):
 
     queryset = App.objects.all()
 
-    def get_template_names(self):
+    def get_template_names(self) -> list[str]:
         return ['insights/pdf.html']
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

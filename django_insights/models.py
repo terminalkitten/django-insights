@@ -61,7 +61,7 @@ class Counter(MetricModel):
             )
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Insight Counter: {self.label} = {self.value}"
 
 
@@ -74,7 +74,7 @@ class Gauge(MetricModel):
     value = models.FloatField(default=0.0)
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
 
-    def gauge(self, value=1, delta=False) -> None:
+    def gauge(self, value: float = 1, delta: bool = False) -> None:
         """Set gauge value"""
         if not delta:
             self.value = value
@@ -89,7 +89,7 @@ class Gauge(MetricModel):
             )
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Insight Gauge: {self.label} = {self.value}"
 
 
@@ -170,7 +170,7 @@ class BucketValue(models.Model):
             )
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             "Insight Bucket value: "
             f" timestamp={self.bucket.label}.{self.timestamp} x={self.xvalue} y={self.yvalue}"

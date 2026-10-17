@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand
 
 from django_insights.metrics import metrics
@@ -7,7 +9,7 @@ from django_insights.registry import registry
 class Command(BaseCommand):
     """Show all registered audit events"""
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(self.style.HTTP_INFO('[Django Insights] - Collect insights'))
 
         # Auto-discover

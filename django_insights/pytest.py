@@ -2,6 +2,7 @@ import inspect
 from collections import namedtuple
 from collections.abc import Callable
 from importlib import import_module
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -9,7 +10,7 @@ import pytest
 App = namedtuple('App', ('module'))
 
 
-def register_insights_modules(*args, **kwargs) -> dict[str, Callable]:
+def register_insights_modules(*args: str, **kwargs: Any) -> dict[str, Callable]:
     """
     Helper function to load insights functions into registry
     This way pytest can look them up and call them from a fixture,
@@ -41,7 +42,7 @@ registry = register_insights_modules("insights")
 
 
 @pytest.fixture
-def insights_query(request) -> Callable | None:
+def insights_query(request: pytest.FixtureRequest) -> Callable | None:
     """
     Returns insights_query fixture, this function
     resolves wrapped function from registry
