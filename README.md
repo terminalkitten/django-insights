@@ -339,6 +339,27 @@ A class without a `has_permission` method denies access, it never grants it.
 
 Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
 
+## Testing your insights
+
+The pytest plugin comes with Django Insights, there is nothing to configure. It gives a test the plain function behind an insight, so you can test your queries against the test database. Nothing is saved.
+
+```python
+import pytest
+from django.utils import timezone
+
+from project.testapp.models import Author
+
+
+@pytest.mark.insights
+@pytest.mark.django_db
+def test_count_authors(insights_query):
+    Author.objects.create(created=timezone.now(), name='Ada', age=36, gender=1)
+
+    assert insights_query() == 1
+```
+
+The insight is found by the name of the test without `test_`. To choose another one, give the marker a name: `@pytest.mark.insights('count_authors')`. When two apps have an insight with the same name, use `module.name`, for example `'shop.insights.count_orders'`. A name that does not exist fails the test with a message.
+
 ## Use-cases
 
 Insights are gathered from your current application state, Django Insights is not intentend to be used as a realtime, incremementing data-source. You should be able to re-gather these insights from your actual data at any moment in time.

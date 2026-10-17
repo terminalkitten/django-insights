@@ -37,6 +37,7 @@ nav:
       - License: license.md
   - Insights:
       - Types: types.md
+      - Testing: testing.md
 
 # Extra
 extra:
