@@ -1,41 +1,65 @@
 import pytest
 from django.test import override_settings
 
-from django_insights.checks import check_dashboard_permissions, check_media_cache
+from django_insights.checks import (
+    check_dashboard_permissions,
+    check_database,
+    check_media_cache,
+    check_renamed_settings,
+)
 from tests.utils import AllowAll, DenyAll, NoMethod
+
+
+def ids(check):
+    return [message.id for message in check(app_configs=None, databases=None)]
 
 
 @pytest.mark.parametrize('permissions', [None, [], [AllowAll], (AllowAll, DenyAll)])
 def test_valid_permissions_pass(permissions):
     with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=permissions):
-        assert check_dashboard_permissions(app_configs=None, databases=None) == []
+        assert ids(check_dashboard_permissions) == []
 
 
 def test_permissions_must_be_a_list():
     with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=AllowAll):
-        errors = check_dashboard_permissions(app_configs=None, databases=None)
-    assert [error.id for error in errors] == ['insights.E001']
+        assert ids(check_dashboard_permissions) == ['insights.W001']
 
 
 @pytest.mark.parametrize('entry', [NoMethod, AllowAll(), 'tests.utils.AllowAll'])
 def test_every_invalid_entry_is_reported(entry):
     with override_settings(INSIGHTS_DASHBOARD_PERMISSIONS=[AllowAll, entry]):
-        errors = check_dashboard_permissions(app_configs=None, databases=None)
-    assert [error.id for error in errors] == ['insights.E002']
+        assert ids(check_dashboard_permissions) == ['insights.W002']
 
 
 @pytest.mark.parametrize(
-    ('enabled', 'root', 'ids'),
+    ('enabled', 'root', 'expected'),
     [
         (False, None, []),
         (True, 'charts', []),
-        (True, None, ['insights.E003']),
-        (True, '', ['insights.E003']),
+        (True, None, ['insights.W003']),
+        (True, '', ['insights.W003']),
     ],
 )
-def test_media_cache_requires_a_root(enabled, root, ids):
+def test_media_cache_requires_a_root(enabled, root, expected):
     with override_settings(
         INSIGHTS_CHARTS_USE_MEDIA_CACHE=enabled, INSIGHTS_MEDIA_CACHE_ROOT=root
     ):
-        errors = check_media_cache(app_configs=None, databases=None)
-    assert [error.id for error in errors] == ids
+        assert ids(check_media_cache) == expected
+
+
+def test_a_configured_project_has_no_database_warnings():
+    assert ids(check_database) == []
+
+
+def test_missing_insights_database_and_router_are_reported():
+    databases = {
+        'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}
+    }
+    with override_settings(DATABASES=databases, DATABASE_ROUTERS=[]):
+        assert ids(check_database) == ['insights.W004', 'insights.W005']
+
+
+def test_renamed_settings_are_reported():
+    with override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[DenyAll]):
+        assert ids(check_renamed_settings) == ['insights.W006']
+    assert ids(check_renamed_settings) == []
