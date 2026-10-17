@@ -45,7 +45,6 @@ dev = [
     "ruff",
     "ty",
     "django-stubs",
-    "faker",
     "tox",
     "tox-uv",
     "pytest-cov>=7.1.0",
