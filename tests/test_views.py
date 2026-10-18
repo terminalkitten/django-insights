@@ -1,13 +1,16 @@
+from datetime import timedelta
+
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connections
 from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from django_insights import views
 from django_insights.choices import BucketType
-from django_insights.models import App, Bucket, BucketValue
+from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from tests.utils import AllowAll, DenyAll, NoMethod
 
 pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
@@ -280,3 +283,42 @@ def test_the_top_bar_hides_the_pdf_report_without_pymupdf(viewer_client, monkeyp
     monkeypatch.setattr(views, 'pdf_available', lambda: False)
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
     assert reverse('insights:insight_pdf') not in html
+
+
+def dashboard_queries(client):
+    with CaptureQueriesContext(connections['insights']) as captured:
+        response = client.get(reverse('insights:insight_dashboard'))
+    assert response.status_code == 200
+    return len(captured)
+
+
+def add_stats(app, start, count):
+    Counter.objects.bulk_create(
+        Counter(app=app, label=f'c{n}', value=n, trend=[1.0, 2.0])
+        for n in range(start, start + count)
+    )
+    Gauge.objects.bulk_create(
+        Gauge(app=app, label=f'g{n}', value=n, trend=[2.0, 1.0])
+        for n in range(start, start + count)
+    )
+
+
+def test_dashboard_queries_do_not_grow_with_the_number_of_stats(viewer_client):
+    app = App.objects.create(module='tests.stats')
+    add_stats(app, start=0, count=1)
+    few = dashboard_queries(viewer_client)
+
+    add_stats(app, start=1, count=5)
+    assert dashboard_queries(viewer_client) == few
+
+
+def test_last_collected_is_the_newest_moment_of_any_metric():
+    app = App.objects.create(module='tests.moments')
+    assert views.last_collected() is None
+
+    old, new = timezone.now() - timedelta(days=2), timezone.now() - timedelta(days=1)
+    Counter.objects.create(app=app, label='c', created_at=new)
+    Gauge.objects.create(app=app, label='g', created_at=old)
+    Bucket.objects.create(app=app, label='b', type=BucketType.BARCHART, created_at=old)
+
+    assert views.last_collected() == new

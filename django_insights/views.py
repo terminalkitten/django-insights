@@ -8,7 +8,6 @@ from typing import Any
 from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -86,11 +85,16 @@ class CustomPermissionMixin(UserPassesTestMixin):
 
 def last_collected() -> datetime | None:
     """When the insights were collected last, None before the first collect"""
-    moments = [
-        model.objects.aggregate(moment=Max('created_at'))['moment']
-        for model in (Counter, Gauge, Bucket)
-    ]
-    return max((moment for moment in moments if moment), default=None)
+    newest = (
+        Counter.objects.order_by()
+        .values_list('created_at')
+        .union(
+            Gauge.objects.order_by().values_list('created_at'),
+            Bucket.objects.order_by().values_list('created_at'),
+        )
+        .order_by('-created_at')[:1]
+    )
+    return next(iter(newest), (None,))[0]
 
 
 class InsightAppMixin(
