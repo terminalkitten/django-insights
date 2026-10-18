@@ -94,6 +94,3 @@ INSIGHTS_CHART_DPI = 180
 
 # Insight cache
 INSIGHTS_MEDIA_CACHE_ROOT = os.path.join(MEDIA_ROOT, 'insights')
-
-# Change primary color
-INSIGHTS_THEME = "amber"
