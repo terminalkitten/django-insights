@@ -49,7 +49,6 @@ dev = [
     "tox-uv",
     "pytest-cov>=7.1.0",
 ]
-docs = ["mkdocs", "mkdocs-material"]
 
 [project.entry-points.pytest11]
 django_insights = "django_insights.pytest"
