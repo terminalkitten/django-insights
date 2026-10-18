@@ -82,7 +82,7 @@ def test_figures_are_saved_with_the_bundled_font(collected, monkeypatch):
     monkeypatch.setattr(figure, 'savefig', recording_save)
     to_bytes_io(figure)
 
-    assert fonts == [['Ubuntu']]
+    assert fonts == [['Geist']]
 
 
 def test_horizontal_bars_scale_to_small_values():
