@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterable
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -23,6 +20,12 @@ from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from datetime import datetime
+
+    from django.db.models.query import QuerySet
 
 THEMES = ('light', 'dark')
 

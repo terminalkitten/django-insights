@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from django.apps.config import AppConfig
 from django.conf import settings as django_settings
 from django.core import checks
 from django.core.checks import CheckMessage, register
 
 from django_insights.database import database_entry
 from django_insights.settings import settings
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from django.apps.config import AppConfig
 
 ROUTER = 'django_insights.database.Router'
 RENAMED_SETTINGS = {

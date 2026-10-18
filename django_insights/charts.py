@@ -1,24 +1,27 @@
 from __future__ import annotations
 
 import base64
-import datetime
 import io
-from collections.abc import Callable, Sequence
-from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
-from typing import Any, ParamSpec
+from typing import TYPE_CHECKING, Any, ParamSpec
 
 import matplotlib
 import matplotlib.font_manager as fm
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from django_insights.choices import BucketType
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Callable, Sequence
+    from contextlib import AbstractContextManager
+
+    from matplotlib.axes import Axes
 
 FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'ubuntu.ttf'
 P = ParamSpec('P')

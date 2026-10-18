@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from django.conf import settings as django_settings
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 __all__ = ["settings"]
 

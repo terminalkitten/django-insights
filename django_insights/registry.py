@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from django.db import transaction
 from django.utils.module_loading import autodiscover_modules
 from tqdm import tqdm
 
 from django_insights.database import database_entry
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
