@@ -32,8 +32,8 @@ WORKSPACES = [
 ]
 CHANNELS = ['general', 'random', 'engineering', 'support', 'sales', 'design', 'ops']
 AI_MODELS = {
-    'assistant-small': Decimal('0.0000006'),
-    'assistant-large': Decimal('0.000012'),
+    'assistant-small': Decimal('0.000002'),
+    'assistant-large': Decimal('0.00001'),
 }
 REPORT_STATUS_WEIGHTS = {'draft': 0.2, 'ready': 0.7, 'failed': 0.1}
 INVITED_SHARE = 0.4
