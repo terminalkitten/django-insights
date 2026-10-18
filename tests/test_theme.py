@@ -78,7 +78,7 @@ def test_any_hex_color_is_an_accent_with_a_chart_ramp():
     light, dark = theme.palette('light'), theme.palette('dark')
 
     assert light['primary'] == light['chart_3'] == '#16a34a'
-    assert lightness(dark['primary']) > lightness(light['primary'])
+    assert dark['primary'] == '#16a34a'
     ramp = [lightness(light[key]) for key in theme.CHART_KEYS]
     assert ramp == sorted(ramp, reverse=True)
     assert light['sidebar_primary'] == '#16a34a'
@@ -107,9 +107,9 @@ def test_the_charts_use_the_colors_of_the_dashboard():
 
 
 @override_settings(INSIGHTS_THEME='blue')
-def test_the_chart_color_is_the_middle_of_the_ramp_in_light_and_the_lightest_in_dark():
+def test_the_chart_color_is_the_middle_of_the_ramp_in_light_and_dark():
     assert get_theme('light').primary == theme.palette('light')['chart_3']
-    assert get_theme('dark').primary == theme.palette('dark')['chart_1']
+    assert get_theme('dark').primary == theme.palette('dark')['chart_3']
 
 
 @pytest.mark.parametrize('name', [*theme.ACCENT_NAMES, *theme.BASE_NAMES])

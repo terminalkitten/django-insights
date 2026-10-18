@@ -78,7 +78,6 @@ def from_accent(accent: str) -> dict[str, dict[str, str]]:
         key: accent if step == 0 else lightness(accent, step)
         for key, step in zip(CHART_KEYS, CHART_STEPS, strict=True)
     }
-    dark_primary = lightness(accent, 0.12)
     return {
         'light': {
             'primary': accent,
@@ -88,10 +87,10 @@ def from_accent(accent: str) -> dict[str, dict[str, str]]:
             **charts,
         },
         'dark': {
-            'primary': dark_primary,
-            'primary_foreground': readable_on(dark_primary),
-            'sidebar_primary': dark_primary,
-            'sidebar_primary_foreground': readable_on(dark_primary),
+            'primary': accent,
+            'primary_foreground': readable_on(accent),
+            'sidebar_primary': accent,
+            'sidebar_primary_foreground': readable_on(accent),
             **charts,
         },
     }
@@ -149,7 +148,7 @@ def chart_colors(mode: str) -> dict[str, str]:
     """The colors of a chart, taken from the same palette as the dashboard"""
     colors = palette(mode)
     return {
-        'primary': colors['chart_3'] if mode == 'light' else colors['chart_1'],
+        'primary': colors['chart_3'],
         'face': colors['card'],
         'edge': colors['card'],
         'tick': colors['foreground'],
