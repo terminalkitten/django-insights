@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult, TimeSeriesResult
 from project.testapp.billing.models import Invoice, Subscription
-from project.testapp.trends import monthly
+from project.testapp.trends import monthly, months
 
 label = "Billing"
 
@@ -23,9 +24,7 @@ def count_paying_subscriptions() -> int:
 @metrics.gauge(
     question="What is the monthly recurring revenue?",
     desc="Sum of the monthly price of all active subscriptions, in USD",
-    trend=lambda: monthly(
-        Invoice.objects.filter(status=Invoice.Status.PAID), 'issued_at', Sum('amount')
-    ),
+    trend=lambda: monthly(Invoice.objects, 'issued_at', Sum('amount')),
 )
 def monthly_recurring_revenue() -> float:
     total = Subscription.objects.filter(ended_at__isnull=True).aggregate(
@@ -97,4 +96,75 @@ def invoices_by_status() -> BarChartResult:
         .annotate(invoices=F('total'))
         .order_by('-total')
         .values_list('total', 'invoices', 'status')
+    )
+
+
+@metrics.counter(question="How many invoices are overdue?")
+def count_overdue_invoices() -> int:
+    return Invoice.objects.filter(status=Invoice.Status.OVERDUE).count()
+
+
+@metrics.gauge(
+    question="What is the average revenue per paying workspace?",
+    desc="Monthly recurring revenue divided by the paying subscriptions, in USD",
+)
+def average_revenue_per_workspace() -> float:
+    paying = Subscription.objects.filter(ended_at__isnull=True).exclude(
+        plan=Subscription.Plan.FREE
+    )
+    total = paying.aggregate(total=Sum('monthly_price'))['total']
+    count = paying.count()
+    return round(float(total or 0) / count, 2) if count else 0.0
+
+
+@metrics.gauge(question="How many percent of the invoices are overdue?")
+def overdue_share_of_invoices() -> float:
+    total = Invoice.objects.count()
+    if not total:
+        return 0.0
+    overdue = Invoice.objects.filter(status=Invoice.Status.OVERDUE).count()
+    return round(100 * overdue / total, 1)
+
+
+@metrics.timeseries(
+    question="How many paying subscriptions are active per month?",
+    desc="Counted on the first day of each month",
+    xlabel="Month",
+    xformat='%Y-%m',
+    ylabel="Num of subscriptions",
+)
+def paying_subscriptions_per_month() -> TimeSeriesResult:
+    paying = list(
+        Subscription.objects.exclude(plan=Subscription.Plan.FREE).values_list(
+            'started_at', 'ended_at'
+        )
+    )
+    if not paying:
+        return []
+    first = min(started for started, _ in paying)
+    return [
+        (
+            month,
+            sum(
+                started <= month and (ended is None or ended > month)
+                for started, ended in paying
+            ),
+        )
+        for month in months(first, timezone.now())
+    ]
+
+
+@metrics.barchart(
+    question="What does each plan bring in?",
+    desc="Paid invoices per plan, in USD",
+    xlabel="Plan",
+    ylabel="Revenue in USD",
+)
+def revenue_by_plan() -> BarChartResult:
+    return (
+        Invoice.objects.filter(status=Invoice.Status.PAID)
+        .values('subscription__plan')
+        .annotate(total=Sum('amount'))
+        .order_by('-total')
+        .values_list('total', 'total', 'subscription__plan')
     )
