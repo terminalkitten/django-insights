@@ -54,3 +54,29 @@ A missing label (`None`) is shown as an empty label.
 ## Failing insights
 
 When an insight raises an exception it is logged and reported, the other insights still run. `collect_insights` prints every failed insight and exits with an error. All insights are saved in one transaction on the insights database.
+
+## Trend
+
+A counter or gauge can show a trend: a small line and the change of the last point against the one before it. Give it a `trend` function that returns a time series, the same rows a `timeseries` insight returns:
+
+```python
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+
+
+def signups_per_month():
+    return (
+        AppUser.objects.annotate(month=TruncMonth('date_joined'))
+        .values('month')
+        .annotate(total=Count('pk'))
+        .values_list('month', 'total')
+        .order_by('month')
+    )
+
+
+@metrics.counter(question="How many users are there?", trend=signups_per_month)
+def count_users() -> int:
+    return AppUser.objects.count()
+```
+
+The trend is read from your own data on every collect and stored with the counter, so it is rebuilt together with everything else and nothing needs a backup. The latest 60 points are kept. The trend describes what its query returns, not the value itself: the example shows the signups per month next to the total number of users. Leave out the running month, it is not complete yet and shows as a drop.
