@@ -3,8 +3,8 @@ from __future__ import annotations
 import functools
 import importlib
 import uuid
-from collections.abc import Callable
-from typing import ParamSpec, TypeVar
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, ParamSpec, TypeVar
 
 from django.db import IntegrityError, transaction
 
@@ -14,15 +14,12 @@ from django_insights.exceptions import InsightsError
 from django_insights.metrics_types import (
     BarChartAnswer,
     BarChartResult,
-    BarChartType,
     CounterType,
     GaugeType,
     ScatterPlotAnswer,
     ScatterPlotResult,
-    ScatterPlotType,
     TimeSeriesAnswer,
     TimeSeriesResult,
-    TimeSeriesType,
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import InsightFailure, registry
@@ -36,6 +33,30 @@ TREND_POINTS = 60
 TimeSeriesReturn = TypeVar('TimeSeriesReturn', bound=TimeSeriesResult)
 ScatterPlotReturn = TypeVar('ScatterPlotReturn', bound=ScatterPlotResult)
 BarChartReturn = TypeVar('BarChartReturn', bound=BarChartResult)
+R = TypeVar('R', bound=Iterable[Any])
+
+
+def time_value(row: Sequence[Any]) -> dict[str, Any]:
+    answer = TimeSeriesAnswer(*row)
+    return {'timestamp': answer.timestamp, 'xvalue': answer.xvalue}
+
+
+def point_value(row: Sequence[Any]) -> dict[str, Any]:
+    answer = ScatterPlotAnswer(*row)
+    return {
+        'xvalue': answer.xvalue,
+        'yvalue': answer.yvalue,
+        'category': answer.category,
+    }
+
+
+def bar_value(row: Sequence[Any]) -> dict[str, Any]:
+    answer = BarChartAnswer(*row)
+    return {
+        'xvalue': answer.xvalue,
+        'yvalue': answer.yvalue,
+        'category': answer.category,
+    }
 
 
 def collect_trend(trend: TrendFunc | None) -> list[float]:
@@ -170,6 +191,41 @@ class InsightMetrics:
 
         return decorator
 
+    def _chart(
+        self,
+        bucket_type: int,
+        to_value: Callable[[Sequence[Any]], dict[str, Any]],
+        **meta: str | None,
+    ) -> Callable[[Callable[P, R]], Callable[P, R]]:
+        """Decorator shared by the chart types, they differ in their row and bucket type"""
+
+        def decorator(func: Callable[P, R]) -> Callable[P, R]:
+            label, app = self.get_app(func)
+
+            @functools.wraps(func)
+            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
+                values = [to_value(row) for row in func(*args, **kwargs)]
+                bucket = Bucket.objects.create(
+                    app=self.get_memoized_app(app.module, app.label),
+                    label=label,
+                    type=bucket_type,
+                    **meta,
+                )
+                self.create_bucket_values.extend(
+                    BucketValue(bucket=bucket, **value) for value in values
+                )
+
+            registry.register_insight(
+                label=label,
+                module=app.module,
+                question=meta.get('question'),
+                func=inner,
+            )
+
+            return func
+
+        return decorator
+
     def timeseries(
         self,
         question: str | None = None,
@@ -180,52 +236,18 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, TimeSeriesReturn]], Callable[P, TimeSeriesReturn]]:
-        """
-        Decorator to collect TimeSeries metrics
-
-        """
-
-        def decorator(
-            func: Callable[P, TimeSeriesReturn],
-        ) -> Callable[P, TimeSeriesReturn]:
-            label, app = self.get_app(func)
-
-            @functools.wraps(func)
-            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
-                results = func(*args, **kwargs)
-                ts_type = TimeSeriesType(
-                    values=[TimeSeriesAnswer(*result) for result in results]
-                )
-
-                bucket = Bucket.objects.create(
-                    app=self.get_memoized_app(app.module, app.label),
-                    label=label,
-                    question=question,
-                    desc=desc,
-                    xlabel=xlabel,
-                    xformat=xformat,
-                    ylabel=ylabel,
-                    yformat=yformat,
-                    title=title,
-                    type=BucketType.TIMESERIES,
-                )
-
-                for row in ts_type.values:
-                    bucket_value = BucketValue(
-                        timestamp=row.timestamp, xvalue=row.xvalue, bucket=bucket
-                    )
-                    self.create_bucket_values.append(bucket_value)
-
-            registry.register_insight(
-                label=label,
-                module=app.module,
-                question=question,
-                func=inner,
-            )
-
-            return func
-
-        return decorator
+        """Decorator to collect TimeSeries metrics"""
+        return self._chart(
+            BucketType.TIMESERIES,
+            time_value,
+            question=question,
+            desc=desc,
+            xlabel=xlabel,
+            xformat=xformat,
+            ylabel=ylabel,
+            yformat=yformat,
+            title=title,
+        )
 
     def scatterplot(
         self,
@@ -237,55 +259,18 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, ScatterPlotReturn]], Callable[P, ScatterPlotReturn]]:
-        """
-        Decorator to collect Scatterplot metrics
-
-        """
-
-        def decorator(
-            func: Callable[P, ScatterPlotReturn],
-        ) -> Callable[P, ScatterPlotReturn]:
-            label, app = self.get_app(func)
-
-            @functools.wraps(func)
-            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
-                results = func(*args, **kwargs)
-                scp_type = ScatterPlotType(
-                    values=[ScatterPlotAnswer(*result) for result in results]
-                )
-
-                bucket = Bucket.objects.create(
-                    app=self.get_memoized_app(app.module, app.label),
-                    label=label,
-                    question=question,
-                    desc=desc,
-                    xlabel=xlabel,
-                    xformat=xformat,
-                    ylabel=ylabel,
-                    yformat=yformat,
-                    title=title,
-                    type=BucketType.SCATTERPLOT,
-                )
-
-                for row in scp_type.values:
-                    bucket_value = BucketValue(
-                        xvalue=row.xvalue,
-                        yvalue=row.yvalue,
-                        category=row.category,
-                        bucket=bucket,
-                    )
-                    self.create_bucket_values.append(bucket_value)
-
-            registry.register_insight(
-                label=label,
-                module=app.module,
-                question=question,
-                func=inner,
-            )
-
-            return func
-
-        return decorator
+        """Decorator to collect Scatterplot metrics"""
+        return self._chart(
+            BucketType.SCATTERPLOT,
+            point_value,
+            question=question,
+            desc=desc,
+            xlabel=xlabel,
+            xformat=xformat,
+            ylabel=ylabel,
+            yformat=yformat,
+            title=title,
+        )
 
     def barchart(
         self,
@@ -297,53 +282,18 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
-        """
-        Decorator to collect Barchart metrics
-
-        """
-
-        def decorator(func: Callable[P, BarChartReturn]) -> Callable[P, BarChartReturn]:
-            label, app = self.get_app(func)
-
-            @functools.wraps(func)
-            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
-                results = func(*args, **kwargs)
-                bar_type = BarChartType(
-                    values=[BarChartAnswer(*result) for result in results]
-                )
-
-                bucket = Bucket.objects.create(
-                    app=self.get_memoized_app(app.module, app.label),
-                    label=label,
-                    question=question,
-                    desc=desc,
-                    xlabel=xlabel,
-                    xformat=xformat,
-                    ylabel=ylabel,
-                    yformat=yformat,
-                    title=title,
-                    type=BucketType.BARCHART,
-                )
-
-                for row in bar_type.values:
-                    bucket_value = BucketValue(
-                        xvalue=row.xvalue,
-                        yvalue=row.yvalue,
-                        category=row.category,
-                        bucket=bucket,
-                    )
-                    self.create_bucket_values.append(bucket_value)
-
-            registry.register_insight(
-                label=label,
-                module=app.module,
-                question=question,
-                func=inner,
-            )
-
-            return func
-
-        return decorator
+        """Decorator to collect Barchart metrics"""
+        return self._chart(
+            BucketType.BARCHART,
+            bar_value,
+            question=question,
+            desc=desc,
+            xlabel=xlabel,
+            xformat=xformat,
+            ylabel=ylabel,
+            yformat=yformat,
+            title=title,
+        )
 
     def hbarchart(
         self,
@@ -355,53 +305,18 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
-        """
-        Decorator to collect Horizontal Barchart metrics
-
-        """
-
-        def decorator(func: Callable[P, BarChartReturn]) -> Callable[P, BarChartReturn]:
-            label, app = self.get_app(func)
-
-            @functools.wraps(func)
-            def inner(*args: P.args, **kwargs: P.kwargs) -> None:
-                results = func(*args, **kwargs)
-                bar_type = BarChartType(
-                    values=[BarChartAnswer(*result) for result in results]
-                )
-
-                bucket = Bucket.objects.create(
-                    app=self.get_memoized_app(app.module, app.label),
-                    label=label,
-                    question=question,
-                    desc=desc,
-                    xlabel=xlabel,
-                    xformat=xformat,
-                    ylabel=ylabel,
-                    yformat=yformat,
-                    title=title,
-                    type=BucketType.HBARCHART,
-                )
-
-                for row in bar_type.values:
-                    bucket_value = BucketValue(
-                        xvalue=row.xvalue,
-                        yvalue=row.yvalue,
-                        category=row.category,
-                        bucket=bucket,
-                    )
-                    self.create_bucket_values.append(bucket_value)
-
-            registry.register_insight(
-                label=label,
-                module=app.module,
-                question=question,
-                func=inner,
-            )
-
-            return func
-
-        return decorator
+        """Decorator to collect Horizontal Barchart metrics"""
+        return self._chart(
+            BucketType.HBARCHART,
+            bar_value,
+            question=question,
+            desc=desc,
+            xlabel=xlabel,
+            xformat=xformat,
+            ylabel=ylabel,
+            yformat=yformat,
+            title=title,
+        )
 
     def collect(self, reset: bool = False) -> list[InsightFailure]:
         """Collect all insights in one transaction on the insights database"""
