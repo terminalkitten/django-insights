@@ -103,8 +103,6 @@ You can inspect this database yourself with `sqlite3 db/insights.db` - or - you 
 
 ### Dashboard
 
-!["Dashboard - Main Screen"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/screen_1.png)
-
 To enable this dashboard, add the following settings:
 
 ```python
@@ -118,9 +116,12 @@ urlpatterns = [
 ]
 ```
 
-!["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/screen_2.png)
-
 Now you can visit http://localhost:8000/insights/ to inspect your Django Insights database.
+
+| Light | Dark |
+| --- | --- |
+| ![Dashboard, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-light.png) | ![Dashboard, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-dark.png) |
+| ![App, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-light.png) | ![App, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-dark.png) |
 
 ### PDF report
 
