@@ -333,7 +333,19 @@ class InsightMetrics:
         rebuild_chart_media_cache()
         return failures
 
+    def reject_duplicate_timestamps(self) -> None:
+        seen = set()
+        for value in self.create_bucket_values:
+            key = (value.bucket.pk, value.timestamp)
+            if value.timestamp is not None and key in seen:
+                raise InsightsError(
+                    f"The insight '{value.bucket.label}' returns more than one "
+                    f'row for the timestamp {value.timestamp}.'
+                )
+            seen.add(key)
+
     def save_collected(self) -> None:
+        self.reject_duplicate_timestamps()
         try:
             Counter.objects.bulk_create(self.create_counters)
             Gauge.objects.bulk_create(self.create_gauges)

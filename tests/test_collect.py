@@ -2,10 +2,11 @@ import pytest
 from django.core import management
 from django.core.management.base import CommandError
 from django.db import IntegrityError
+from django.utils import timezone
 
 from django_insights.exceptions import InsightsError
 from django_insights.metrics import metrics
-from django_insights.models import App, Bucket, Counter, Gauge
+from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
 from django_insights.registry import registry
 from tests.utils import SEED_MESSAGES, SEED_USERS
 
@@ -116,3 +117,21 @@ def test_an_app_keeps_its_uuid_when_the_insights_database_is_rebuilt(collected):
     metrics.collect(reset=True)
 
     assert dict(App.objects.values_list('module', 'uuid')) == before
+
+
+def test_two_rows_with_the_same_timestamp_name_the_insight(collected, monkeypatch):
+    bucket = Bucket.objects.timeseries().earliest('pk')
+    moment = timezone.now()
+    values = [BucketValue(bucket=bucket, timestamp=moment, xvalue=n) for n in (1, 2)]
+    monkeypatch.setattr(metrics, 'create_bucket_values', values)
+
+    with pytest.raises(InsightsError, match=f"'{bucket.label}' returns more than one"):
+        metrics.save_collected()
+
+
+def test_rows_without_a_timestamp_are_not_duplicates(collected, monkeypatch):
+    bucket = Bucket.objects.barcharts().earliest('pk')
+    values = [BucketValue(bucket=bucket, xvalue=n, category='a') for n in (1, 2)]
+    monkeypatch.setattr(metrics, 'create_bucket_values', values)
+
+    metrics.save_collected()
