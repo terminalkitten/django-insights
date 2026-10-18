@@ -121,7 +121,9 @@ def to_bytes_io(fig: Figure) -> bytes:
     """Render Matplotlib figure to file-like object"""
     flike = io.BytesIO()
     with chart_style():
-        fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
+        fig.savefig(
+            flike, dpi=settings.INSIGHTS_CHART_DPI, bbox_inches='tight', pad_inches=0.3
+        )
 
     return flike.getvalue()
 
