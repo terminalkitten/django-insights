@@ -15,6 +15,7 @@ class Router:
     def db_for_write(self, model: type[Model], **hints: Any) -> str | None:
         if model._meta.app_label in app_labels:
             return "insights"
+        return None
 
     def allow_relation(self, obj1: Model, obj2: Model, **hints: Any) -> bool | None:
         if obj1._meta.app_label in app_labels or obj2._meta.app_label in app_labels:

@@ -26,7 +26,7 @@ __all__ = [
 STYLES = ('vega', 'nova', 'maia', 'lyra', 'mira', 'luma', 'sera', 'rhea')
 DEFAULT_STYLE = 'vega'
 MODES = ('light', 'dark')
-HEX = re.compile(r'^#[0-9a-fA-F]{6}$')
+HEX = re.compile(r'\A#[0-9a-fA-F]{6}\Z')
 BASE_NAMES = tuple(BASES)
 ACCENT_NAMES = tuple(ACCENTS)
 CHART_STEPS = (0.22, 0.08, 0.0, -0.06, -0.14)
@@ -211,41 +211,50 @@ def theme_problems() -> list[tuple[str, str]]:
             )
         ]
 
-    messages = []
+    messages: list[tuple[str, str]] = []
     for key, value in configured.items():
-        if key == 'base' and not (isinstance(value, str) and value in BASES):
-            messages.append(
-                (
-                    'insights.W008',
-                    f'INSIGHTS_THEME base {value!r} is not one of {", ".join(BASE_NAMES)}.',
-                )
-            )
-        elif key == 'accent' and not accent_colors(value):
-            messages.append(
-                (
-                    'insights.W008',
-                    f'INSIGHTS_THEME accent {value!r} is not one of {", ".join(ACCENT_NAMES)} '
-                    'or a color like "#ec4899".',
-                )
-            )
-        elif key not in ('base', 'accent', *MODES) or (
-            key in MODES and not isinstance(value, dict)
-        ):
-            messages.append(
-                (
-                    'insights.W009',
-                    f"INSIGHTS_THEME has {key!r}, use 'base', 'accent', 'light' and 'dark'.",
-                )
-            )
-        elif key in MODES:
-            messages.extend(
-                (
-                    'insights.W009',
-                    f'INSIGHTS_THEME[{key!r}] has {name!r}, known colors are {", ".join(KEYS)}.'
-                    if name not in KEYS
-                    else f'INSIGHTS_THEME[{key!r}][{name!r}] must be a color like "#101010".',
-                )
-                for name, color in value.items()
-                if name not in KEYS or not (isinstance(color, str) and HEX.match(color))
-            )
+        messages.extend(key_problems(key, value))
     return messages
+
+
+def key_problems(key: str, value: object) -> list[tuple[str, str]]:
+    if key == 'base':
+        if isinstance(value, str) and value in BASES:
+            return []
+        return [
+            (
+                'insights.W008',
+                f'INSIGHTS_THEME base {value!r} is not one of {", ".join(BASE_NAMES)}.',
+            )
+        ]
+    if key == 'accent':
+        if accent_colors(value):
+            return []
+        return [
+            (
+                'insights.W008',
+                f'INSIGHTS_THEME accent {value!r} is not one of {", ".join(ACCENT_NAMES)} '
+                'or a color like "#ec4899".',
+            )
+        ]
+    if key in MODES and isinstance(value, dict):
+        return color_problems(key, value)
+    return [
+        (
+            'insights.W009',
+            f"INSIGHTS_THEME has {key!r}, use 'base', 'accent', 'light' and 'dark'.",
+        )
+    ]
+
+
+def color_problems(mode: str, colors: dict[str, Any]) -> list[tuple[str, str]]:
+    return [
+        (
+            'insights.W009',
+            f'INSIGHTS_THEME[{mode!r}] has {name!r}, known colors are {", ".join(KEYS)}.'
+            if name not in KEYS
+            else f'INSIGHTS_THEME[{mode!r}][{name!r}] must be a color like "#101010".',
+        )
+        for name, color in colors.items()
+        if name not in KEYS or not (isinstance(color, str) and HEX.match(color))
+    ]

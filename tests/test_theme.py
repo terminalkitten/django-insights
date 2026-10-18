@@ -138,6 +138,17 @@ def test_values_that_are_not_a_hex_color_are_ignored_and_never_reach_the_css():
     assert len(theme.problems()) == 5
 
 
+def test_a_color_with_a_trailing_newline_is_not_a_hex_color():
+    assert theme.HEX.match('#ffffff')
+    assert not theme.HEX.match('#ffffff\n')
+
+
+@override_settings(INSIGHTS_THEME={'accent': '#16a34a\n'})
+def test_an_accent_with_a_trailing_newline_is_ignored():
+    assert theme.css_overrides() == ''
+    assert [check_id for check_id, _ in theme.problems()] == ['insights.W008']
+
+
 @override_settings(INSIGHTS_THEME='chartreuse', INSIGHTS_STYLE='neon')
 def test_a_wrong_style_or_theme_falls_back_and_is_reported():
     assert theme.stylesheet() == 'insights/css/vega.css'
