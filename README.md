@@ -3,7 +3,7 @@
 !["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/banner.png)
 
 > [!NOTE]
-> **v2 is in the works.** We are currently working on a new major release on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard, optional PDF export and a lot of fixes. The documentation below describes the current state of that branch and may change before release.
+> **v2 is in the works.** We are currently working on a new major release on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and a lot of fixes. The documentation below describes the current state of that branch and may change before release.
 
 ## Features
 
@@ -122,16 +122,6 @@ Now you can visit http://localhost:8000/insights/ to inspect your Django Insight
 | --- | --- |
 | ![Dashboard, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-light.png) | ![Dashboard, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-dark.png) |
 | ![App, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-light.png) | ![App, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-dark.png) |
-
-### PDF report
-
-The dashboard has a PDF report at `insights/pdf/`. It needs PyMuPDF, which is optional:
-
-```bash
-pip install 'django-insights[pdf]'
-```
-
-PyMuPDF is licensed under the AGPL-3.0 (a commercial license is available from Artifex), so it is not installed by default. Without it everything else works and the report explains what to install.
 
 ## Metrics
 

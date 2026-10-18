@@ -3,12 +3,10 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING, Any
 
-from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from django.utils.cache import patch_cache_control
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import condition
@@ -18,7 +16,6 @@ from django.views.generic.base import ContextMixin
 from django_insights import theme
 from django_insights.charts import render_bucket, to_bytes_io
 from django_insights.models import App, Bucket, Counter, Gauge
-from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
 
@@ -121,7 +118,6 @@ class InsightAppMixin(
                 'apps': self.get_apps(),
                 'theme': chart_theme(self.request),
                 'current_app': None,
-                'pdf_available': pdf_available(),
                 'last_collected': last_collected(),
                 'stylesheet': theme.stylesheet(),
                 'theme_css': theme.css_overrides(),
@@ -186,45 +182,3 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
             write_atomic(cache_path, buffer)
 
         return png_response(buffer)
-
-
-class InsightsPDFView(InsightAppMixin, ListView):
-    """Render PDF"""
-
-    queryset = App.objects.all()
-    template_name = 'insights/pdf.html'
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        self.object_list = self.get_queryset()
-        html = render_to_string(
-            self.get_template_names(), self.get_context_data(), request=request
-        )
-        response = HttpResponse(html_to_pdf(html), content_type='application/pdf')
-        response['Content-Disposition'] = 'inline; filename="insights.pdf"'
-        return response
-
-
-class InsightsPDFTestView(InsightAppMixin, ListView):
-    """Render PDF HTML as test, only available when DEBUG is on"""
-
-    queryset = App.objects.all()
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if not django_settings.DEBUG:
-            raise Http404("The PDF preview is only available when DEBUG is on")
-        return super().get(request, *args, **kwargs)
-
-    def get_template_names(self) -> list[str]:
-        return ['insights/pdf.html']
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        data = super().get_context_data(**kwargs)
-
-        data.update(
-            {
-                'test_mode': True,
-                'test_stylesheet': 'insights/css/pdf.css',
-            }
-        )
-
-        return data

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import io
 from dataclasses import dataclass
 from enum import Enum
@@ -126,11 +125,6 @@ def to_bytes_io(fig: Figure) -> bytes:
         )
 
     return flike.getvalue()
-
-
-def to_base64img(fig: Figure) -> str:
-    """Render Matplotlib figure to Base64 encoded image"""
-    return base64.b64encode(to_bytes_io(fig)).decode()
 
 
 def prepare_plot(

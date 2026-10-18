@@ -1,7 +1,8 @@
 import pytest
 
+from django_insights.charts import render_bucket
 from django_insights.models import App, Bucket
-from django_insights.templatetags.insight_chart import base64img, chart, pdf_chart
+from django_insights.templatetags.insight_chart import chart
 from django_insights.templatetags.nice_format import nice_float
 
 
@@ -24,14 +25,8 @@ def test_chart_tag_escapes_the_question():
 
 
 @pytest.mark.django_db(databases=['default', 'insights'])
-def test_pdf_chart_renders_inline_png(collected):
-    bucket = Bucket.objects.earliest('pk')
-    assert 'data:image/png;base64,' in pdf_chart(bucket)
-
-
-@pytest.mark.django_db(databases=['default', 'insights'])
 def test_unsupported_bucket_type_is_rejected():
     app = App.objects.create(module='tests.unsupported')
     bucket = Bucket.objects.create(app=app, label='odd', type=99)
     with pytest.raises(ValueError, match='Unsupported bucket type'):
-        base64img(bucket)
+        render_bucket(bucket, 'light')

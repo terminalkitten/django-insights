@@ -16,9 +16,8 @@ from tests.utils import AllowAll, DenyAll, NoMethod
 pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
 
 
-@pytest.mark.parametrize('name', ['insights:insight_dashboard', 'insights:insight_pdf'])
-def test_pages_require_login(client, name):
-    assert client.get(reverse(name)).status_code == 302
+def test_dashboard_requires_login(client):
+    assert client.get(reverse('insights:insight_dashboard')).status_code == 302
 
 
 def test_chart_requires_login(client, bucket):
@@ -59,18 +58,6 @@ def test_unsupported_bucket_type_is_404(viewer_client):
     response = viewer_client.get(
         reverse('insights:insight_chart', args=[unsupported.pk])
     )
-    assert response.status_code == 404
-
-
-def test_pdf_preview_renders_html_in_debug(collected, viewer_client):
-    with override_settings(DEBUG=True):
-        response = viewer_client.get(reverse('insights:insight_pdf_test'))
-    assert response.status_code == 200
-    assert 'Insights' in response.content.decode()
-
-
-def test_pdf_preview_is_hidden_outside_debug(collected, viewer_client):
-    response = viewer_client.get(reverse('insights:insight_pdf_test'))
     assert response.status_code == 404
 
 
@@ -272,17 +259,6 @@ def test_chart_texts_are_escaped(viewer_client):
     assert '<script>alert(1)</script>' not in html
     assert '&lt;script&gt;alert(1)&lt;/script&gt;' in html
     assert '<b>bold</b>' not in html
-
-
-def test_the_top_bar_links_the_pdf_report_when_pymupdf_is_installed(viewer_client):
-    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
-    assert f'href="{reverse("insights:insight_pdf")}"' in html
-
-
-def test_the_top_bar_hides_the_pdf_report_without_pymupdf(viewer_client, monkeypatch):
-    monkeypatch.setattr(views, 'pdf_available', lambda: False)
-    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
-    assert reverse('insights:insight_pdf') not in html
 
 
 def dashboard_queries(client):
