@@ -19,13 +19,7 @@ from django.views.decorators.http import condition
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
-from django_insights.charts import (
-    barchart,
-    hbarchart,
-    scatterplot,
-    timeseries,
-    to_bytes_io,
-)
+from django_insights.charts import render_bucket, to_bytes_io
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
@@ -174,21 +168,10 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
             except FileNotFoundError:
                 pass
 
-        fig = None
-
-        if bucket.is_timeseries:
-            fig = timeseries(bucket, theme=theme)
-        if bucket.is_scatterplot:
-            fig = scatterplot(bucket, theme=theme)
-        if bucket.is_barchart:
-            fig = barchart(bucket, theme=theme)
-        if bucket.is_hbarchart:
-            fig = hbarchart(bucket, theme=theme)
-
-        if fig is None:
-            raise Http404("Unsupported bucket type")
-
-        buffer = to_bytes_io(fig)
+        try:
+            buffer = to_bytes_io(render_bucket(bucket, theme))
+        except ValueError as error:
+            raise Http404(str(error)) from error
 
         if cache_path is not None:
             write_atomic(cache_path, buffer)

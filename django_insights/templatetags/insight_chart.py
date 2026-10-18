@@ -3,13 +3,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import SafeString
 
-from django_insights.charts import (
-    barchart,
-    hbarchart,
-    scatterplot,
-    timeseries,
-    to_base64img,
-)
+from django_insights.charts import render_bucket, to_base64img
 from django_insights.models import Bucket
 from django_insights.settings import settings
 
@@ -27,20 +21,7 @@ def chart(bucket: Bucket) -> SafeString:
 
 def base64img(bucket: Bucket, override_theme: str | None = None) -> str:
     theme = override_theme or settings.INSIGHTS_DEFAULT_THEME
-    fig = None
-    if bucket.is_timeseries:
-        fig = timeseries(bucket, theme=theme)
-    if bucket.is_scatterplot:
-        fig = scatterplot(bucket, theme=theme)
-    if bucket.is_barchart:
-        fig = barchart(bucket, theme=theme)
-    if bucket.is_hbarchart:
-        fig = hbarchart(bucket, theme=theme)
-
-    if fig is None:
-        raise ValueError(f"Unsupported bucket type: {bucket.type}")
-
-    return to_base64img(fig)
+    return to_base64img(render_bucket(bucket, theme))
 
 
 @register.simple_tag

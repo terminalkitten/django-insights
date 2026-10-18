@@ -16,6 +16,7 @@ import matplotlib.font_manager as fm
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from django_insights.choices import BucketType
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
 
@@ -114,6 +115,19 @@ def shorten(label: str) -> str:
 def bucket_rows(bucket: Bucket, *fields: str) -> list[tuple[Any, ...]]:
     """Plain rows in chart order, cheaper than loading a model per value"""
     return list(BucketValue.objects.filter(bucket=bucket).values_list(*fields))
+
+
+def render_bucket(bucket: Bucket, theme: str) -> Figure:
+    """The chart of a bucket, in the renderer of its type"""
+    renderers = {
+        BucketType.TIMESERIES: timeseries,
+        BucketType.SCATTERPLOT: scatterplot,
+        BucketType.BARCHART: barchart,
+        BucketType.HBARCHART: hbarchart,
+    }
+    if bucket.type not in renderers:
+        raise ValueError(f"Unsupported bucket type: {bucket.type}")
+    return renderers[bucket.type](bucket, theme=theme)
 
 
 def to_bytes_io(fig: Figure) -> bytes:
