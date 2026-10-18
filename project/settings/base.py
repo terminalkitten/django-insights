@@ -96,4 +96,4 @@ INSIGHTS_CHART_DPI = 180
 INSIGHTS_MEDIA_CACHE_ROOT = os.path.join(MEDIA_ROOT, 'insights')
 
 # Change primary color
-INSIGHTS_THEME = "pink"
+INSIGHTS_THEME = "amber"
