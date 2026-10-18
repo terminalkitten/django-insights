@@ -30,14 +30,6 @@
                   <span>Dashboard</span>
                 </a>
               </li>
-              {% if pdf_available %}
-                <li>
-                  <a href="{% url 'insights:insight_pdf' %}" target="_blank" rel="noopener">
-                    {% include "insights/icons/file-text.html" %}
-                    <span>PDF report</span>
-                  </a>
-                </li>
-              {% endif %}
             </ul>
           </div>
           {% if apps %}
@@ -64,10 +56,19 @@
           {% include "insights/icons/panel-left.html" %}
         </button>
         <h1 class="text-sm font-medium">{{ app_label }}</h1>
-        <button type="button" class="btn ml-auto" data-variant="outline" data-size="icon" data-theme-toggle aria-label="Toggle dark mode" data-tooltip="Toggle dark mode" data-side="left">
-          <span class="hidden dark:block">{% include "insights/icons/sun.html" %}</span>
-          <span class="block dark:hidden">{% include "insights/icons/moon.html" %}</span>
-        </button>
+        <div class="ml-auto flex items-center gap-2">
+          {% if pdf_available %}
+            <a href="{% url 'insights:insight_pdf' %}" class="btn" data-variant="outline" target="_blank" rel="noopener">
+              {% include "insights/icons/file-text.html" %}
+              <span class="hidden sm:inline">PDF report</span>
+              <span class="sr-only sm:hidden">PDF report</span>
+            </a>
+          {% endif %}
+          <button type="button" class="btn" data-variant="outline" data-size="icon" data-theme-toggle aria-label="Toggle dark mode" data-tooltip="Toggle dark mode" data-side="left">
+            <span class="hidden dark:block">{% include "insights/icons/sun.html" %}</span>
+            <span class="block dark:hidden">{% include "insights/icons/moon.html" %}</span>
+          </button>
+        </div>
       </header>
       <div class="p-4 md:p-6">
         {% block content %}
