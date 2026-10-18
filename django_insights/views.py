@@ -15,6 +15,7 @@ from django.views.decorators.http import condition
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
+from django_insights import theme
 from django_insights.charts import render_bucket, to_bytes_io
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.pdf import html_to_pdf, pdf_available
@@ -50,8 +51,7 @@ def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
             created_at.isoformat(),
             chart_theme(request),
             settings.INSIGHTS_CHART_DPI,
-            settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
-            settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
+            theme.fingerprint(),
         )
     )
     return hashlib.sha256(key.encode()).hexdigest()
@@ -123,6 +123,8 @@ class InsightAppMixin(
                 'current_app': None,
                 'pdf_available': pdf_available(),
                 'last_collected': last_collected(),
+                'stylesheet': theme.stylesheet(),
+                'theme_css': theme.css_overrides(),
             }
         )
         return context

@@ -12,6 +12,7 @@ import matplotlib
 import matplotlib.font_manager as fm
 from matplotlib.figure import Figure
 
+from django_insights import theme
 from django_insights.choices import BucketType
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
@@ -66,25 +67,8 @@ class ThemeColor:
 
 
 def get_theme(name: str) -> ThemeColor:
-    """Theme colors, read from the settings on every call"""
-    match name:
-        case 'light':
-            return ThemeColor(
-                primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
-                face="#FFFFFF",
-                tick="#333333",
-                grid="#333333",
-                edge="#FFFFFF",
-            )
-        case 'dark':
-            return ThemeColor(
-                primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
-                face="#171717",
-                tick="#FEFEFE",
-                grid="#FEFEFE",
-                edge="#171717",
-            )
-    raise ValueError(f"Unknown theme: {name}")
+    """Chart colors, from the same palette as the dashboard"""
+    return ThemeColor(**theme.chart_colors(name))
 
 
 FIGSIZES = {

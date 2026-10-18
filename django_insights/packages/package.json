@@ -2,10 +2,11 @@
   "name": "@django-insights/dashboard",
   "private": true,
   "description": "Builds the dashboard stylesheet",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "vendor": "cp node_modules/basecoat-css/dist/js/basecoat.min.js node_modules/basecoat-css/dist/js/sidebar.min.js ../static/insights/js/",
-    "build": "pnpm run vendor && tailwindcss -i src/input.css -o ../static/insights/css/insights.css --minify",
-    "dev": "tailwindcss -i src/input.css -o ../static/insights/css/insights.css --watch"
+    "build": "pnpm run vendor && for style in vega nova maia lyra mira luma sera rhea; do tailwindcss -i src/$style.css -o ../static/insights/css/$style.css --minify; done",
+    "dev": "tailwindcss -i src/vega.css -o ../static/insights/css/vega.css --watch"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.145",

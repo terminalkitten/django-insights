@@ -6,7 +6,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ app_label }} - {{ app_name }} Insights</title>
-    <link rel="stylesheet" href="{% static 'insights/css/insights.css' %}" />
+    <link rel="stylesheet" href="{% static stylesheet %}" />
+    {% if theme_css %}<style>{{ theme_css|safe }}</style>{% endif %}
     <script src="{% static 'insights/js/basecoat.min.js' %}" defer></script>
     <script src="{% static 'insights/js/sidebar.min.js' %}" defer></script>
     <script src="{% static 'insights/js/insights.js' %}" defer></script>

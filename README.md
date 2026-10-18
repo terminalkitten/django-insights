@@ -306,7 +306,7 @@ Return an iterable of tuples, a `QuerySet` from `values_list(...)` works. The po
 | `timeseries` | `(timestamp, value)` | `timestamp` is a `datetime`, `xformat` formats the timestamp in the table |
 | `scatterplot` | `(vertical, horizontal, category)` | the first value is drawn on the vertical axis |
 | `barchart` | `(height, unused, label)` | the second value is stored, but not drawn |
-| `hbarchart` | `(length, number, label)` | `number` is shown behind the label, as `label..:number` |
+| `hbarchart` | `(length, unused, label)` | the length is shown behind the bar, labels over 30 characters are cut |
 
 A missing label (`None`) is shown as an empty label. Use the result types `TimeSeriesResult`, `ScatterPlotResult` and `BarChartResult` from `django_insights.metrics_types` to annotate the functions.
 
@@ -331,8 +331,8 @@ All settings are optional and read from your Django settings.
 | `INSIGHTS_APP_NAME` | `"MyApp"` | Name shown in the dashboard |
 | `INSIGHTS_DEFAULT_THEME` | `"dark"` | `"light"` or `"dark"`, used until a visitor chooses a theme |
 | `INSIGHTS_CHART_DPI` | `180` | Resolution of the chart images |
-| `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` | `"#2563EB"` | Chart color in the light theme |
-| `INSIGHTS_CHART_DARK_PRIMARY_COLOR` | `"#BFDBFE"` | Chart color in the dark theme |
+| `INSIGHTS_STYLE` | `"vega"` | Basecoat style: `vega`, `nova`, `maia`, `lyra`, `mira`, `luma`, `sera` or `rhea` |
+| `INSIGHTS_THEME` | `None` | A color preset like `"pink"`, or a dict with your own colors, see below |
 | `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False` | Keep rendered charts as files instead of rendering them on every request |
 | `INSIGHTS_MEDIA_CACHE_ROOT` | `None` | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
 | `INSIGHTS_DASHBOARD_PERMISSIONS` | `None` | List of permission classes, see below |
@@ -351,6 +351,26 @@ INSIGHTS_DASHBOARD_PERMISSIONS = [IsStaff]
 A class without a `has_permission` method denies access, it never grants it.
 
 Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
+
+### Theming
+
+The dashboard and the charts share one palette, so a color you set shows up in both. `INSIGHTS_STYLE` picks one of the [Basecoat](https://basecoatui.com/customization/) styles. `INSIGHTS_THEME` sets the colors, with a preset name:
+
+```python
+INSIGHTS_STYLE = "sera"
+INSIGHTS_THEME = "pink"
+```
+
+The presets are `blue`, `green`, `orange`, `red`, `pink`, `violet` and `teal`. A preset sets the primary color and five chart colors. For anything else use a dict. `accent` takes a preset or any hex color, `light` and `dark` set single colors on top of it:
+
+```python
+INSIGHTS_THEME = {
+    "accent": "#16a34a",
+    "dark": {"card": "#111827", "border": "#1f2937"},
+}
+```
+
+The colors are `background`, `foreground`, `card`, `muted_foreground`, `border`, `primary`, `primary_foreground` and `chart_1` to `chart_5`, all as `"#rrggbb"`. A chart uses `card` as its background, `foreground` for its text, and `chart_3` (light) or `chart_1` (dark) for its bars and lines. Anything else is ignored, `manage.py check` tells you what.
 
 ## Testing your insights
 
