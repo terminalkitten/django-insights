@@ -6,6 +6,7 @@ from django.conf import settings as django_settings
 from django.core import checks
 from django.core.checks import CheckMessage, register
 
+from django_insights import theme
 from django_insights.database import database_entry
 from django_insights.settings import settings
 
@@ -15,6 +16,10 @@ if TYPE_CHECKING:
     from django.apps.config import AppConfig
 
 ROUTER = 'django_insights.database.Router'
+REMOVED_SETTINGS = {
+    'INSIGHTS_CHART_LIGHT_PRIMARY_COLOR': 'INSIGHTS_THEME',
+    'INSIGHTS_CHART_DARK_PRIMARY_COLOR': 'INSIGHTS_THEME',
+}
 RENAMED_SETTINGS = {
     'INSIGHT_CHARTS_USE_MEDIA_CACHE': 'INSIGHTS_CHARTS_USE_MEDIA_CACHE',
     'INSIGHT_MEDIA_CACHE_ROOT': 'INSIGHTS_MEDIA_CACHE_ROOT',
@@ -60,6 +65,25 @@ def check_renamed_settings(
         for old, new in RENAMED_SETTINGS.items()
         if hasattr(django_settings, old)
     ]
+
+
+@register()
+def check_theme(
+    app_configs: Sequence[AppConfig] | None, **kwargs: Any
+) -> list[CheckMessage]:
+    messages: list[CheckMessage] = [
+        checks.Warning(message, id=check_id) for check_id, message in theme.problems()
+    ]
+    messages.extend(
+        checks.Warning(
+            f'{old} was replaced, the old name is ignored.',
+            hint=f'Use {new}.',
+            id='insights.W010',
+        )
+        for old, new in REMOVED_SETTINGS.items()
+        if hasattr(django_settings, old)
+    )
+    return messages
 
 
 @register()

@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import 'basecoat-css/luma';
+@plugin '@iconify/tailwind4';
+
+@source '../../templates';
+@source '../../templatetags';
