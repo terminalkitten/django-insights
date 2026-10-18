@@ -57,6 +57,9 @@
         </button>
         <h1 class="text-sm font-medium">{{ app_label }}</h1>
         <div class="ml-auto flex items-center gap-2">
+          {% if last_collected %}
+            <span class="text-muted-foreground hidden text-xs sm:inline" title="{{ last_collected|date:'Y-m-d H:i' }}">Updated {{ last_collected|timesince }} ago</span>
+          {% endif %}
           {% if pdf_available %}
             <a href="{% url 'insights:insight_pdf' %}" class="btn" data-variant="outline" target="_blank" rel="noopener">
               <span class="icon-[lucide--file-text] size-4 shrink-0" aria-hidden="true"></span>

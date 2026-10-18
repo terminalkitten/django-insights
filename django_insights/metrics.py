@@ -31,9 +31,18 @@ from django_insights.utils import rebuild_chart_media_cache
 __all__ = ['InsightMetrics', 'metrics']
 
 P = ParamSpec('P')
+TrendFunc = Callable[[], TimeSeriesResult]
+TREND_POINTS = 60
 TimeSeriesReturn = TypeVar('TimeSeriesReturn', bound=TimeSeriesResult)
 ScatterPlotReturn = TypeVar('ScatterPlotReturn', bound=ScatterPlotResult)
 BarChartReturn = TypeVar('BarChartReturn', bound=BarChartResult)
+
+
+def collect_trend(trend: TrendFunc | None) -> list[float]:
+    """The values of a trend series, oldest first, the latest points only"""
+    if trend is None:
+        return []
+    return [float(value) for _, value in trend()][-TREND_POINTS:]
 
 
 class InsightMetrics:
@@ -88,7 +97,10 @@ class InsightMetrics:
         return label, App(module=module, label=app_label)
 
     def counter(
-        self, question: str | None = None, desc: str | None = None
+        self,
+        question: str | None = None,
+        desc: str | None = None,
+        trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, int]], Callable[P, int]]:
         """Decorator to collect Counter metrics"""
 
@@ -102,6 +114,7 @@ class InsightMetrics:
                     app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=counter_type.value,
+                    trend=collect_trend(trend),
                     question=question,
                     desc=desc,
                 )
@@ -119,7 +132,10 @@ class InsightMetrics:
         return decorator
 
     def gauge(
-        self, question: str | None = None, desc: str | None = None
+        self,
+        question: str | None = None,
+        desc: str | None = None,
+        trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, float]], Callable[P, float]]:
         """Decorator to collect Gauge metric"""
 
@@ -133,6 +149,7 @@ class InsightMetrics:
                     app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=gauge_type.value,
+                    trend=collect_trend(trend),
                     question=question,
                     desc=desc,
                 )

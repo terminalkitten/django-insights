@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Iterable
+from datetime import datetime
 from typing import Any
 
 from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Max
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -88,6 +90,15 @@ class CustomPermissionMixin(UserPassesTestMixin):
         return all(self.run_permissions(permissions))
 
 
+def last_collected() -> datetime | None:
+    """When the insights were collected last, None before the first collect"""
+    moments = [
+        model.objects.aggregate(moment=Max('created_at'))['moment']
+        for model in (Counter, Gauge, Bucket)
+    ]
+    return max((moment for moment in moments if moment), default=None)
+
+
 class InsightAppMixin(
     LoginRequiredMixin,
     CustomPermissionMixin,
@@ -110,6 +121,7 @@ class InsightAppMixin(
                 'theme': chart_theme(self.request),
                 'current_app': None,
                 'pdf_available': pdf_available(),
+                'last_collected': last_collected(),
             }
         )
         return context
