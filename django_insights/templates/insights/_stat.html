@@ -2,9 +2,11 @@
   <header>
     <p class="text-muted-foreground text-sm">{{ item.question|default:item.label }}</p>
     <div class="card-action flex items-center gap-2">
-      <span class="badge" data-variant="secondary">{{ kind }}</span>
+      <span class="text-muted-foreground" data-tooltip="{{ kind }}" data-side="left" role="img" aria-label="{{ kind }}">
+        {% if kind == "Gauge" %}<span class="icon-[lucide--gauge] size-4 shrink-0" aria-hidden="true"></span>{% else %}<span class="icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>{% endif %}
+      </span>
       {% if item.desc %}
-        <span class="text-muted-foreground" data-tooltip="{{ item.desc }}" data-side="left">{% include "insights/icons/info.html" %}</span>
+        <span class="text-muted-foreground" data-tooltip="{{ item.desc }}" data-side="left"><span class="icon-[lucide--info] size-4 shrink-0" aria-hidden="true"></span></span>
       {% endif %}
     </div>
   </header>

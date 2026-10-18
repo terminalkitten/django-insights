@@ -3,9 +3,18 @@
   <header>
     <h2>{{ bucket.question }}</h2>
     {% if bucket.desc %}<p>{{ bucket.desc }}</p>{% endif %}
-    <div class="card-action">
+    <div class="card-action flex items-center gap-2">
+      {% if bucket.is_timeseries %}
+        <span class="text-muted-foreground" data-tooltip="Time series" data-side="left" role="img" aria-label="Time series"><span class="icon-[lucide--chart-line] size-4 shrink-0" aria-hidden="true"></span></span>
+      {% elif bucket.is_scatterplot %}
+        <span class="text-muted-foreground" data-tooltip="Scatter plot" data-side="left" role="img" aria-label="Scatter plot"><span class="icon-[lucide--chart-scatter] size-4 shrink-0" aria-hidden="true"></span></span>
+      {% elif bucket.is_hbarchart %}
+        <span class="text-muted-foreground" data-tooltip="Horizontal bar chart" data-side="left" role="img" aria-label="Horizontal bar chart"><span class="icon-[lucide--chart-bar] size-4 shrink-0" aria-hidden="true"></span></span>
+      {% else %}
+        <span class="text-muted-foreground" data-tooltip="Bar chart" data-side="left" role="img" aria-label="Bar chart"><span class="icon-[lucide--chart-column] size-4 shrink-0" aria-hidden="true"></span></span>
+      {% endif %}
       <button type="button" class="btn" data-variant="outline" data-size="sm" data-dialog-open="#bucket-data-{{ bucket.pk }}">
-        {% include "insights/icons/table.html" %}
+        <span class="icon-[lucide--table] size-4 shrink-0" aria-hidden="true"></span>
         <span>Data</span>
       </button>
     </div>
@@ -48,11 +57,11 @@
     </section>
     <footer>
       <button type="button" class="btn" data-variant="outline" data-insights-csv-copy="#insights-table-{{ bucket.pk }}">
-        {% include "insights/icons/copy.html" %}
+        <span class="icon-[lucide--copy] size-4 shrink-0" aria-hidden="true"></span>
         <span>Copy as CSV</span>
       </button>
       <button type="button" class="btn" data-variant="outline" data-insights-csv-download="#insights-table-{{ bucket.pk }}">
-        {% include "insights/icons/download.html" %}
+        <span class="icon-[lucide--download] size-4 shrink-0" aria-hidden="true"></span>
         <span>Download CSV</span>
       </button>
       <button type="button" class="btn" data-dialog-close>Close</button>

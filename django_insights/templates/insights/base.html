@@ -26,7 +26,7 @@
             <ul>
               <li>
                 <a href="{{ dashboard_url }}" {% if not current_app %}aria-current="page"{% endif %}>
-                  {% include "insights/icons/layout-dashboard.html" %}
+                  <span class="icon-[lucide--layout-dashboard] size-4 shrink-0" aria-hidden="true"></span>
                   <span>Dashboard</span>
                 </a>
               </li>
@@ -53,20 +53,20 @@
     <main>
       <header class="bg-background sticky top-0 z-10 flex h-14 items-center gap-2 border-b px-4">
         <button type="button" class="btn" data-variant="ghost" data-size="icon" data-sidebar-toggle aria-label="Toggle sidebar">
-          {% include "insights/icons/panel-left.html" %}
+          <span class="icon-[lucide--panel-left] size-4 shrink-0" aria-hidden="true"></span>
         </button>
         <h1 class="text-sm font-medium">{{ app_label }}</h1>
         <div class="ml-auto flex items-center gap-2">
           {% if pdf_available %}
             <a href="{% url 'insights:insight_pdf' %}" class="btn" data-variant="outline" target="_blank" rel="noopener">
-              {% include "insights/icons/file-text.html" %}
+              <span class="icon-[lucide--file-text] size-4 shrink-0" aria-hidden="true"></span>
               <span class="hidden sm:inline">PDF report</span>
               <span class="sr-only sm:hidden">PDF report</span>
             </a>
           {% endif %}
           <button type="button" class="btn" data-variant="outline" data-size="icon" data-theme-toggle aria-label="Toggle dark mode" data-tooltip="Toggle dark mode" data-side="left">
-            <span class="hidden dark:block">{% include "insights/icons/sun.html" %}</span>
-            <span class="block dark:hidden">{% include "insights/icons/moon.html" %}</span>
+            <span class="hidden dark:flex"><span class="icon-[lucide--sun] size-4 shrink-0" aria-hidden="true"></span></span>
+            <span class="flex dark:hidden"><span class="icon-[lucide--moon] size-4 shrink-0" aria-hidden="true"></span></span>
           </button>
         </div>
       </header>
