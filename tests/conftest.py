@@ -7,6 +7,8 @@ from django_insights.registry import registry
 from project.testapp.users.models import AppUser
 from tests.utils import SEED_MESSAGES, SEED_USERS
 
+pytest_plugins = ['pytester']
+
 
 @pytest.fixture
 def collected():
