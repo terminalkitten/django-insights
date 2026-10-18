@@ -25,9 +25,6 @@
                 <p>{{ counter.question }}</p>
                 <div class="stats">
                   <h3>{{ counter.value }}</h3>
-                  <span class="stats">
-                    <span class="counter">x</span>
-                  </span>
                 </div>
               </div>
               <!-- End Counter Section -->
@@ -39,10 +36,7 @@
               <div>
                 <p>{{ gauge.question }}</p>
                 <div class="stats">
-                  <h3>{{ gauge.value }}</h3>
-                  <span class="stats">
-                    <span class="counter">%</span>
-                  </span>
+                  <h3>{{ gauge.value|floatformat:"-2" }}</h3>
                 </div>
               </div>
               <!-- End Gauges Section -->
