@@ -2,6 +2,9 @@
 
 !["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/banner.png)
 
+> [!IMPORTANT]
+> **Version 0.3.x is coming and it is a big update.** It is newer than this release, so expect changes: new dashboard, `INSIGHT_*` settings renamed to `INSIGHTS_*`, Python 3.11+ and Django 5.2+, and a database migration. Pin `django-insights<0.3` if you are not ready to upgrade. The upgrade steps are in `MIGRATE-V2.md` on the `feat/v2` branch.
+
 ## Features
 
 Create insights for your app, store them in a SQLite database for further processing, these insights are written right next to your application logic.
