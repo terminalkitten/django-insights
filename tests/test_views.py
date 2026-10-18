@@ -271,12 +271,12 @@ def test_chart_texts_are_escaped(viewer_client):
     assert '<b>bold</b>' not in html
 
 
-def test_the_sidebar_links_the_pdf_report_when_pymupdf_is_installed(viewer_client):
+def test_the_top_bar_links_the_pdf_report_when_pymupdf_is_installed(viewer_client):
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
     assert f'href="{reverse("insights:insight_pdf")}"' in html
 
 
-def test_the_sidebar_hides_the_pdf_report_without_pymupdf(viewer_client, monkeypatch):
+def test_the_top_bar_hides_the_pdf_report_without_pymupdf(viewer_client, monkeypatch):
     monkeypatch.setattr(views, 'pdf_available', lambda: False)
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
     assert reverse('insights:insight_pdf') not in html
