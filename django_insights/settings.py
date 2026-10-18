@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings as django_settings
 
@@ -30,8 +30,8 @@ class InsightsSettings:
     INSIGHTS_APP_NAME: Setting[str] = Setting("MyApp")
     INSIGHTS_CHART_DPI: Setting[int] = Setting(180)
     INSIGHTS_DEFAULT_THEME: Setting[str] = Setting("dark")
-    INSIGHTS_CHART_LIGHT_PRIMARY_COLOR: Setting[str] = Setting("#2563EB")
-    INSIGHTS_CHART_DARK_PRIMARY_COLOR: Setting[str] = Setting("#BFDBFE")
+    INSIGHTS_STYLE: Setting[str] = Setting("vega")
+    INSIGHTS_THEME: Setting[str | dict[str, Any] | None] = Setting(None)
     INSIGHTS_CHARTS_USE_MEDIA_CACHE: Setting[bool] = Setting(False)
     INSIGHTS_MEDIA_CACHE_ROOT: Setting[str | None] = Setting(None)
     INSIGHTS_DASHBOARD_PERMISSIONS: Setting[Sequence[type] | None] = Setting(None)

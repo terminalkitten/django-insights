@@ -22,6 +22,6 @@ def test_unknown_setting_raises():
 def test_settings_are_read_when_used_not_when_imported():
     from django_insights.charts import get_theme
 
-    with override_settings(INSIGHTS_CHART_LIGHT_PRIMARY_COLOR='#ff0000'):
+    with override_settings(INSIGHTS_THEME={'accent': '#ff0000'}):
         assert get_theme('light').primary == '#ff0000'
-    assert get_theme('light').primary == '#2563EB'
+    assert get_theme('light').primary == '#2563eb'
