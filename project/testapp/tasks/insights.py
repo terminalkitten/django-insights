@@ -6,11 +6,15 @@ from django.db.models.functions import TruncMonth
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult, TimeSeriesResult
 from project.testapp.tasks.models import Project, Task
+from project.testapp.trends import monthly
 
 label = "Tasks"
 
 
-@metrics.counter(question="How many tasks are open?")
+@metrics.counter(
+    question="How many tasks are open?",
+    trend=lambda: monthly(Task.objects, 'created_at'),
+)
 def count_open_tasks() -> int:
     return Task.objects.filter(completed_at__isnull=True).count()
 
