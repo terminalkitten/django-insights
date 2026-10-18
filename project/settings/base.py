@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "project.testapp.users",
     "project.testapp.billing",
     "project.testapp.tasks",
+    "project.testapp.support",
     "django_insights",
 ]
 

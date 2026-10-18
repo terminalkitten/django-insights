@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from project.testapp.billing.seed import seed_billing
 from project.testapp.models import Channel, Membership, Message, Report, Workspace
+from project.testapp.moments import random_moment
+from project.testapp.support.seed import seed_support
 from project.testapp.tasks.seed import seed_tasks
 from project.testapp.users.models import AppUser
 
@@ -34,24 +36,20 @@ AI_MODELS = {
     'assistant-large': Decimal('0.000012'),
 }
 REPORT_STATUS_WEIGHTS = {'draft': 0.2, 'ready': 0.7, 'failed': 0.1}
-WEEKDAY_WEIGHTS = [0.9, 1.0, 1.0, 1.0, 0.7, 0.06, 0.04]
-HOUR_WEIGHTS = [0.02] * 7 + [1, 3, 4, 4, 3, 2, 3, 4, 4, 3, 2, 1] + [0.2] * 5
 INVITED_SHARE = 0.4
 
 
-def random_moment(rng: random.Random, start: datetime, end: datetime) -> datetime:
-    """Busy on Tuesday to Thursday, quiet in the weekend and at night"""
-    days = (end.date() - start.date()).days
-    for _ in range(50):
-        moment = (start + timedelta(days=rng.randint(0, days))).replace(
-            hour=rng.choices(range(24), HOUR_WEIGHTS)[0],
-            minute=rng.randrange(60),
-            second=rng.randrange(60),
-            microsecond=0,
-        )
-        if start <= moment <= end and rng.random() < WEEKDAY_WEIGHTS[moment.weekday()]:
-            return moment
-    return start + timedelta(seconds=rng.random() * (end - start).total_seconds())
+def last_login(
+    rng: random.Random, joined: datetime, end: datetime, active: bool
+) -> datetime | None:
+    """Active users were seen recently, the others stopped coming a while ago"""
+    if rng.random() < 0.03:
+        return None
+    if active:
+        seen = end - timedelta(days=rng.expovariate(1 / 10), hours=rng.randrange(24))
+    else:
+        seen = joined + (end - timedelta(days=60) - joined) * rng.random()
+    return min(max(seen, joined), end)
 
 
 class Command(BaseCommand):
@@ -78,11 +76,13 @@ class Command(BaseCommand):
         )
         self.create_reports(rng, options['messages'] // 40, workspaces, members, end)
         seed_billing(rng, workspaces, end)
-        seed_tasks(
+        memberships = [membership for found in members.values() for membership in found]
+        seed_tasks(rng, options['messages'] // 5, workspaces, memberships, end)
+        seed_support(
             rng,
-            options['messages'] // 5,
+            options['messages'] // 30,
             workspaces,
-            [membership for found in members.values() for membership in found],
+            memberships,
             end,
         )
 
@@ -102,14 +102,18 @@ class Command(BaseCommand):
         joined = sorted(
             start + timedelta(seconds=span * rng.random() ** 0.5) for _ in range(total)
         )
-        AppUser.objects.bulk_create(
-            AppUser(
-                email=f'user{number:04d}@example.com',
-                date_joined=moment,
-                is_active=rng.random() > 0.03 + 0.25 * (end - moment) / (end - start),
+        users = []
+        for number, moment in enumerate(joined):
+            active = rng.random() > 0.03 + 0.25 * (end - moment) / (end - start)
+            users.append(
+                AppUser(
+                    email=f'user{number:04d}@example.com',
+                    date_joined=moment,
+                    is_active=active,
+                    last_login=last_login(rng, moment, end, active),
+                )
             )
-            for number, moment in enumerate(joined)
-        )
+        AppUser.objects.bulk_create(users)
 
         users = list(AppUser.objects.order_by('date_joined', 'pk'))
         for number, user in enumerate(users[1:], start=1):
