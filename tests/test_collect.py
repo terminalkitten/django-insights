@@ -101,3 +101,12 @@ def test_collect_command_exits_with_an_error_when_an_insight_fails(broken_insigh
     with pytest.raises(CommandError, match=r'1 of \d+ insights failed'):
         management.call_command('collect_insights')
     assert Counter.objects.filter(label='count_authors').exists()
+
+
+def test_an_app_keeps_its_uuid_when_the_insights_database_is_rebuilt(collected):
+    before = dict(App.objects.values_list('module', 'uuid'))
+
+    App.objects.all().delete()
+    metrics.collect(reset=True)
+
+    assert dict(App.objects.values_list('module', 'uuid')) == before

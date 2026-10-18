@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import importlib
+import uuid
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar
 
@@ -65,7 +66,13 @@ class InsightMetrics:
             return app
 
         # get or create new app
-        app, _ = App.objects.get_or_create(module=module, defaults={'label': label})
+        app, _ = App.objects.get_or_create(
+            module=module,
+            defaults={
+                'label': label,
+                'uuid': uuid.uuid5(uuid.NAMESPACE_URL, f'django-insights:{module}'),
+            },
+        )
         self.apps.update({module: app})
 
         return app
