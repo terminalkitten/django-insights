@@ -96,3 +96,20 @@ def test_horizontal_bars_scale_to_small_values():
     figure = charts.hbarchart(bucket, theme='dark')
 
     assert figure.axes[0].get_xlim()[1] < 10
+
+
+def test_horizontal_bar_labels_are_readable_on_the_theme():
+    app = App.objects.create(module='tests.labels')
+    bucket = Bucket.objects.create(app=app, label='bars', type=BucketType.HBARCHART)
+    BucketValue.objects.create(bucket=bucket, xvalue=1200, yvalue=0, category='a')
+
+    figure = charts.hbarchart(bucket, theme='dark')
+
+    (text,) = figure.axes[0].texts
+    assert text.get_text() == '1,200'
+    assert text.get_color() == charts.get_theme('dark').tick
+
+
+def test_only_long_category_labels_are_shortened():
+    assert charts.shorten('short') == 'short'
+    assert charts.shorten('x' * 31) == 'x' * 29 + '…'
