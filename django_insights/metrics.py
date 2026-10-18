@@ -39,10 +39,14 @@ BarChartReturn = TypeVar('BarChartReturn', bound=BarChartResult)
 
 
 def collect_trend(trend: TrendFunc | None) -> list[float]:
-    """The values of a trend series, oldest first, the latest points only"""
+    """The values of a trend series in time order, rows without a value are skipped"""
     if trend is None:
         return []
-    return [float(value) for _, value in trend()][-TREND_POINTS:]
+    rows = sorted(
+        ((moment, value) for moment, value in trend() if None not in (moment, value)),
+        key=lambda row: row[0],
+    )
+    return [float(value) for _, value in rows][-TREND_POINTS:]
 
 
 class InsightMetrics:
