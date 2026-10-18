@@ -7,8 +7,9 @@ from django.core import checks
 from django.core.checks import CheckMessage, register
 
 from django_insights import theme
+from django_insights.charts import chart_dpi
 from django_insights.database import database_entry
-from django_insights.settings import settings
+from django_insights.settings import DEFAULT_DPI, settings
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -83,6 +84,32 @@ def check_theme(
         for old, new in REMOVED_SETTINGS.items()
         if hasattr(django_settings, old)
     )
+    return messages
+
+
+@register()
+def check_charts(
+    app_configs: Sequence[AppConfig] | None, **kwargs: Any
+) -> list[CheckMessage]:
+    messages: list[CheckMessage] = []
+    if settings.INSIGHTS_DEFAULT_THEME not in theme.MODES:
+        messages.append(
+            checks.Warning(
+                f'INSIGHTS_DEFAULT_THEME {settings.INSIGHTS_DEFAULT_THEME!r} is not '
+                f'one of {", ".join(theme.MODES)}.',
+                hint="'dark' is used until this is fixed.",
+                id='insights.W011',
+            )
+        )
+    if chart_dpi() != settings.INSIGHTS_CHART_DPI:
+        messages.append(
+            checks.Warning(
+                f'INSIGHTS_CHART_DPI {settings.INSIGHTS_CHART_DPI!r} is not a '
+                'positive whole number.',
+                hint=f'{DEFAULT_DPI} is used until this is fixed.',
+                id='insights.W012',
+            )
+        )
     return messages
 
 

@@ -44,7 +44,7 @@ Other things about settings:
 - [ ] Settings are read when they are used, so `override_settings` works. Unknown names raise `AttributeError`.
 - [ ] `INSIGHTS_CHARTS_USE_MEDIA_CACHE = True` requires `INSIGHTS_MEDIA_CACHE_ROOT` (`insights.W003`).
 - [ ] `INSIGHTS_DASHBOARD_PERMISSIONS` fails closed: a class without `has_permission(request)` used to be skipped, which granted access. It now raises `ImproperlyConfigured`. Check that every class you list has the method and returns `True` for the people who should get in.
-- [ ] System checks are warnings only (`insights.W001` to `W010`), they never stop the project from starting. `django_insights.database.check_settings()` is removed, run `manage.py check`.
+- [ ] System checks are warnings only (`insights.W001` to `W012`), they never stop the project from starting. `django_insights.database.check_settings()` is removed, run `manage.py check`.
 
 ## 3. Migrate the insights database
 

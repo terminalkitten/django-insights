@@ -2,6 +2,7 @@ import pytest
 from django.test import override_settings
 
 from django_insights.checks import (
+    check_charts,
     check_dashboard_permissions,
     check_database,
     check_media_cache,
@@ -63,3 +64,20 @@ def test_renamed_settings_are_reported():
     with override_settings(INSIGHT_DASHBOARD_PERMISSIONS=[DenyAll]):
         assert ids(check_renamed_settings) == ['insights.W006']
     assert ids(check_renamed_settings) == []
+
+
+@pytest.mark.parametrize('theme', ['light', 'dark'])
+def test_a_known_default_theme_passes(theme):
+    with override_settings(INSIGHTS_DEFAULT_THEME=theme):
+        assert ids(check_charts) == []
+
+
+def test_an_unknown_default_theme_is_reported():
+    with override_settings(INSIGHTS_DEFAULT_THEME='neon'):
+        assert ids(check_charts) == ['insights.W011']
+
+
+@pytest.mark.parametrize('dpi', [0, -1, 'high', 1.5, True])
+def test_a_dpi_that_is_not_a_positive_number_is_reported(dpi):
+    with override_settings(INSIGHTS_CHART_DPI=dpi):
+        assert ids(check_charts) == ['insights.W012']

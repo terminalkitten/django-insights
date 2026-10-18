@@ -229,6 +229,12 @@ def test_the_page_theme_follows_the_cookie(viewer_client, cookie, expected):
     assert f'<html lang="en" class="{expected}">' in html
 
 
+@override_settings(INSIGHTS_DEFAULT_THEME='neon')
+def test_a_wrong_default_theme_renders_the_dark_page(viewer_client):
+    html = get_html(viewer_client, reverse('insights:insight_dashboard'))
+    assert '<html lang="en" class="dark">' in html
+
+
 def test_the_dashboard_explains_how_to_collect_when_it_is_empty(viewer_client):
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
     assert 'No insights yet' in html

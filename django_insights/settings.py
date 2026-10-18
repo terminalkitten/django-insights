@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 
 __all__ = ["settings"]
 
+DEFAULT_DPI = 180
+
 T = TypeVar("T")
 
 
@@ -28,7 +30,7 @@ class Setting(Generic[T]):
 
 class InsightsSettings:
     INSIGHTS_APP_NAME: Setting[str] = Setting("MyApp")
-    INSIGHTS_CHART_DPI: Setting[int] = Setting(180)
+    INSIGHTS_CHART_DPI: Setting[int] = Setting(DEFAULT_DPI)
     INSIGHTS_DEFAULT_THEME: Setting[str] = Setting("dark")
     INSIGHTS_STYLE: Setting[str] = Setting("vega")
     INSIGHTS_THEME: Setting[str | dict[str, Any] | None] = Setting(None)

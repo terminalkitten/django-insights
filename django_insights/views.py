@@ -14,7 +14,7 @@ from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
 from django_insights import theme
-from django_insights.charts import render_bucket, to_bytes_io
+from django_insights.charts import chart_dpi, render_bucket, to_bytes_io
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
@@ -28,9 +28,12 @@ if TYPE_CHECKING:
 THEMES = ('light', 'dark')
 
 
-def chart_theme(request: HttpRequest) -> str:
-    theme = request.COOKIES.get('theme')
-    return theme if theme in THEMES else settings.INSIGHTS_DEFAULT_THEME
+def chart_mode(request: HttpRequest) -> str:
+    mode = request.COOKIES.get('theme')
+    if mode in THEMES:
+        return mode
+    default = settings.INSIGHTS_DEFAULT_THEME
+    return default if default in THEMES else 'dark'
 
 
 def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
@@ -46,8 +49,8 @@ def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
         for part in (
             bucket_id,
             created_at.isoformat(),
-            chart_theme(request),
-            settings.INSIGHTS_CHART_DPI,
+            chart_mode(request),
+            chart_dpi(),
             theme.fingerprint(),
         )
     )
@@ -116,7 +119,7 @@ class InsightAppMixin(
             {
                 'app_name': settings.INSIGHTS_APP_NAME,
                 'apps': self.get_apps(),
-                'theme': chart_theme(self.request),
+                'theme': chart_mode(self.request),
                 'current_app': None,
                 'last_collected': last_collected(),
                 'stylesheet': theme.stylesheet(),
@@ -163,10 +166,10 @@ class InsightsDashboardView(InsightAppMixin, ListView):
 class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
     @method_decorator(condition(etag_func=chart_etag))
     def get(self, request: HttpRequest, bucket_id: int) -> HttpResponse:
-        theme = chart_theme(request)
+        mode = chart_mode(request)
         bucket = get_object_or_404(Bucket, pk=bucket_id)
 
-        cache_path = chart_cache_path(bucket.type, bucket.pk, theme)
+        cache_path = chart_cache_path(bucket.type, bucket.pk, mode)
         if cache_path is not None:
             try:
                 return png_response(cache_path.read_bytes())
@@ -174,7 +177,7 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
                 pass
 
         try:
-            buffer = to_bytes_io(render_bucket(bucket, theme))
+            buffer = to_bytes_io(render_bucket(bucket, mode))
         except ValueError as error:
             raise Http404(str(error)) from error
 
