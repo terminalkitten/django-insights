@@ -1,23 +1,27 @@
 from __future__ import annotations
 
 import base64
-import datetime
 import io
-from collections.abc import Callable, Sequence
-from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
-from typing import Any, ParamSpec
+from typing import TYPE_CHECKING, Any, ParamSpec
 
 import matplotlib
 import matplotlib.font_manager as fm
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from django_insights.choices import BucketType
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
+
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Callable, Sequence
+    from contextlib import AbstractContextManager
+
+    from matplotlib.axes import Axes
 
 FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'ubuntu.ttf'
 P = ParamSpec('P')
@@ -103,9 +107,30 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
     return FIGSIZES[size]
 
 
+LABEL_LENGTH = 30
+
+
+def shorten(label: str) -> str:
+    """Long category labels are cut so they do not push the bars away"""
+    return label if len(label) <= LABEL_LENGTH else f'{label[: LABEL_LENGTH - 1]}…'
+
+
 def bucket_rows(bucket: Bucket, *fields: str) -> list[tuple[Any, ...]]:
     """Plain rows in chart order, cheaper than loading a model per value"""
     return list(BucketValue.objects.filter(bucket=bucket).values_list(*fields))
+
+
+def render_bucket(bucket: Bucket, theme: str) -> Figure:
+    """The chart of a bucket, in the renderer of its type"""
+    renderers = {
+        BucketType.TIMESERIES: timeseries,
+        BucketType.SCATTERPLOT: scatterplot,
+        BucketType.BARCHART: barchart,
+        BucketType.HBARCHART: hbarchart,
+    }
+    if bucket.type not in renderers:
+        raise ValueError(f"Unsupported bucket type: {bucket.type}")
+    return renderers[bucket.type](bucket, theme=theme)
 
 
 def to_bytes_io(fig: Figure) -> bytes:
@@ -155,8 +180,7 @@ def prepare_plot(
 
 
 def render_barchart(
-    yaxis: Sequence[float],
-    xaxis: Sequence[float],
+    heights: Sequence[float],
     labels: Sequence[str],
     bucket: Bucket,
     theme: str,
@@ -165,16 +189,14 @@ def render_barchart(
     """Render barchart"""
     colors = get_theme(theme)
     fig, ax = prepare_plot(bucket, colors, size)
-    ax.bar(labels, xaxis, color=colors.primary)
+    ax.bar(labels, heights, color=colors.primary)
 
     return fig
 
 
 def render_hbarchart(
-    yaxis: Sequence[float],
-    xaxis: Sequence[float],
+    widths: Sequence[float],
     labels: Sequence[str],
-    combined_labels: Sequence[str],
     bucket: Bucket,
     theme: str,
     size: ChartSize,
@@ -183,8 +205,8 @@ def render_hbarchart(
     colors = get_theme(theme)
     fig, ax = prepare_plot(bucket, colors, size)
     bars = ax.barh(
-        combined_labels,
-        xaxis,
+        labels,
+        widths,
         color=colors.primary,
         align='center',
         height=0.9,
@@ -193,7 +215,14 @@ def render_hbarchart(
     for bar in bars:
         width = bar.get_width()
         label_y_pos = bar.get_y() + bar.get_height() / 2
-        ax.text(width, label_y_pos, s=f'{width}', va='center', size=9)
+        ax.text(
+            width,
+            label_y_pos,
+            s=f'{width:,.0f}' if width == int(width) else f'{width:,.2f}',
+            va='center',
+            size=9,
+            color=colors.tick,
+        )
 
     for tick in ax.yaxis.get_major_ticks():
         tick.label1.set_fontsize(11)
@@ -243,29 +272,21 @@ def render_timeseries(
 @styled
 def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Barchart"""
-    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
-    xvalues = [xvalue for xvalue, _, _ in rows]
-    yvalues = [yvalue for _, yvalue, _ in rows]
-    labels = [category or '' for _, _, category in rows]
+    rows = bucket_rows(bucket, 'xvalue', 'category')
+    heights = [xvalue for xvalue, _ in rows]
+    labels = [category or '' for _, category in rows]
 
-    return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
+    return render_barchart(heights, labels, bucket, theme, size)
 
 
 @styled
 def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> Figure:
     """Horizontal Barchart"""
-    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
-    xvalues = [xvalue for xvalue, _, _ in rows]
-    yvalues = [yvalue for _, yvalue, _ in rows]
-    labels = [category or '' for _, _, category in rows]
+    rows = bucket_rows(bucket, 'xvalue', 'category')
+    widths = [xvalue for xvalue, _ in rows]
+    labels = [shorten(category or '') for _, category in rows]
 
-    combined_labels = [
-        f"{(category or '')[0:30]}..:{int(yvalue)}" for _, yvalue, category in rows
-    ]
-
-    return render_hbarchart(
-        yvalues, xvalues, labels, combined_labels, bucket, theme, size
-    )
+    return render_hbarchart(widths, labels, bucket, theme, size)
 
 
 @styled

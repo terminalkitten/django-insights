@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from typing import Any
+
 import pytest
 from django.template import Context, Template
 
@@ -10,11 +13,32 @@ pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
 
 
 def series(*values):
-    return lambda: [(None, value) for value in values]
+    return lambda: [
+        (datetime(2026, 1, 1) + timedelta(days=n), v) for n, v in enumerate(values)
+    ]
 
 
 def test_collect_trend_keeps_the_values_oldest_first():
     assert collect_trend(series(3, 5.5, 8)) == [3.0, 5.5, 8.0]
+
+
+def test_collect_trend_sorts_the_points_by_time():
+    rows = [
+        (datetime(2026, 3, 1), 3),
+        (datetime(2026, 1, 1), 1),
+        (datetime(2026, 2, 1), 2),
+    ]
+    assert collect_trend(lambda: rows) == [1.0, 2.0, 3.0]
+
+
+def test_collect_trend_skips_rows_without_a_value_or_a_time():
+    rows: list[Any] = [
+        (datetime(2026, 1, 1), 1),
+        (datetime(2026, 2, 1), None),
+        (None, 5),
+        (datetime(2026, 3, 1), 3),
+    ]
+    assert collect_trend(lambda: rows) == [1.0, 3.0]
 
 
 def test_collect_trend_is_empty_without_a_trend():

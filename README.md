@@ -1,6 +1,6 @@
 [![CI](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg)](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml)
 
-!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/banner.png)
+!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/banner.png)
 
 > [!NOTE]
 > **v2 is in the works.** We are currently working on a new major release on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard, optional PDF export and a lot of fixes. The documentation below describes the current state of that branch and may change before release.
@@ -103,7 +103,7 @@ You can inspect this database yourself with `sqlite3 db/insights.db` - or - you 
 
 ### Dashboard
 
-!["Dashboard - Main Screen"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_1.png)
+!["Dashboard - Main Screen"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/screen_1.png)
 
 To enable this dashboard, add the following settings:
 
@@ -118,7 +118,7 @@ urlpatterns = [
 ]
 ```
 
-!["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_2.png)
+!["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/screen_2.png)
 
 Now you can visit http://localhost:8000/insights/ to inspect your Django Insights database.
 

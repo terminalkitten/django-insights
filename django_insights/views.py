@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterable
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max
-from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -19,17 +15,17 @@ from django.views.decorators.http import condition
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
-from django_insights.charts import (
-    barchart,
-    hbarchart,
-    scatterplot,
-    timeseries,
-    to_bytes_io,
-)
+from django_insights.charts import render_bucket, to_bytes_io
 from django_insights.models import App, Bucket, Counter, Gauge
 from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
 from django_insights.utils import chart_cache_path, write_atomic
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from datetime import datetime
+
+    from django.db.models.query import QuerySet
 
 THEMES = ('light', 'dark')
 
@@ -92,11 +88,16 @@ class CustomPermissionMixin(UserPassesTestMixin):
 
 def last_collected() -> datetime | None:
     """When the insights were collected last, None before the first collect"""
-    moments = [
-        model.objects.aggregate(moment=Max('created_at'))['moment']
-        for model in (Counter, Gauge, Bucket)
-    ]
-    return max((moment for moment in moments if moment), default=None)
+    newest = (
+        Counter.objects.order_by()
+        .values_list('created_at')
+        .union(
+            Gauge.objects.order_by().values_list('created_at'),
+            Bucket.objects.order_by().values_list('created_at'),
+        )
+        .order_by('-created_at')[:1]
+    )
+    return next(iter(newest), (None,))[0]
 
 
 class InsightAppMixin(
@@ -174,21 +175,10 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
             except FileNotFoundError:
                 pass
 
-        fig = None
-
-        if bucket.is_timeseries:
-            fig = timeseries(bucket, theme=theme)
-        if bucket.is_scatterplot:
-            fig = scatterplot(bucket, theme=theme)
-        if bucket.is_barchart:
-            fig = barchart(bucket, theme=theme)
-        if bucket.is_hbarchart:
-            fig = hbarchart(bucket, theme=theme)
-
-        if fig is None:
-            raise Http404("Unsupported bucket type")
-
-        buffer = to_bytes_io(fig)
+        try:
+            buffer = to_bytes_io(render_bucket(bucket, theme))
+        except ValueError as error:
+            raise Http404(str(error)) from error
 
         if cache_path is not None:
             write_atomic(cache_path, buffer)

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from django_insights.models import Counter
@@ -46,3 +48,19 @@ def test_an_ambiguous_name_is_reported(monkeypatch):
     with pytest.raises(LookupError, match=r'first\.insights, second\.insights'):
         find_insight('total')
     assert find_insight('second.insights.total')() == 2
+
+
+def test_a_missing_insight_is_reported_with_a_message(pytester, monkeypatch):
+    monkeypatch.setenv('DJANGO_SETTINGS_MODULE', 'project.settings.test')
+    monkeypatch.setenv('PYTHONPATH', str(Path(__file__).parent.parent))
+    pytester.makepyfile(
+        """
+        def test_not_an_insight(insights_query):
+            pass
+        """
+    )
+
+    result = pytester.runpytest_subprocess('-p', 'no:cacheprovider')
+
+    result.assert_outcomes(errors=1)
+    result.stdout.fnmatch_lines(["*No insight named 'not_an_insight'*"])

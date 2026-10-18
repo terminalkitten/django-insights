@@ -4,9 +4,11 @@ import pymupdf
 import pytest
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ImproperlyConfigured
+from django.template.loader import render_to_string
 from django.urls import reverse
 
 from django_insights import pdf
+from django_insights.models import App, Counter, Gauge
 from django_insights.pdf import PAGE_BREAK, get_css, html_to_pdf, pdf_available
 
 
@@ -60,3 +62,16 @@ def test_pdf_is_available_when_pymupdf_is_installed():
 def test_pdf_is_unavailable_without_pymupdf(monkeypatch):
     monkeypatch.setattr(pdf, 'find_spec', lambda name: None)
     assert pdf_available() is False
+
+
+@pytest.mark.django_db(databases=['default', 'insights'])
+def test_the_pdf_report_shows_plain_values_without_a_unit():
+    app = App.objects.create(module='tests.pdf')
+    Counter.objects.create(app=app, label='c', value=7)
+    Gauge.objects.create(app=app, label='g', value=2.5)
+
+    html = render_to_string('insights/pdf.html', {'object_list': App.objects.all()})
+
+    assert '<h3>7</h3>' in html
+    assert '<h3>2.50</h3>' in html
+    assert '<span class="counter">' not in html
