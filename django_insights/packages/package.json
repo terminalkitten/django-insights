@@ -4,7 +4,7 @@
   "description": "Builds the dashboard stylesheet",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "vendor": "cp node_modules/basecoat-css/dist/js/basecoat.min.js node_modules/basecoat-css/dist/js/sidebar.min.js ../static/insights/js/",
+    "vendor": "cp node_modules/basecoat-css/dist/js/basecoat.min.js node_modules/basecoat-css/dist/js/sidebar.min.js ../static/insights/js/ && mkdir -p ../static/insights/fonts && cp node_modules/geist/dist/fonts/geist-sans/Geist-Regular.ttf ../static/insights/fonts/geist.ttf",
     "build": "pnpm run vendor && for style in vega nova maia lyra mira luma sera rhea; do tailwindcss -i src/$style.css -o ../static/insights/css/$style.css --minify; done",
     "dev": "tailwindcss -i src/vega.css -o ../static/insights/css/vega.css --watch"
   },
@@ -13,6 +13,7 @@
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/cli": "^4.3.3",
     "basecoat-css": "^1.0.2",
+    "geist": "^1.8.1",
     "tailwindcss": "^4.3.3"
   }
 }

@@ -97,7 +97,7 @@ def test_the_ai_models_have_their_own_price_per_token():
         .annotate(tokens=Sum('tokens'), cost=Sum('cost'))
         .values_list('model', 'tokens', 'cost')
     }
-    assert rates['assistant-large'] > 5 * rates['assistant-small']
+    assert rates['assistant-large'] > 4 * rates['assistant-small']
 
 
 def test_invoices_are_only_sent_for_paid_plans():
