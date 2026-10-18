@@ -76,7 +76,7 @@ invalid-attribute-override = "ignore"
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations"]
+extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations", "project/testapp/billing/migrations", "project/testapp/tasks/migrations"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN", "S", "PERF", "C4", "RUF", "DJ"]

@@ -22,7 +22,12 @@ def test_counters_match_seeded_data(collected):
 
 
 def test_apps_use_module_label(collected):
-    assert set(App.objects.values_list('label', flat=True)) == {'Workspace', 'Users'}
+    assert set(App.objects.values_list('label', flat=True)) == {
+        'Workspace',
+        'Users',
+        'Billing',
+        'Tasks',
+    }
 
 
 def test_gauge_is_collected(collected):

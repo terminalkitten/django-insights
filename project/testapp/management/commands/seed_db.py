@@ -9,10 +9,25 @@ from typing import Any
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from project.testapp.billing.seed import seed_billing
 from project.testapp.models import Channel, Membership, Message, Report, Workspace
+from project.testapp.tasks.seed import seed_tasks
 from project.testapp.users.models import AppUser
 
-WORKSPACES = ['Acme', 'Globex', 'Initech', 'Umbrella', 'Hooli']
+WORKSPACES = [
+    'Acme',
+    'Globex',
+    'Initech',
+    'Umbrella',
+    'Hooli',
+    'Stark',
+    'Wayne',
+    'Wonka',
+    'Cyberdyne',
+    'Soylent',
+    'Tyrell',
+    'Vandelay',
+]
 CHANNELS = ['general', 'random', 'engineering', 'support', 'sales', 'design', 'ops']
 AI_MODELS = {
     'assistant-small': Decimal('0.0000006'),
@@ -43,8 +58,8 @@ class Command(BaseCommand):
     """Seed the demo with a team workspace and its AI assistant"""
 
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument('--users', type=int, default=300)
-        parser.add_argument('--messages', type=int, default=20000)
+        parser.add_argument('--users', type=int, default=600)
+        parser.add_argument('--messages', type=int, default=30000)
         parser.add_argument('--years', type=int, default=3)
         parser.add_argument('--seed', type=int, default=42)
 
@@ -62,6 +77,14 @@ class Command(BaseCommand):
             rng, options['messages'], users, members, channels, start, end
         )
         self.create_reports(rng, options['messages'] // 40, workspaces, members, end)
+        seed_billing(rng, workspaces, end)
+        seed_tasks(
+            rng,
+            options['messages'] // 5,
+            workspaces,
+            [membership for found in members.values() for membership in found],
+            end,
+        )
 
     def reset(self) -> None:
         Message.objects.all().delete()
