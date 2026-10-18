@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from django_insights import checks, theme
 from django_insights.charts import get_theme
+from django_insights.palettes import ACCENTS, BASES
 from tests.test_views import get_html
 
 pytestmark = pytest.mark.django_db(databases=['default', 'insights'])
@@ -21,28 +22,79 @@ def test_without_settings_the_basecoat_defaults_are_used():
     assert theme.problems() == []
 
 
+def test_the_palettes_are_complete_and_valid():
+    assert theme.BASE_NAMES == (
+        'neutral',
+        'stone',
+        'zinc',
+        'mauve',
+        'olive',
+        'mist',
+        'taupe',
+    )
+    assert len(theme.ACCENT_NAMES) == 17
+    for base in BASES.values():
+        for colors in base.values():
+            assert set(colors) == set(theme.KEYS)
+            assert all(theme.HEX.match(color) for color in colors.values())
+    for accent in ACCENTS.values():
+        for colors in accent.values():
+            assert set(theme.CHART_KEYS) <= set(colors)
+            assert set(colors) <= set(theme.KEYS)
+            assert all(theme.HEX.match(color) for color in colors.values())
+
+
+@override_settings(INSIGHTS_THEME='blue')
+def test_an_accent_name_is_the_shadcn_theme_on_the_neutral_base():
+    light, dark = theme.palette('light'), theme.palette('dark')
+
+    assert light['primary'] == ACCENTS['blue']['light']['primary']
+    assert dark['primary'] == ACCENTS['blue']['dark']['primary']
+    assert [light[key] for key in theme.CHART_KEYS] == [
+        ACCENTS['blue']['light'][key] for key in theme.CHART_KEYS
+    ]
+    assert light['background'] == BASES['neutral']['light']['background']
+    assert '--chart-3:' in theme.css_overrides()
+
+
+@override_settings(INSIGHTS_THEME='zinc')
+def test_a_base_name_is_the_shadcn_base_color():
+    assert theme.palette('dark')['card'] == BASES['zinc']['dark']['card']
+    assert theme.palette('light')['muted'] == BASES['zinc']['light']['muted']
+    assert theme.palette('dark')['card'] != theme.DEFAULTS['dark']['card']
+
+
+@override_settings(INSIGHTS_THEME={'base': 'stone', 'accent': 'rose'})
+def test_a_base_and_an_accent_combine():
+    palette = theme.palette('light')
+
+    assert palette['background'] == BASES['stone']['light']['background']
+    assert palette['primary'] == ACCENTS['rose']['light']['primary']
+    assert palette['chart_3'] == ACCENTS['rose']['light']['chart_3']
+
+
 @override_settings(INSIGHTS_THEME={'accent': '#16A34A'})
-def test_one_accent_color_sets_the_primary_color_and_a_chart_ramp():
+def test_any_hex_color_is_an_accent_with_a_chart_ramp():
     light, dark = theme.palette('light'), theme.palette('dark')
 
     assert light['primary'] == light['chart_3'] == '#16a34a'
-    assert dark['chart_3'] == '#16a34a'
     assert lightness(dark['primary']) > lightness(light['primary'])
     ramp = [lightness(light[key]) for key in theme.CHART_KEYS]
     assert ramp == sorted(ramp, reverse=True)
-    assert light['background'] == theme.DEFAULTS['light']['background']
+    assert light['sidebar_primary'] == '#16a34a'
 
 
 @override_settings(
     INSIGHTS_THEME={
-        'accent': '#16a34a',
+        'base': 'zinc',
+        'accent': 'green',
         'dark': {'card': '#101010', 'primary': '#ffffff'},
     }
 )
-def test_your_colors_win_over_the_accent():
+def test_your_colors_win_over_the_theme():
     assert theme.palette('dark')['card'] == '#101010'
     assert theme.palette('dark')['primary'] == '#ffffff'
-    assert theme.palette('light')['primary'] == '#16a34a'
+    assert theme.palette('light')['primary'] == ACCENTS['green']['light']['primary']
 
 
 @override_settings(INSIGHTS_THEME={'dark': {'card': '#101010'}})
@@ -60,6 +112,15 @@ def test_the_chart_color_is_the_middle_of_the_ramp_in_light_and_the_lightest_in_
     assert get_theme('dark').primary == theme.palette('dark')['chart_1']
 
 
+@pytest.mark.parametrize('name', [*theme.ACCENT_NAMES, *theme.BASE_NAMES])
+def test_every_shadcn_theme_renders_a_palette_and_chart_colors(name):
+    with override_settings(INSIGHTS_THEME=name):
+        for mode in theme.MODES:
+            assert set(theme.palette(mode)) == set(theme.KEYS)
+            assert theme.HEX.match(get_theme(mode).primary)
+        assert theme.problems() == []
+
+
 @override_settings(
     INSIGHTS_THEME={
         'light': {
@@ -68,22 +129,29 @@ def test_the_chart_color_is_the_middle_of_the_ramp_in_light_and_the_lightest_in_
             'nope': '#000000',
         },
         'neon': {'card': '#000000'},
+        'base': ['zinc'],
     }
 )
 def test_values_that_are_not_a_hex_color_are_ignored_and_never_reach_the_css():
     assert theme.palette('light') == theme.DEFAULTS['light']
     assert theme.css_overrides() == ''
-    assert len(theme.problems()) == 4
+    assert len(theme.problems()) == 5
 
 
 @override_settings(INSIGHTS_THEME='chartreuse', INSIGHTS_STYLE='neon')
-def test_a_wrong_style_or_preset_falls_back_and_is_reported():
+def test_a_wrong_style_or_theme_falls_back_and_is_reported():
     assert theme.stylesheet() == 'insights/css/vega.css'
     assert theme.palette('light') == theme.DEFAULTS['light']
     assert {check_id for check_id, _ in theme.problems()} == {
         'insights.W007',
         'insights.W008',
     }
+
+
+@override_settings(INSIGHTS_THEME=42)
+def test_a_theme_that_is_not_a_name_or_a_dict_is_ignored_and_reported():
+    assert theme.palette('dark') == theme.DEFAULTS['dark']
+    assert [check_id for check_id, _ in theme.problems()] == ['insights.W009']
 
 
 @override_settings(INSIGHTS_STYLE='sera')
@@ -110,8 +178,8 @@ def test_the_dashboard_loads_the_style_and_sets_the_colors(collected, viewer_cli
     html = get_html(viewer_client, reverse('insights:insight_dashboard'))
 
     assert 'insights/css/nova.css' in html
-    assert '--primary:#16a34a;' in html
-    assert '--chart-3:#16a34a;' in html
+    assert f'--primary:{ACCENTS["green"]["light"]["primary"]};' in html
+    assert f'--chart-3:{ACCENTS["green"]["light"]["chart_3"]};' in html
 
 
 def test_the_dashboard_has_no_inline_style_without_colors(collected, viewer_client):
@@ -130,23 +198,11 @@ def test_removed_and_wrong_settings_are_warnings_that_never_block():
     assert {message.id for message in messages} == {'insights.W007', 'insights.W010'}
 
 
-@override_settings(INSIGHTS_THEME='pink')
-def test_a_preset_name_is_the_same_as_its_accent_color():
-    assert theme.palette('light')['primary'] == theme.PRESETS['pink']
-    assert theme.palette('light') == theme.from_accent(theme.PRESETS['pink'])[
-        'light'
-    ] | {
-        key: value
-        for key, value in theme.DEFAULTS['light'].items()
-        if key not in theme.from_accent(theme.PRESETS['pink'])['light']
-    }
+@override_settings(INSIGHTS_THEME='zinc')
+def test_a_color_that_differs_in_one_mode_is_written_for_both_modes():
+    assert theme.palette('light')['foreground'] != theme.DEFAULTS['light']['foreground']
+    assert theme.palette('dark')['foreground'] == theme.DEFAULTS['dark']['foreground']
 
-
-@override_settings(INSIGHTS_THEME=42)
-def test_a_theme_that_is_not_a_name_or_a_dict_is_ignored_and_reported():
-    assert theme.palette('dark') == theme.DEFAULTS['dark']
-    assert [check_id for check_id, _ in theme.problems()] == ['insights.W009']
-
-
-def test_every_preset_is_a_valid_color():
-    assert all(theme.HEX.match(color) for color in theme.PRESETS.values())
+    light, dark = theme.css_overrides().split('.dark')
+    assert f'--foreground:{theme.palette("light")["foreground"]};' in light
+    assert f'--foreground:{theme.palette("dark")["foreground"]};' in dark

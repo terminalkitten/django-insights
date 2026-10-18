@@ -6,11 +6,13 @@ import json
 import re
 from typing import Any
 
+from django_insights.palettes import ACCENTS, BASES
 from django_insights.settings import settings
 
 __all__ = [
+    'ACCENT_NAMES',
+    'BASE_NAMES',
     'DEFAULT_STYLE',
-    'PRESETS',
     'STYLES',
     'chart_colors',
     'css_overrides',
@@ -21,69 +23,24 @@ __all__ = [
     'stylesheet',
 ]
 
-PRESETS = {
-    'blue': '#2563eb',
-    'green': '#16a34a',
-    'orange': '#ea580c',
-    'red': '#dc2626',
-    'pink': '#ec4899',
-    'violet': '#7c3aed',
-    'teal': '#0d9488',
-}
 STYLES = ('vega', 'nova', 'maia', 'lyra', 'mira', 'luma', 'sera', 'rhea')
 DEFAULT_STYLE = 'vega'
 MODES = ('light', 'dark')
 HEX = re.compile(r'^#[0-9a-fA-F]{6}$')
+BASE_NAMES = tuple(BASES)
+ACCENT_NAMES = tuple(ACCENTS)
 CHART_STEPS = (0.22, 0.08, 0.0, -0.06, -0.14)
 CHART_KEYS = tuple(f'chart_{number}' for number in range(1, 6))
-KEYS = (
-    'background',
-    'foreground',
-    'card',
-    'muted_foreground',
-    'border',
-    'primary',
-    'primary_foreground',
-    *CHART_KEYS,
-)
+KEYS = tuple(BASES['neutral']['light'])
 
-# the Basecoat defaults as hex, charts cannot read the oklch colors of the stylesheet
-CHART_DEFAULTS = dict(
+# Basecoat colors its charts blue, the shadcn neutral theme grey
+BASECOAT_CHARTS = dict(
     zip(
         CHART_KEYS, ('#93c5fd', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af'), strict=True
     )
 )
 DEFAULTS = {
-    'light': {
-        'background': '#ffffff',
-        'foreground': '#0a0a0a',
-        'card': '#ffffff',
-        'muted_foreground': '#737373',
-        'border': '#e5e5e5',
-        'primary': '#171717',
-        'primary_foreground': '#fafafa',
-        **CHART_DEFAULTS,
-    },
-    'dark': {
-        'background': '#0a0a0a',
-        'foreground': '#fafafa',
-        'card': '#171717',
-        'muted_foreground': '#a3a3a3',
-        'border': '#2e2e2e',
-        'primary': '#e5e5e5',
-        'primary_foreground': '#171717',
-        **CHART_DEFAULTS,
-    },
-}
-VARIABLES = {
-    'background': ('--background',),
-    'foreground': ('--foreground',),
-    'card': ('--card', '--popover'),
-    'muted_foreground': ('--muted-foreground',),
-    'border': ('--border',),
-    'primary': ('--primary', '--sidebar-primary', '--ring'),
-    'primary_foreground': ('--primary-foreground', '--sidebar-primary-foreground'),
-    **{key: (f'--chart-{key[-1]}',) for key in CHART_KEYS},
+    mode: {**BASES['neutral'][mode], **BASECOAT_CHARTS} for mode in ('light', 'dark')
 }
 
 
@@ -126,32 +83,36 @@ def from_accent(accent: str) -> dict[str, dict[str, str]]:
         'light': {
             'primary': accent,
             'primary_foreground': readable_on(accent),
+            'sidebar_primary': accent,
+            'sidebar_primary_foreground': readable_on(accent),
             **charts,
         },
         'dark': {
             'primary': dark_primary,
             'primary_foreground': readable_on(dark_primary),
+            'sidebar_primary': dark_primary,
+            'sidebar_primary_foreground': readable_on(dark_primary),
             **charts,
         },
     }
 
 
 def configured_theme() -> dict[str, Any]:
-    """INSIGHTS_THEME as a dict, a preset name is the same as {'accent': name}"""
+    """INSIGHTS_THEME as a dict, a name is the same as {'base': name} or {'accent': name}"""
     configured: Any = settings.INSIGHTS_THEME
     if isinstance(configured, str):
-        return {'accent': configured}
+        return {'base': configured} if configured in BASES else {'accent': configured}
     return configured if isinstance(configured, dict) else {}
 
 
-def accent_color(value: object) -> str | None:
-    """A preset name or a hex color as hex, None for anything else"""
+def accent_colors(value: object) -> dict[str, dict[str, str]]:
+    """The colors of an accent, a shadcn theme name or any hex color, empty when unknown"""
     if isinstance(value, str):
-        if value in PRESETS:
-            return PRESETS[value]
+        if value in ACCENTS:
+            return ACCENTS[value]
         if HEX.match(value):
-            return value.lower()
-    return None
+            return from_accent(value)
+    return {}
 
 
 def user_colors() -> dict[str, dict[str, str]]:
@@ -168,10 +129,13 @@ def user_colors() -> dict[str, dict[str, str]]:
 
 
 def overrides(mode: str) -> dict[str, str]:
-    """What differs from the Basecoat defaults, the accent first and your colors on top"""
-    accent = accent_color(configured_theme().get('accent'))
-    derived = from_accent(accent)[mode] if accent else {}
-    return {**derived, **user_colors().get(mode, {})}
+    """What differs from the Basecoat defaults: base, accent and then your colors"""
+    configured = configured_theme()
+    name = configured.get('base')
+    base = BASES[name][mode] if isinstance(name, str) and name in BASES else {}
+    accent = accent_colors(configured.get('accent')).get(mode, {})
+    merged = {**base, **accent, **user_colors().get(mode, {})}
+    return {key: color for key, color in merged.items() if color != DEFAULTS[mode][key]}
 
 
 def palette(mode: str) -> dict[str, str]:
@@ -194,13 +158,17 @@ def chart_colors(mode: str) -> dict[str, str]:
 
 
 def css_overrides() -> str:
-    """CSS variables for the colors that are set, empty when everything is default"""
+    """CSS variables for the colors that are set, empty when everything is default
+
+    A color that differs in one mode is written for both, otherwise the light value
+    would also win in dark mode, the stylesheet of the dashboard comes first.
+    """
+    keys = [key for key in KEYS if any(key in overrides(mode) for mode in MODES)]
     blocks = []
     for mode, selector in (('light', ':root'), ('dark', '.dark')):
+        colors = palette(mode)
         declarations = ''.join(
-            f'{variable}:{color};'
-            for key, color in overrides(mode).items()
-            for variable in VARIABLES[key]
+            f"--{key.replace('_', '-')}:{colors[key]};" for key in keys
         )
         if declarations:
             blocks.append(f'{selector}{{{declarations}}}')
@@ -234,44 +202,51 @@ def theme_problems() -> list[tuple[str, str]]:
     if configured is None:
         return []
     if isinstance(configured, str):
-        configured = {'accent': configured}
+        configured = configured_theme()
     if not isinstance(configured, dict):
         return [
             (
                 'insights.W009',
-                'INSIGHTS_THEME must be a preset name like "pink" or a dict like '
-                '{"accent": "#ec4899", "dark": {"card": "#101010"}}.',
+                'INSIGHTS_THEME must be a name like "blue", or a dict like '
+                '{"base": "zinc", "accent": "blue", "dark": {"card": "#101010"}}.',
             )
         ]
 
     messages = []
-    for mode, colors in configured.items():
-        if mode == 'accent':
-            if accent_color(colors) is None:
-                messages.append(
-                    (
-                        'insights.W008',
-                        f'INSIGHTS_THEME accent {colors!r} is not one of '
-                        f'{", ".join(PRESETS)} or a color like "#ec4899".',
-                    )
+    for key, value in configured.items():
+        if key == 'base' and not (isinstance(value, str) and value in BASES):
+            messages.append(
+                (
+                    'insights.W008',
+                    f'INSIGHTS_THEME base {value!r} is not one of {", ".join(BASE_NAMES)}.',
                 )
-        elif mode not in MODES or not isinstance(colors, dict):
+            )
+        elif key == 'accent' and not accent_colors(value):
+            messages.append(
+                (
+                    'insights.W008',
+                    f'INSIGHTS_THEME accent {value!r} is not one of {", ".join(ACCENT_NAMES)} '
+                    'or a color like "#ec4899".',
+                )
+            )
+        elif key not in ('base', 'accent', *MODES) or (
+            key in MODES and not isinstance(value, dict)
+        ):
             messages.append(
                 (
                     'insights.W009',
-                    f"INSIGHTS_THEME has {mode!r}, use 'accent', 'light' and 'dark'.",
+                    f"INSIGHTS_THEME has {key!r}, use 'base', 'accent', 'light' and 'dark'.",
                 )
             )
-        else:
+        elif key in MODES:
             messages.extend(
                 (
                     'insights.W009',
-                    f'INSIGHTS_THEME[{mode!r}] has {key!r}, known colors are '
-                    f'{", ".join(KEYS)}.'
-                    if key not in KEYS
-                    else f'INSIGHTS_THEME[{mode!r}][{key!r}] must be a color like "#101010".',
+                    f'INSIGHTS_THEME[{key!r}] has {name!r}, known colors are {", ".join(KEYS)}.'
+                    if name not in KEYS
+                    else f'INSIGHTS_THEME[{key!r}][{name!r}] must be a color like "#101010".',
                 )
-                for key, value in colors.items()
-                if key not in KEYS or not (isinstance(value, str) and HEX.match(value))
+                for name, color in value.items()
+                if name not in KEYS or not (isinstance(color, str) and HEX.match(color))
             )
     return messages

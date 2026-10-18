@@ -332,7 +332,7 @@ All settings are optional and read from your Django settings.
 | `INSIGHTS_DEFAULT_THEME` | `"dark"` | `"light"` or `"dark"`, used until a visitor chooses a theme |
 | `INSIGHTS_CHART_DPI` | `180` | Resolution of the chart images |
 | `INSIGHTS_STYLE` | `"vega"` | Basecoat style: `vega`, `nova`, `maia`, `lyra`, `mira`, `luma`, `sera` or `rhea` |
-| `INSIGHTS_THEME` | `None` | A color preset like `"pink"`, or a dict with your own colors, see below |
+| `INSIGHTS_THEME` | `None` | A shadcn theme name like `"blue"`, or a dict with your own colors, see below |
 | `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False` | Keep rendered charts as files instead of rendering them on every request |
 | `INSIGHTS_MEDIA_CACHE_ROOT` | `None` | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
 | `INSIGHTS_DASHBOARD_PERMISSIONS` | `None` | List of permission classes, see below |
@@ -354,23 +354,29 @@ Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` a
 
 ### Theming
 
-The dashboard and the charts share one palette, so a color you set shows up in both. `INSIGHTS_STYLE` picks one of the [Basecoat](https://basecoatui.com/customization/) styles. `INSIGHTS_THEME` sets the colors, with a preset name:
+The dashboard and the charts share one palette, so a color you set shows up in both. `INSIGHTS_STYLE` picks one of the [Basecoat](https://basecoatui.com/customization/) styles. `INSIGHTS_THEME` sets the colors, with the names of the [shadcn/ui themes](https://ui.shadcn.com/themes):
 
 ```python
 INSIGHTS_STYLE = "sera"
-INSIGHTS_THEME = "pink"
+INSIGHTS_THEME = "blue"
 ```
 
-The presets are `blue`, `green`, `orange`, `red`, `pink`, `violet` and `teal`. A preset sets the primary color and five chart colors. For anything else use a dict. `accent` takes a preset or any hex color, `light` and `dark` set single colors on top of it:
+- **Accent colors** change the primary color and the five chart colors: `amber`, `blue`, `cyan`, `emerald`, `fuchsia`, `green`, `indigo`, `lime`, `orange`, `pink`, `purple`, `red`, `rose`, `sky`, `teal`, `violet` and `yellow`.
+- **Base colors** change the greys of the background, cards and borders, and give grey charts: `neutral`, `stone`, `zinc`, `mauve`, `olive`, `mist` and `taupe`.
+
+Combine them, or set single colors, with a dict. `accent` takes a theme name or any hex color, `light` and `dark` set colors on top of it:
 
 ```python
 INSIGHTS_THEME = {
-    "accent": "#16a34a",
+    "base": "zinc",
+    "accent": "blue",
     "dark": {"card": "#111827", "border": "#1f2937"},
 }
 ```
 
-The colors are `background`, `foreground`, `card`, `muted_foreground`, `border`, `primary`, `primary_foreground` and `chart_1` to `chart_5`, all as `"#rrggbb"`. A chart uses `card` as its background, `foreground` for its text, and `chart_3` (light) or `chart_1` (dark) for its bars and lines. Anything else is ignored, `manage.py check` tells you what.
+A color is one of the shadcn variables with underscores, for example `background`, `foreground`, `card`, `muted_foreground`, `border`, `primary`, `primary_foreground`, `sidebar_primary` or `chart_1` to `chart_5`, all as `"#rrggbb"`. A chart uses `card` as its background, `foreground` for its text, and `chart_3` (light) or `chart_1` (dark) for its bars and lines. Anything else is ignored, `manage.py check` tells you what.
+
+The theme colors come from the shadcn registry. To update them run `python scripts/generate_palettes.py` and then `ruff format django_insights/palettes.py`.
 
 ## Testing your insights
 
