@@ -165,6 +165,7 @@ def revenue_by_plan() -> BarChartResult:
         Invoice.objects.filter(status=Invoice.Status.PAID)
         .values('subscription__plan')
         .annotate(total=Sum('amount'))
+        .annotate(share=F('total'))
         .order_by('-total')
-        .values_list('total', 'total', 'subscription__plan')
+        .values_list('total', 'share', 'subscription__plan')
     )

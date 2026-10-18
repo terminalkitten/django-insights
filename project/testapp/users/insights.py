@@ -139,6 +139,7 @@ def top_inviters() -> BarChartResult:
     return (
         AppUser.objects.annotate(total=Count('invitees'))
         .filter(total__gt=0)
+        .annotate(share=F('total'))
         .order_by('-total', 'email')[:10]
-        .values_list('total', 'total', 'email')
+        .values_list('total', 'share', 'email')
     )

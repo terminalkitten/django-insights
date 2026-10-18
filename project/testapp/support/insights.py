@@ -174,8 +174,9 @@ def workspaces_with_most_open_tickets() -> BarChartResult:
         Ticket.objects.filter(resolved_at__isnull=True)
         .values('workspace__name')
         .annotate(total=Count('pk'))
+        .annotate(share=F('total'))
         .order_by('-total', 'workspace__name')[:10]
-        .values_list('total', 'total', 'workspace__name')
+        .values_list('total', 'share', 'workspace__name')
     )
 
 

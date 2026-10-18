@@ -205,6 +205,7 @@ def top_task_creators() -> BarChartResult:
         Task.objects.filter(created_by__isnull=False)
         .values('created_by__email')
         .annotate(total=Count('pk'))
+        .annotate(share=F('total'))
         .order_by('-total', 'created_by__email')[:10]
-        .values_list('total', 'total', 'created_by__email')
+        .values_list('total', 'share', 'created_by__email')
     )

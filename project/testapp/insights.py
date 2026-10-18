@@ -303,8 +303,9 @@ def workspaces_by_messages() -> BarChartResult:
     return (
         Message.objects.values('channel__workspace__name')
         .annotate(total=Count('pk'))
+        .annotate(share=F('total'))
         .order_by('-total', 'channel__workspace__name')[:10]
-        .values_list('total', 'total', 'channel__workspace__name')
+        .values_list('total', 'share', 'channel__workspace__name')
     )
 
 
