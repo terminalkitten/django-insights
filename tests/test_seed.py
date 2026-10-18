@@ -1,9 +1,13 @@
+from itertools import pairwise
+
 import pytest
 from django.core import management
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.db.models.functions import ExtractWeekDay
 
+from project.testapp.billing.models import Invoice, Subscription
 from project.testapp.models import Channel, Membership, Message, Report, Workspace
+from project.testapp.tasks.models import Task
 from project.testapp.users.models import AppUser
 
 pytestmark = pytest.mark.django_db
@@ -94,3 +98,34 @@ def test_the_ai_models_have_their_own_price_per_token():
         .values_list('model', 'tokens', 'cost')
     }
     assert rates['assistant-large'] > 5 * rates['assistant-small']
+
+
+def test_invoices_are_only_sent_for_paid_plans():
+    seed(users=150, messages=1500)
+
+    assert Invoice.objects.exists()
+    assert not Invoice.objects.filter(subscription__plan='free').exists()
+    assert Invoice.objects.filter(status='open').count() <= Subscription.objects.count()
+
+
+def test_a_subscription_follows_the_previous_one_of_its_workspace():
+    seed(users=150, messages=1500)
+
+    for workspace in Workspace.objects.all():
+        subscriptions = list(
+            Subscription.objects.filter(workspace=workspace).order_by('started_at')
+        )
+        for earlier, later in pairwise(subscriptions):
+            assert earlier.ended_at == later.started_at
+        assert sum(s.ended_at is None for s in subscriptions) <= 1
+
+
+def test_recent_tasks_are_open_and_old_ones_mostly_done():
+    seed(users=150, messages=1500)
+
+    assert Task.objects.filter(completed_at__isnull=True).exists()
+    assert (
+        Task.objects.filter(completed_at__isnull=False).count()
+        > Task.objects.filter(completed_at__isnull=True).count()
+    )
+    assert not Task.objects.filter(completed_at__lt=F('created_at')).exists()

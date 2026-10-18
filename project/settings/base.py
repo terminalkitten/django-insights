@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "project.testapp",
     "project.testapp.users",
+    "project.testapp.billing",
+    "project.testapp.tasks",
     "django_insights",
 ]
 
