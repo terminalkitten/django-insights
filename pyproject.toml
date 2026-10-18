@@ -79,12 +79,12 @@ target-version = "py311"
 extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations", "project/testapp/billing/migrations", "project/testapp/tasks/migrations"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN", "S", "PERF", "C4", "RUF", "DJ"]
+select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN", "S", "PERF", "C4", "RUF", "DJ", "TC"]
 ignore = ["E501", "ANN401"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN", "S101"]
-"project/**" = ["S105", "S311", "DJ008", "RUF012"]
+"project/**" = ["S105", "S311", "DJ008", "RUF012", "TC"]
 "project/settings/*.py" = ["F403", "F405"]
 "django_insights/models.py" = ["DJ001", "RUF012"]
 
