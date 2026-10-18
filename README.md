@@ -85,7 +85,6 @@ Note: please make sure you exclude the database in your `.gitignore` file
 Migrate insights database:
 
 ```bash
-workon myapp
 python manage.py migrate insights --database=insights
 ```
 
