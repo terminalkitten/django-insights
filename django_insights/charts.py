@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     from matplotlib.axes import Axes
 
-FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'ubuntu.ttf'
+FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'geist.ttf'
 P = ParamSpec('P')
 
 
@@ -36,7 +36,7 @@ def register_font() -> None:
 def chart_style() -> AbstractContextManager[None]:
     register_font()
     return matplotlib.rc_context(
-        {'font.family': 'sans-serif', 'font.sans-serif': ['Ubuntu']}
+        {'font.family': 'sans-serif', 'font.sans-serif': ['Geist']}
     )
 
 
