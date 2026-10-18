@@ -38,7 +38,6 @@ jobs:
 
   tests:
     name: Python ${{ matrix.python-version }}
-    if: github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'feat/v2')
     runs-on: ubuntu-latest
 
     strategy:
