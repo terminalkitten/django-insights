@@ -27,6 +27,7 @@ def test_apps_use_module_label(collected):
         'Users',
         'Billing',
         'Tasks',
+        'Support',
     }
 
 
