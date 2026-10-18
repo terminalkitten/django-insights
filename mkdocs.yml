@@ -32,10 +32,12 @@ nav:
   - Home: index.md
   - Getting started:
       - Installation: installation.md
+      - Settings: settings.md
       - Alternatives: alternatives.md
       - License: license.md
   - Insights:
       - Types: types.md
+      - Testing: testing.md
 
 # Extra
 extra:

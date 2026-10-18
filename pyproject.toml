@@ -10,6 +10,7 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 dynamic = ["version"]
+keywords = ["django", "insights", "metrics", "dashboard", "analytics", "reporting"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
@@ -29,22 +30,40 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "django>=5.2",
-    "matplotlib>=3.7",
+    "matplotlib>=3.8",
     "tqdm>=4.66",
 ]
 
 [project.optional-dependencies]
-pdf = ["pymupdf>=1.24"]
+pdf = ["pymupdf>=1.24.3"]
 
 [dependency-groups]
-dev = ["django-insights[pdf]", "pytest", "pytest-django", "ruff", "ty", "django-stubs", "faker", "tox", "tox-uv"]
+dev = [
+    "django-insights[pdf]",
+    "pytest",
+    "pytest-django",
+    "ruff",
+    "ty",
+    "django-stubs",
+    "tox",
+    "tox-uv",
+    "pytest-cov>=7.1.0",
+]
 docs = ["mkdocs", "mkdocs-material"]
+
+[project.entry-points.pytest11]
+django_insights = "django_insights.pytest"
 
 [project.urls]
 Home = "https://github.com/terminalkitten/django-insights"
+Source = "https://github.com/terminalkitten/django-insights"
+Issues = "https://github.com/terminalkitten/django-insights/issues"
 
 [tool.setuptools.packages.find]
 include = ["django_insights*"]
+
+[tool.setuptools.package-data]
+django_insights = ["py.typed"]
 
 [tool.setuptools_scm]
 
@@ -57,24 +76,41 @@ invalid-attribute-override = "ignore"
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations"]
+extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations", "project/testapp/billing/migrations", "project/testapp/tasks/migrations"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN"]
+select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN", "S", "PERF", "C4", "RUF", "DJ"]
 ignore = ["E501", "ANN401"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ANN"]
+"tests/**" = ["ANN", "S101"]
+"project/**" = ["S105", "S311", "DJ008", "RUF012"]
+"project/settings/*.py" = ["F403", "F405"]
+"django_insights/models.py" = ["DJ001", "RUF012"]
 
 [tool.ruff.format]
 quote-style = "preserve"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-filterwarnings = ["error", "ignore:Overriding setting DATABASES:UserWarning"]
+filterwarnings = [
+    "error",
+    "ignore:Overriding setting DATABASES:UserWarning",
+    "ignore:builtin type .* has no __module__:DeprecationWarning",
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
+]
 addopts = """\
     --strict-config
     --strict-markers
     --ds=project.settings.test
+    --cov
+    --cov-report=term-missing:skip-covered
     """
 django_find_project = false
+
+[tool.coverage.run]
+source = ["django_insights"]
+omit = ["django_insights/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 90

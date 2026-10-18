@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "project.testapp",
     "project.testapp.users",
+    "project.testapp.billing",
+    "project.testapp.tasks",
     "django_insights",
 ]
 
@@ -90,7 +92,7 @@ INSIGHTS_APP_NAME = "Finq"
 INSIGHTS_CHART_DPI = 180
 
 # Insight cache
-INSIGHT_MEDIA_CACHE_ROOT = os.path.join(MEDIA_ROOT, 'insights')
+INSIGHTS_MEDIA_CACHE_ROOT = os.path.join(MEDIA_ROOT, 'insights')
 
 # Change primary color
 INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"

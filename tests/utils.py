@@ -1,11 +1,16 @@
-import pytest
+SEED_USERS = 30
+SEED_MESSAGES = 400
 
-from django_insights.registry import registry
+
+class AllowAll:
+    def has_permission(self, request):
+        return True
 
 
-@pytest.mark.django_db(True)
-def collect_insights() -> None:
-    from django_insights.metrics import metrics
+class DenyAll:
+    def has_permission(self, request):
+        return False
 
-    registry.autodiscover_insights()
-    metrics.collect()
+
+class NoMethod:
+    pass

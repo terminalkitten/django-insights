@@ -3,13 +3,15 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from enum import Enum
+from functools import lru_cache, wraps
+from pathlib import Path
+from typing import Any, ParamSpec
 
 import matplotlib
-import matplotlib.dates as mdates
 import matplotlib.font_manager as fm
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -17,12 +19,31 @@ from matplotlib.figure import Figure
 from django_insights.models import Bucket, BucketValue
 from django_insights.settings import settings
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-fm.fontManager.addfont(f"{dir_path}/static/insights/fonts/ubuntu.ttf")
+FONT_FILE = Path(__file__).parent / 'static' / 'insights' / 'fonts' / 'ubuntu.ttf'
+P = ParamSpec('P')
 
 
-matplotlib.rcParams['font.family'] = 'sans-serif'
-matplotlib.rcParams['font.sans-serif'] = 'Ubuntu'
+@lru_cache
+def register_font() -> None:
+    fm.fontManager.addfont(str(FONT_FILE))
+
+
+def chart_style() -> AbstractContextManager[None]:
+    register_font()
+    return matplotlib.rc_context(
+        {'font.family': 'sans-serif', 'font.sans-serif': ['Ubuntu']}
+    )
+
+
+def styled(func: Callable[P, Figure]) -> Callable[P, Figure]:
+    """Apply the chart style only while the chart is built, never globally"""
+
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Figure:
+        with chart_style():
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 class ChartSize(Enum):
@@ -40,28 +61,26 @@ class ThemeColor:
     edge: str
 
 
-@dataclass
-class Theme:
-    dark: ThemeColor
-    light: ThemeColor
-
-
-themes = Theme(
-    light=ThemeColor(
-        primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
-        face="#FEFEFE",
-        tick="#333333",
-        grid="#333333",
-        edge="#FFFFFF",
-    ),
-    dark=ThemeColor(
-        primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
-        face="#0d1117",
-        tick="#FEFEFE",
-        grid="#FEFEFE",
-        edge="#0d1117",
-    ),
-)
+def get_theme(name: str) -> ThemeColor:
+    """Theme colors, read from the settings on every call"""
+    match name:
+        case 'light':
+            return ThemeColor(
+                primary=settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
+                face="#FFFFFF",
+                tick="#333333",
+                grid="#333333",
+                edge="#FFFFFF",
+            )
+        case 'dark':
+            return ThemeColor(
+                primary=settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
+                face="#171717",
+                tick="#FEFEFE",
+                grid="#FEFEFE",
+                edge="#171717",
+            )
+    raise ValueError(f"Unknown theme: {name}")
 
 
 FIGSIZES = {
@@ -78,22 +97,28 @@ def get_figsize(size: ChartSize) -> tuple[int, int]:
         size (ChartSize): SMALL, MEDIUM, LARGE
 
     Returns:
-        tuple[int, int]: return tuple of figure siza
+        tuple[int, int]: return tuple of figure size
     """
 
     return FIGSIZES[size]
 
 
+def bucket_rows(bucket: Bucket, *fields: str) -> list[tuple[Any, ...]]:
+    """Plain rows in chart order, cheaper than loading a model per value"""
+    return list(BucketValue.objects.filter(bucket=bucket).values_list(*fields))
+
+
 def to_bytes_io(fig: Figure) -> bytes:
-    """Render Mathplotlib figure to file-like object"""
+    """Render Matplotlib figure to file-like object"""
     flike = io.BytesIO()
-    fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
+    with chart_style():
+        fig.savefig(flike, dpi=settings.INSIGHTS_CHART_DPI)
 
     return flike.getvalue()
 
 
 def to_base64img(fig: Figure) -> str:
-    """Render Mathplotlib figure to Base64 encoded image"""
+    """Render Matplotlib figure to Base64 encoded image"""
     return base64.b64encode(to_bytes_io(fig)).decode()
 
 
@@ -138,9 +163,9 @@ def render_barchart(
     size: ChartSize,
 ) -> Figure:
     """Render barchart"""
-    theme = getattr(themes, theme)
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.bar(labels, xaxis, color=theme.primary)
+    colors = get_theme(theme)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.bar(labels, xaxis, color=colors.primary)
 
     return fig
 
@@ -155,12 +180,12 @@ def render_hbarchart(
     size: ChartSize,
 ) -> Figure:
     """Render horizontal barchart"""
-    theme = getattr(themes, theme)
-    fig, ax = prepare_plot(bucket, theme, size)
+    colors = get_theme(theme)
+    fig, ax = prepare_plot(bucket, colors, size)
     bars = ax.barh(
         combined_labels,
         xaxis,
-        color=theme.primary,
+        color=colors.primary,
         align='center',
         height=0.9,
     )
@@ -168,18 +193,18 @@ def render_hbarchart(
     for bar in bars:
         width = bar.get_width()
         label_y_pos = bar.get_y() + bar.get_height() / 2
-        ax.text(width, label_y_pos, s=f'{width}', va='center', size=4)
+        ax.text(width, label_y_pos, s=f'{width}', va='center', size=9)
 
     for tick in ax.yaxis.get_major_ticks():
-        tick.label1.set_fontsize(6)
-        tick.label2.set_fontsize(6)
+        tick.label1.set_fontsize(11)
+        tick.label2.set_fontsize(11)
 
     ax.set_ylabel(bucket.xlabel)
     ax.set_xlabel(bucket.ylabel)
 
     _, xmax = ax.get_xlim()
     fig.subplots_adjust(left=0.3, right=0.9)
-    ax.set_xlim(0, xmax + 100)
+    ax.set_xlim(0, xmax * 1.1)
     return fig
 
 
@@ -191,10 +216,10 @@ def render_scatterplot(
     size: ChartSize,
 ) -> Figure:
     """Render scatterplot"""
-    theme = getattr(themes, theme)
+    colors = get_theme(theme)
 
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.scatter(xaxis, yaxis, color=theme.primary)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.scatter(xaxis, yaxis, color=colors.primary)
 
     return fig
 
@@ -207,37 +232,35 @@ def render_timeseries(
     size: ChartSize,
 ) -> Figure:
     """Render timeseries"""
-    theme = getattr(themes, theme)
+    colors = get_theme(theme)
 
-    fig, ax = prepare_plot(bucket, theme, size)
-    ax.plot(xaxis, yaxis, '--o', markersize=5, color=theme.primary)
-
-    # Date formatting
-    ax.fmt_xdata = mdates.DateFormatter(bucket.xformat)
+    fig, ax = prepare_plot(bucket, colors, size)
+    ax.plot(xaxis, yaxis, '--o', markersize=5, color=colors.primary)
 
     return fig
 
 
+@styled
 def barchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Barchart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
+    xvalues = [xvalue for xvalue, _, _ in rows]
+    yvalues = [yvalue for _, yvalue, _ in rows]
+    labels = [category or '' for _, _, category in rows]
 
     return render_barchart(yvalues, xvalues, labels, bucket, theme, size)
 
 
+@styled
 def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) -> Figure:
     """Horizontal Barchart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-    labels = [bucket_value.category for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue', 'category')
+    xvalues = [xvalue for xvalue, _, _ in rows]
+    yvalues = [yvalue for _, yvalue, _ in rows]
+    labels = [category or '' for _, _, category in rows]
 
     combined_labels = [
-        f"{bucket_value.category[0:30]}..:{int(bucket_value.yvalue)}"
-        for bucket_value in values
+        f"{(category or '')[0:30]}..:{int(yvalue)}" for _, yvalue, category in rows
     ]
 
     return render_hbarchart(
@@ -245,22 +268,23 @@ def hbarchart(bucket: Bucket, theme: str, size: ChartSize = ChartSize.MEDIUM) ->
     )
 
 
+@styled
 def scatterplot(
     bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL
 ) -> Figure:
     """Scatterplot chart"""
-    values = BucketValue.objects.filter(bucket=bucket)
-    yvalues = [bucket_value.yvalue for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
+    rows = bucket_rows(bucket, 'xvalue', 'yvalue')
+    xvalues = [xvalue for xvalue, _ in rows]
+    yvalues = [yvalue for _, yvalue in rows]
 
     return render_scatterplot(yvalues, xvalues, bucket, theme, size)
 
 
+@styled
 def timeseries(bucket: Bucket, theme: str, size: ChartSize = ChartSize.SMALL) -> Figure:
     """Timeseries chart"""
-    values = BucketValue.objects.filter(bucket=bucket)
+    rows = bucket_rows(bucket, 'timestamp', 'xvalue')
+    timestamps = [timestamp for timestamp, _ in rows]
+    xvalues = [xvalue for _, xvalue in rows]
 
-    yvalues = [bucket_value.timestamp for bucket_value in values]
-    xvalues = [bucket_value.xvalue for bucket_value in values]
-
-    return render_timeseries(yvalues, xvalues, bucket, theme, size)
+    return render_timeseries(timestamps, xvalues, bucket, theme, size)

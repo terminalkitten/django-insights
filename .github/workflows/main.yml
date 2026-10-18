@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,8 +17,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
       - run: uv sync
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -24,10 +27,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
       - run: uv build
       - run: uvx twine check dist/*
       - name: Wheel must not contain the frontend build folder
@@ -35,7 +38,7 @@ jobs:
 
   tests:
     name: Python ${{ matrix.python-version }}
-    if: github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'feat/v2')
+    if: github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'feat/v2' || github.base_ref == 'feat/v2-setup')
     runs-on: ubuntu-latest
 
     strategy:
@@ -44,10 +47,10 @@ jobs:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv tool install --with tox-uv tox

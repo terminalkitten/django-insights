@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import importlib
+import uuid
 from collections.abc import Callable
 from typing import ParamSpec, TypeVar
 
@@ -9,6 +10,7 @@ from django.db import IntegrityError, transaction
 
 from django_insights.choices import BucketType
 from django_insights.database import database_entry
+from django_insights.exceptions import InsightsError
 from django_insights.metrics_types import (
     BarChartAnswer,
     BarChartResult,
@@ -23,13 +25,24 @@ from django_insights.metrics_types import (
     TimeSeriesType,
 )
 from django_insights.models import App, Bucket, BucketValue, Counter, Gauge
-from django_insights.registry import registry
+from django_insights.registry import InsightFailure, registry
 from django_insights.utils import rebuild_chart_media_cache
 
+__all__ = ['InsightMetrics', 'metrics']
+
 P = ParamSpec('P')
+TrendFunc = Callable[[], TimeSeriesResult]
+TREND_POINTS = 60
 TimeSeriesReturn = TypeVar('TimeSeriesReturn', bound=TimeSeriesResult)
 ScatterPlotReturn = TypeVar('ScatterPlotReturn', bound=ScatterPlotResult)
 BarChartReturn = TypeVar('BarChartReturn', bound=BarChartResult)
+
+
+def collect_trend(trend: TrendFunc | None) -> list[float]:
+    """The values of a trend series, oldest first, the latest points only"""
+    if trend is None:
+        return []
+    return [float(value) for _, value in trend()][-TREND_POINTS:]
 
 
 class InsightMetrics:
@@ -38,21 +51,23 @@ class InsightMetrics:
     create_counters: list[Counter]
     create_gauges: list[Gauge]
     create_bucket_values: list[BucketValue]
-
-    apps: dict[str, App] = {}
+    apps: dict[str, App]
 
     def __init__(self) -> None:
+        self.reset_state()
+
+    def reset_state(self) -> None:
         self.create_counters = []
         self.create_gauges = []
         self.create_bucket_values = []
+        self.apps = {}
 
     def delete_metrics(self) -> None:
         """Reset current dataset if metrics are generated"""
-        with transaction.atomic(using=database_entry):
-            Counter.objects.all().delete()
-            Gauge.objects.all().delete()
-            Bucket.objects.all().delete()
-            BucketValue.objects.all().delete()
+        Counter.objects.all().delete()
+        Gauge.objects.all().delete()
+        Bucket.objects.all().delete()
+        BucketValue.objects.all().delete()
 
     def get_memoized_app(self, module: str, label: str | None = None) -> App:
         """Memoize apps so we reduce query count"""
@@ -60,7 +75,13 @@ class InsightMetrics:
             return app
 
         # get or create new app
-        app, _ = App.objects.get_or_create(module=module, defaults={'label': label})
+        app, _ = App.objects.get_or_create(
+            module=module,
+            defaults={
+                'label': label,
+                'uuid': uuid.uuid5(uuid.NAMESPACE_URL, f'django-insights:{module}'),
+            },
+        )
         self.apps.update({module: app})
 
         return app
@@ -76,7 +97,10 @@ class InsightMetrics:
         return label, App(module=module, label=app_label)
 
     def counter(
-        self, question: str | None = None, desc: str | None = None
+        self,
+        question: str | None = None,
+        desc: str | None = None,
+        trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, int]], Callable[P, int]]:
         """Decorator to collect Counter metrics"""
 
@@ -90,6 +114,7 @@ class InsightMetrics:
                     app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=counter_type.value,
+                    trend=collect_trend(trend),
                     question=question,
                     desc=desc,
                 )
@@ -107,7 +132,10 @@ class InsightMetrics:
         return decorator
 
     def gauge(
-        self, question: str | None = None, desc: str | None = None
+        self,
+        question: str | None = None,
+        desc: str | None = None,
+        trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, float]], Callable[P, float]]:
         """Decorator to collect Gauge metric"""
 
@@ -121,6 +149,7 @@ class InsightMetrics:
                     app=self.get_memoized_app(app.module, app.label),
                     label=label,
                     value=gauge_type.value,
+                    trend=collect_trend(trend),
                     question=question,
                     desc=desc,
                 )
@@ -370,33 +399,30 @@ class InsightMetrics:
 
         return decorator
 
-    def collect(self, reset: bool = False) -> None:
-        """
-        Collect insights
+    def collect(self, reset: bool = False) -> list[InsightFailure]:
+        """Collect all insights in one transaction on the insights database"""
+        self.reset_state()
+        try:
+            with transaction.atomic(using=database_entry):
+                if reset:
+                    self.delete_metrics()
+                failures = registry.collect_insights()
+                self.save_collected()
+        finally:
+            self.reset_state()
 
-        """
-
-        self.apps = {}
-
-        # Reset metrics
-        self.delete_metrics() if reset else None
-
-        # Break chart cache
         rebuild_chart_media_cache()
+        return failures
 
-        # Collect insights
-        registry.collect_insights()
-
+    def save_collected(self) -> None:
         try:
             Counter.objects.bulk_create(self.create_counters)
             Gauge.objects.bulk_create(self.create_gauges)
             BucketValue.objects.bulk_create(self.create_bucket_values)
         except IntegrityError as e:
-            raise IntegrityError(
+            raise InsightsError(
                 "Most likely you've redefined an insights method with the same name."
             ) from e
-        finally:
-            self.__init__()
 
 
 metrics = InsightMetrics()

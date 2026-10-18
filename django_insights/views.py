@@ -1,14 +1,21 @@
 from __future__ import annotations
 
-import os
-from collections.abc import Callable
+import hashlib
+from collections.abc import Iterable
+from datetime import datetime
 from typing import Any
 
+from django.conf import settings as django_settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Max
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
+from django.utils.cache import patch_cache_control
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import condition
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.base import ContextMixin
 
@@ -20,40 +27,76 @@ from django_insights.charts import (
     to_bytes_io,
 )
 from django_insights.models import App, Bucket, Counter, Gauge
-from django_insights.pdf import html_to_pdf
+from django_insights.pdf import html_to_pdf, pdf_available
 from django_insights.settings import settings
+from django_insights.utils import chart_cache_path, write_atomic
 
 THEMES = ('light', 'dark')
 
 
+def chart_theme(request: HttpRequest) -> str:
+    theme = request.COOKIES.get('theme')
+    return theme if theme in THEMES else settings.INSIGHTS_DEFAULT_THEME
+
+
+def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
+    """Identifies one rendered chart, a collect creates new buckets so it never changes"""
+    created_at = (
+        Bucket.objects.filter(pk=bucket_id).values_list('created_at', flat=True).first()
+    )
+    if created_at is None:
+        return None
+
+    key = '|'.join(
+        str(part)
+        for part in (
+            bucket_id,
+            created_at.isoformat(),
+            chart_theme(request),
+            settings.INSIGHTS_CHART_DPI,
+            settings.INSIGHTS_CHART_LIGHT_PRIMARY_COLOR,
+            settings.INSIGHTS_CHART_DARK_PRIMARY_COLOR,
+        )
+    )
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+def png_response(content: bytes) -> HttpResponse:
+    response = HttpResponse(content, content_type='image/png')
+    patch_cache_control(response, private=True, no_cache=True)
+    return response
+
+
 class CustomPermissionMixin(UserPassesTestMixin):
+    """Deny access unless every INSIGHTS_DASHBOARD_PERMISSIONS class grants it"""
+
     request: HttpRequest
 
-    """
-    Run following permisssion
-
-    class IsSomeAdminUser:
-        def has_permission(self, request):
-            return
-    """
-
-    def run_permissions(self, permissions: list[Callable]) -> list[bool]:
-        """
-        Run all permission checks from INSIGHT_DASHBOARD_PERMISSIONS settings
-        and return output in array
-        """
-        return [
-            permission().has_permission(request=self.request)
-            for permission in permissions
-            if hasattr(permission(), 'has_permission')
-        ]
+    def run_permissions(self, permissions: Iterable[type]) -> list[bool]:
+        """Run has_permission(request) of every configured permission class"""
+        results = []
+        for permission_class in permissions:
+            has_permission = getattr(permission_class(), 'has_permission', None)
+            if not callable(has_permission):
+                raise ImproperlyConfigured(
+                    f'{permission_class!r} in INSIGHTS_DASHBOARD_PERMISSIONS '
+                    'has no has_permission(request) method'
+                )
+            results.append(bool(has_permission(request=self.request)))
+        return results
 
     def test_func(self) -> bool:
-        return (
-            all(self.run_permissions(settings.INSIGHT_DASHBOARD_PERMISSIONS))
-            if settings.INSIGHT_DASHBOARD_PERMISSIONS
-            else True
-        )
+        permissions = settings.INSIGHTS_DASHBOARD_PERMISSIONS or []
+        return all(self.run_permissions(permissions))
+
+
+def last_collected() -> datetime | None:
+    """When the insights were collected last, None before the first collect"""
+    moments = [
+        model.objects.aggregate(moment=Max('created_at'))['moment']
+        for model in (Counter, Gauge, Bucket)
+    ]
+    return max((moment for moment in moments if moment), default=None)
 
 
 class InsightAppMixin(
@@ -62,17 +105,24 @@ class InsightAppMixin(
     ContextMixin,
     View,
 ):
-    apps: QuerySet | list[App] = []
+    apps: QuerySet | list[App] | None = None
 
     def get_apps(self) -> QuerySet | list[App]:
-        if not self.apps:
+        if self.apps is None:
             self.apps = App.objects.all()
         return self.apps
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context.update(
-            {'app_name': settings.INSIGHTS_APP_NAME, 'apps': self.get_apps()}
+            {
+                'app_name': settings.INSIGHTS_APP_NAME,
+                'apps': self.get_apps(),
+                'theme': chart_theme(self.request),
+                'current_app': None,
+                'pdf_available': pdf_available(),
+                'last_collected': last_collected(),
+            }
         )
         return context
 
@@ -84,10 +134,16 @@ class InsightsAppView(InsightAppMixin, DetailView):
     template_name = "insights/app.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        app = self.get_object()
-
         context = super().get_context_data(**kwargs)
-        context.update({'app_label': app.name})
+        context.update(
+            {
+                'app_label': self.object.name,
+                'current_app': self.object,
+                'buckets': Bucket.objects.filter(app=self.object).prefetch_related(
+                    'values'
+                ),
+            }
+        )
         return context
 
 
@@ -95,31 +151,28 @@ class InsightsDashboardView(InsightAppMixin, ListView):
     template_name = "insights/dashboard.html"
 
     def get_queryset(self) -> QuerySet[Counter]:
-        # Get all metrics in one query?
-        return Counter.objects.all()
+        return Counter.objects.select_related('app')
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context.update({'gauges': Gauge.objects.all(), 'app_label': 'Dashboard'})
+        context.update(
+            {'gauges': Gauge.objects.select_related('app'), 'app_label': 'Dashboard'}
+        )
         return context
 
 
 class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
+    @method_decorator(condition(etag_func=chart_etag))
     def get(self, request: HttpRequest, bucket_id: int) -> HttpResponse:
-        theme = self.request.COOKIES.get('theme')
-        if theme not in THEMES:  # cookie is user input, it ends up in a file path
-            theme = settings.INSIGHTS_DEFAULT_THEME
+        theme = chart_theme(request)
         bucket = get_object_or_404(Bucket, pk=bucket_id)
 
-        filename: str = (
-            f"{settings.INSIGHT_MEDIA_CACHE_ROOT}/{bucket.type}-{bucket.pk}-{theme}.png"
-        )
-
-        if os.path.exists(filename) and settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
-            with open(filename, 'rb') as cached_image:
-                buffer = cached_image.read()
-
-            return HttpResponse(buffer, content_type='image/png')
+        cache_path = chart_cache_path(bucket.type, bucket.pk, theme)
+        if cache_path is not None:
+            try:
+                return png_response(cache_path.read_bytes())
+            except FileNotFoundError:
+                pass
 
         fig = None
 
@@ -137,11 +190,10 @@ class InsightsChartView(LoginRequiredMixin, CustomPermissionMixin, View):
 
         buffer = to_bytes_io(fig)
 
-        if settings.INSIGHT_CHARTS_USE_MEDIA_CACHE:
-            with open(filename, 'wb') as cached_image:
-                cached_image.write(buffer)
+        if cache_path is not None:
+            write_atomic(cache_path, buffer)
 
-        return HttpResponse(buffer, content_type='image/png')
+        return png_response(buffer)
 
 
 class InsightsPDFView(InsightAppMixin, ListView):
@@ -161,9 +213,14 @@ class InsightsPDFView(InsightAppMixin, ListView):
 
 
 class InsightsPDFTestView(InsightAppMixin, ListView):
-    """Render PDF HTML as test"""
+    """Render PDF HTML as test, only available when DEBUG is on"""
 
     queryset = App.objects.all()
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if not django_settings.DEBUG:
+            raise Http404("The PDF preview is only available when DEBUG is on")
+        return super().get(request, *args, **kwargs)
 
     def get_template_names(self) -> list[str]:
         return ['insights/pdf.html']

@@ -1,7 +1,7 @@
 from django import template
 from django.urls import reverse
 from django.utils.html import format_html
-from django.utils.safestring import SafeString, mark_safe
+from django.utils.safestring import SafeString
 
 from django_insights.charts import (
     barchart,
@@ -17,24 +17,10 @@ register = template.Library()
 
 
 @register.simple_tag
-def chart(bucket: Bucket, overlay: str | None = None) -> SafeString:
-    img_url = reverse("insights:insight_chart", args=[bucket.pk])
-
-    overlay_attr = (
-        format_html('data-dialog-open="#insights-modal-{}"', overlay) if overlay else ""
-    )
-
+def chart(bucket: Bucket) -> SafeString:
     return format_html(
-        """
-        <img
-            {}
-            class="w-full h-auto border-gray-200 cursor-pointer border-t-1"
-            src="{}"
-            alt="{}"
-        />
-    """,
-        overlay_attr,
-        img_url,
+        '<img loading="lazy" class="h-auto w-full" src="{}" alt="{}" />',
+        reverse("insights:insight_chart", args=[bucket.pk]),
         bucket.question,
     )
 
@@ -58,15 +44,7 @@ def base64img(bucket: Bucket, override_theme: str | None = None) -> str:
 
 
 @register.simple_tag
-def pdf_chart(bucket_id: int) -> SafeString:
-    bucket = Bucket.objects.get(pk=bucket_id)
+def pdf_chart(bucket: Bucket) -> SafeString:
     img_data = base64img(bucket, override_theme="light")
 
-    return mark_safe(
-        f"""
-        <img
-            class="chart"
-            src="data:image/png;base64,{img_data}"
-        />
-    """
-    )
+    return format_html('<img class="chart" src="data:image/png;base64,{}" />', img_data)

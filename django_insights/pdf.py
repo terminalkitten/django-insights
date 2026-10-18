@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import warnings
 from functools import lru_cache
+from importlib.util import find_spec
 from pathlib import Path
 
 from django.contrib.staticfiles import finders
@@ -11,6 +12,11 @@ from django.core.exceptions import ImproperlyConfigured
 PAGE_BREAK = '<!--pagebreak-->'
 MARGIN = 40
 MAX_PAGES = 500
+
+
+def pdf_available() -> bool:
+    """Whether the optional PyMuPDF is installed, without importing it"""
+    return find_spec('pymupdf') is not None
 
 
 @lru_cache
@@ -43,7 +49,9 @@ def html_to_pdf(html: str) -> bytes:
     body = html.split('<body>', 1)[-1].split('</body>', 1)[0]
     css = get_css()
     mediabox = pymupdf.paper_rect('a4')
-    where = mediabox + (MARGIN, MARGIN, -MARGIN, -MARGIN)
+    where = pymupdf.Rect(
+        MARGIN, MARGIN, mediabox.width - MARGIN, mediabox.height - MARGIN
+    )
 
     buffer = io.BytesIO()
     writer = pymupdf.DocumentWriter(buffer)

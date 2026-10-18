@@ -10,6 +10,14 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(blank=True, default="", unique=True)
     last_login = models.DateTimeField(blank=True, null=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
+    invited_by = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='invitees',
+    )
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"

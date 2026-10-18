@@ -1,0 +1,29 @@
+{% load insight_stat %}
+<div class="card" data-size="sm">
+  <header>
+    <p class="text-muted-foreground text-sm">{{ item.question|default:item.label }}</p>
+    <div class="card-action flex items-center gap-2">
+      <span class="text-muted-foreground" data-tooltip="{{ kind }}" data-side="left" role="img" aria-label="{{ kind }}">
+        {% if kind == "Gauge" %}<span class="icon-[lucide--gauge] size-4 shrink-0" aria-hidden="true"></span>{% else %}<span class="icon-[lucide--hash] size-4 shrink-0" aria-hidden="true"></span>{% endif %}
+      </span>
+      {% if item.desc %}
+        <span class="text-muted-foreground" data-tooltip="{{ item.desc }}" data-side="left"><span class="icon-[lucide--info] size-4 shrink-0" aria-hidden="true"></span></span>
+      {% endif %}
+    </div>
+  </header>
+  <section class="mt-auto flex items-end justify-between gap-4">
+    <div>
+      <p class="text-3xl font-semibold tabular-nums">{% if kind == "Gauge" %}{{ item.value|floatformat:"-2" }}{% else %}{{ item.value }}{% endif %}</p>
+      {% with change=item.trend|trend %}
+        {% if change is not None %}
+          <p class="text-muted-foreground mt-1 flex items-center gap-1 text-xs tabular-nums" data-tooltip="Last point of the trend against the one before" data-side="bottom">
+            {% if change > 0 %}<span class="icon-[lucide--trending-up] size-3.5 shrink-0" aria-hidden="true"></span>{% elif change < 0 %}<span class="icon-[lucide--trending-down] size-3.5 shrink-0" aria-hidden="true"></span>{% else %}<span class="icon-[lucide--minus] size-3.5 shrink-0" aria-hidden="true"></span>{% endif %}
+            <span>{% if change > 0 %}+{% endif %}{{ change|floatformat:1 }}%</span>
+          </p>
+        {% endif %}
+      {% endwith %}
+      {% if show_app %}<p class="text-muted-foreground mt-1 text-xs">{{ item.app.name }}</p>{% endif %}
+    </div>
+    <div class="text-muted-foreground w-24 shrink-0">{{ item.trend|sparkline }}</div>
+  </section>
+</div>

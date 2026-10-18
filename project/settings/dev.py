@@ -1,3 +1,3 @@
-from project.settings.base import *  # noqa
+from project.settings.base import *
 
-MIDDLEWARE += ['project.middleware.DevAutoLogin']  # noqa: F405
+MIDDLEWARE += ['project.middleware.DevAutoLogin']

@@ -43,19 +43,19 @@ In these insights files you write out any metric you would like to track. Each m
 ```python
 # project/testapp/insights.py
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Message
 
-label = "Bookstore"
+label = "Workspace"
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 ```
 
 Insight apps can have a `label`, this is used in the dashboard or can be read from `insights_app` table later on.
 
-### Settings
+### Configure Django
 
 Add django_insights package, insights database and router to your settings
 
@@ -120,28 +120,41 @@ urlpatterns = [
 
 !["Dashboard - App"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/assets/images/screen_2.png)
 
-Now you can visit https://localhost:8000/insights to inspect your Django Insights database.
+Now you can visit http://localhost:8000/insights/ to inspect your Django Insights database.
+
+### PDF report
+
+The dashboard has a PDF report at `insights/pdf/`. It needs PyMuPDF, which is optional:
+
+```bash
+pip install 'django-insights[pdf]'
+```
+
+PyMuPDF is licensed under the AGPL-3.0 (a commercial license is available from Artifex), so it is not installed by default. Without it everything else works and the report explains what to install.
 
 ## Metrics
 
-Django insights contains 5 types of metrics it can collect:
+Django Insights collects six types of metrics, each one is a decorator for a function in an `insights.py` file:
 
-- `@metrics.counter`
-- `@metrics.gauge`
-- `@metrics.timeseries`
-- `@metrics.scatterplot`
-- `@metrics.barchart`
+- `@metrics.counter`: a whole number, `-> int`
+- `@metrics.gauge`: a decimal number, `-> float`
+- `@metrics.timeseries`: values over time, shown as a line chart
+- `@metrics.scatterplot`: pairs of values, shown as a scatter plot
+- `@metrics.barchart`: values per category, shown as a bar chart
+- `@metrics.hbarchart`: values per category, shown as a horizontal bar chart
+
+Every decorator takes a `question` and optionally a `desc`. The chart types also take `xlabel`, `ylabel`, `xformat`, `yformat` and `title`. The functions run your own queries, a `QuerySet` can be returned as is.
 
 ### Counter:
 
 ```python
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Message
 
 
-@metrics.counter(question="How many authors are there?")
-def count_authors() -> int:
-    return Author.objects.count()
+@metrics.counter(question="How many messages have been sent?")
+def count_messages() -> int:
+    return Message.objects.count()
 ```
 
 ### Gauge:
@@ -150,47 +163,40 @@ def count_authors() -> int:
 from django.db.models import Avg, Count
 
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from project.testapp.models import Workspace
 
 
-@metrics.gauge(question="Average book(s) per author?")
-def avg_books_per_author() -> int:
-    avg_total_books = (
-        Author.objects.prefetch_related('books')
-        .annotate(total_books=Count('books'))
-        .aggregate(Avg('total_books'))
-        .get('total_books__avg')
+@metrics.gauge(question="Average members per workspace?")
+def avg_members_per_workspace() -> float:
+    average = Workspace.objects.annotate(total=Count('memberships')).aggregate(
+        Avg('total')
     )
-
-    return avg_total_books
+    return average['total__avg'] or 0.0
 ```
 
 ### Timeseries:
 
 ```python
-from datetime import datetime
-
-from django.db.models import Count
+from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
 from django_insights.metrics import metrics
-from project.testapp.models import Book
+from django_insights.metrics_types import TimeSeriesResult
+from project.testapp.models import Message
 
 
 @metrics.timeseries(
-    question="Num of books created per month?",
-    desc="How many books are added each month, since the opening of our store",
+    question="What does the AI assistant cost per month?",
     xlabel="Month",
-    xformat='%m',
-    ylabel="Num of books",
+    xformat='%Y-%m',
+    ylabel="Cost in USD",
 )
-def num_of_books_per_month() -> list[tuple[datetime, int]]:
+def ai_cost_per_month() -> TimeSeriesResult:
     return (
-        Book.objects.all()
-        .annotate(month=TruncMonth('created'))
+        Message.objects.filter(is_ai=True)
+        .annotate(month=TruncMonth('created_at'))
         .values('month')
-        .filter(month__isnull=False)
-        .annotate(total=Count('pk'))
+        .annotate(total=Sum('cost'))
         .values_list('month', 'total')
         .order_by('month')
     )
@@ -199,73 +205,177 @@ def num_of_books_per_month() -> list[tuple[datetime, int]]:
 ### Scatterplot:
 
 ```python
-from datetime import datetime
-
-from django.db.models import Count, Value
-
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from django_insights.metrics_types import ScatterPlotResult
+from project.testapp.models import Message
 
 
 @metrics.scatterplot(
-    question="Num of books by age of author?",
-    xlabel="Age",
-    ylabel="Num of books",
+    question="What does a message of the AI assistant cost for its length?",
+    xlabel="Tokens",
+    ylabel="Cost in USD",
 )
-def author_age_vs_num_of_books() -> list[tuple[float, float, Any]]:
+def ai_cost_vs_tokens() -> ScatterPlotResult:
     return (
-        Author.objects.values('age')
-        .annotate(num_of_books=Count('books'), category=Value("author"))
-        .values_list('num_of_books', 'age', 'category')
+        Message.objects.filter(is_ai=True)
+        .order_by('-created_at', '-pk')[:500]
+        .values_list('cost', 'tokens', 'model')
     )
 ```
 
 ### Barchart:
 
 ```python
-from datetime import datetime
-
-from django.db.models import Case, Count, Value, When
+from django.db.models import Count, F
 
 from django_insights.metrics import metrics
-from project.testapp.models import Author
+from django_insights.metrics_types import BarChartResult
+from project.testapp.models import Report
 
 
 @metrics.barchart(
-    question="Num of books by gender of author?",
-    xlabel="Gender",
-    ylabel="Num of books",
+    question="How are the reports doing?",
+    xlabel="Status",
+    ylabel="Num of reports",
 )
-def author_gender_vs_num_of_books() -> list[tuple[float, float, str]]:
+def reports_by_status() -> BarChartResult:
     return (
-        Author.objects.values('gender')
-        .annotate(
-            num_of_books=Count('books'),
-            gender_category=Case(
-                When(gender=1, then=Value('Male')),
-                When(gender=2, then=Value('Female')),
-            ),
-        )
-        .values_list('num_of_books', 'gender', 'gender_category')
+        Report.objects.values('status')
+        .annotate(total=Count('pk'))
+        .annotate(reports=F('total'))
+        .values_list('total', 'reports', 'status')
     )
 ```
 
-## Settings
+### Horizontal barchart:
 
 ```python
-# Custom app name
-INSIGHTS_APP_NAME = "Bezamon"
+from django.db.models import Count, F
 
-# Quality of chart images
-INSIGHTS_CHART_DPI = 180
+from django_insights.metrics import metrics
+from django_insights.metrics_types import BarChartResult
+from project.testapp.models import Channel
 
-# Default theme for dashboard
-INSIGHTS_THEME = "dark"
 
-# Change primary color of dashboard
-INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
-INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+@metrics.hbarchart(
+    question="Which channels are the busiest?",
+    xlabel="Channel",
+    ylabel="Num of messages",
+)
+def top_channels_by_messages() -> BarChartResult:
+    return (
+        Channel.objects.annotate(total=Count('messages'))
+        .annotate(share=F('total'))
+        .order_by('-total', 'name')[:10]
+        .values_list('total', 'share', 'name')
+    )
 ```
+
+### Trend
+
+A counter or gauge can show a trend: a small line and the change of the last point against the one before it. Give it a `trend` function that returns a time series, the same rows a `timeseries` insight returns:
+
+```python
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+
+
+def signups_per_month():
+    return (
+        AppUser.objects.annotate(month=TruncMonth('date_joined'))
+        .values('month')
+        .annotate(total=Count('pk'))
+        .values_list('month', 'total')
+        .order_by('month')
+    )
+
+
+@metrics.counter(question="How many users are there?", trend=signups_per_month)
+def count_users() -> int:
+    return AppUser.objects.count()
+```
+
+The trend is read from your own data on every collect and stored with the counter, so it is rebuilt together with everything else and nothing needs a backup. The latest 60 points are kept. The trend describes what its query returns, not the value itself: the example shows the signups per month next to the total number of users. Leave out the running month, it is not complete yet and shows as a drop.
+
+### What to return
+
+Return an iterable of tuples, a `QuerySet` from `values_list(...)` works. The position of each value matters:
+
+| Type | Row | Notes |
+| --- | --- | --- |
+| `timeseries` | `(timestamp, value)` | `timestamp` is a `datetime`, `xformat` formats the timestamp in the table |
+| `scatterplot` | `(vertical, horizontal, category)` | the first value is drawn on the vertical axis |
+| `barchart` | `(height, unused, label)` | the second value is stored, but not drawn |
+| `hbarchart` | `(length, number, label)` | `number` is shown behind the label, as `label..:number` |
+
+A missing label (`None`) is shown as an empty label. Use the result types `TimeSeriesResult`, `ScatterPlotResult` and `BarChartResult` from `django_insights.metrics_types` to annotate the functions.
+
+## Collecting
+
+```bash
+python manage.py collect_insights
+```
+
+All insights are collected in one transaction on the insights database: either everything is replaced, or nothing is. Your own databases are only read by the queries you write in your insights.
+
+When an insight raises an exception it is logged (logger `django_insights.registry`) and reported, the other insights still run. The command prints every failed insight and exits with an error, for example `1 of 14 insights failed`. The progress bar is hidden when the output is not a terminal, so it is safe in cron.
+
+Run `python manage.py check` after changing the settings below, it warns about a missing insights database, a missing router, an invalid permission or a renamed setting. These checks only warn, they never stop your project from starting.
+
+## Settings
+
+All settings are optional and read from your Django settings.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `INSIGHTS_APP_NAME` | `"MyApp"` | Name shown in the dashboard |
+| `INSIGHTS_DEFAULT_THEME` | `"dark"` | `"light"` or `"dark"`, used until a visitor chooses a theme |
+| `INSIGHTS_CHART_DPI` | `180` | Resolution of the chart images |
+| `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` | `"#2563EB"` | Chart color in the light theme |
+| `INSIGHTS_CHART_DARK_PRIMARY_COLOR` | `"#BFDBFE"` | Chart color in the dark theme |
+| `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False` | Keep rendered charts as files instead of rendering them on every request |
+| `INSIGHTS_MEDIA_CACHE_ROOT` | `None` | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
+| `INSIGHTS_DASHBOARD_PERMISSIONS` | `None` | List of permission classes, see below |
+
+The dashboard always requires a logged in user. To restrict it further, add permission classes, every class must return `True`:
+
+```python
+class IsStaff:
+    def has_permission(self, request):
+        return request.user.is_staff
+
+
+INSIGHTS_DASHBOARD_PERMISSIONS = [IsStaff]
+```
+
+A class without a `has_permission` method denies access, it never grants it.
+
+Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
+
+## Testing your insights
+
+The pytest plugin comes with Django Insights, there is nothing to configure. It gives a test the plain function behind an insight, so you can test your queries against the test database. Nothing is saved.
+
+```python
+import pytest
+from django.utils import timezone
+
+from project.testapp.models import Channel, Message, Workspace
+
+
+@pytest.mark.insights
+@pytest.mark.django_db
+def test_count_messages(insights_query):
+    workspace = Workspace.objects.create(name='Acme', created_at=timezone.now())
+    channel = Channel.objects.create(
+        workspace=workspace, name='general', created_at=timezone.now()
+    )
+    Message.objects.create(channel=channel, created_at=timezone.now())
+
+    assert insights_query() == 1
+```
+
+The insight is found by the name of the test without `test_`. To choose another one, give the marker a name: `@pytest.mark.insights('count_messages')`. When two apps have an insight with the same name, use `module.name`, for example `'shop.insights.count_orders'`. A name that does not exist fails the test with a message.
 
 ## Use-cases
 
@@ -288,10 +398,6 @@ I'm currently working at a small company that is in the process of renewing some
 We ended up with many exports that where spread out over multiple people. Additionally, exporting data directly from the database also posed a security risk, as it required constant movement of possible sensitive information. After several months of working with CSV files, which were often outdated and required conversion by other (paid) tools, we where looking for a better solution.
 
 I wanted an easy-to-configure file within our various apps that would allow me to create "insights" easily, so Django Insights was born. I decided to switch to a local SQLite database which could be share on request, as a plus these files can be tracked by a security officer.
-
-## Documentation
-
-Write more about where to find documentation
 
 ## Ideas
 
