@@ -44,6 +44,7 @@ class Counter(MetricModel):
     """Counter value, the label is unique per app"""
 
     value = models.BigIntegerField(default=0)
+    trend = models.JSONField(default=list, blank=True)
     app = models.ForeignKey(App, related_name='counters', on_delete=models.CASCADE)
 
     class Meta:
@@ -63,6 +64,7 @@ class Gauge(MetricModel):
     """Gauge value, the label is unique per app"""
 
     value = models.FloatField(default=0.0)
+    trend = models.JSONField(default=list, blank=True)
     app = models.ForeignKey(App, related_name='gauges', on_delete=models.CASCADE)
 
     class Meta:
