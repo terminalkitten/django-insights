@@ -6,6 +6,7 @@ from django.db.models.functions import TruncMonth
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult, TimeSeriesResult
 from project.testapp.billing.models import Invoice, Subscription
+from project.testapp.trends import monthly
 
 label = "Billing"
 
@@ -22,6 +23,9 @@ def count_paying_subscriptions() -> int:
 @metrics.gauge(
     question="What is the monthly recurring revenue?",
     desc="Sum of the monthly price of all active subscriptions, in USD",
+    trend=lambda: monthly(
+        Invoice.objects.filter(status=Invoice.Status.PAID), 'issued_at', Sum('amount')
+    ),
 )
 def monthly_recurring_revenue() -> float:
     total = Subscription.objects.filter(ended_at__isnull=True).aggregate(

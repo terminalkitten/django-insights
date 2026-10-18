@@ -13,6 +13,7 @@ from django_insights.metrics_types import (
     TimeSeriesResult,
 )
 from project.testapp.models import Channel, Message, Report, Workspace
+from project.testapp.trends import monthly
 
 label = "Workspace"
 
@@ -34,13 +35,17 @@ def count_workspaces() -> int:
 
 @metrics.counter(
     question="How many messages have been sent?",
-    desc="Messages of people and of the AI assistant",
+    desc="Messages of people and of the AI assistant, the trend shows the messages per month",
+    trend=lambda: monthly(Message.objects, 'created_at'),
 )
 def count_messages() -> int:
     return Message.objects.count()
 
 
-@metrics.counter(question="How many reports have been created?")
+@metrics.counter(
+    question="How many reports have been created?",
+    trend=lambda: monthly(Report.objects, 'created_at'),
+)
 def count_reports() -> int:
     return Report.objects.count()
 
@@ -54,7 +59,13 @@ def avg_members_per_workspace() -> float:
 
 
 @metrics.gauge(
-    question="How many percent of the messages are written by the AI assistant?"
+    question="How many percent of the messages are written by the AI assistant?",
+    trend=lambda: monthly(
+        Message.objects,
+        'created_at',
+        Avg(Case(When(is_ai=True, then=1.0), default=0.0, output_field=FloatField()))
+        * 100,
+    ),
 )
 def ai_share_of_messages() -> float:
     total = Message.objects.count()

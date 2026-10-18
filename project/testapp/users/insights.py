@@ -5,6 +5,7 @@ from django.db.models.functions import TruncYear
 
 from django_insights.metrics import metrics
 from django_insights.metrics_types import BarChartResult, TimeSeriesResult
+from project.testapp.trends import monthly
 from project.testapp.users.models import AppUser
 
 label = "Users"
@@ -12,7 +13,8 @@ label = "Users"
 
 @metrics.counter(
     question="How many users are there?",
-    desc="Everybody that ever signed up",
+    desc="Everybody that ever signed up, the trend shows the signups per month",
+    trend=lambda: monthly(AppUser.objects, 'date_joined'),
 )
 def count_users() -> int:
     return AppUser.objects.count()
