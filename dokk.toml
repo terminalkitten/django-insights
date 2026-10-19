@@ -1,0 +1,32 @@
+# django-insights documentation, built with dokk: make docs-serve / make docs-build
+title = "Django Insights"
+description = "Create insights for your Django app, written right next to your application logic."
+site_url = "https://terminalkitten.github.io/django-insights/"
+content_dir = "docs"
+
+[links]
+github = "https://github.com/terminalkitten/django-insights"
+edit_url = "https://github.com/terminalkitten/django-insights/edit/main/docs/{path}"
+
+[theme]
+style = "vega"
+color = "orange"
+code_light = "default"     # orange picks gruvbox, with a yellow background
+code_dark = "github-dark"
+
+[[sidebar]]
+label = "Start"
+items = ["index.md", "getting-started/index.md", "getting-started/dashboard.md"]
+
+[[sidebar]]
+autogenerate = "guides"
+
+[[sidebar]]
+autogenerate = "reference"
+
+[[sidebar]]
+label = "Links"
+items = [
+  { label = "GitHub", link = "https://github.com/terminalkitten/django-insights" },
+  { label = "PyPI", link = "https://pypi.org/project/django-insights/" },
+]

@@ -1,4 +1,7 @@
-.PHONY: lint rs migrate dump shell seed collect_insights clean
+.PHONY: lint rs migrate dump shell seed collect_insights clean docs-build docs-serve
+
+# Docs with dokk, run through uvx so it is not a project dependency
+DOKK = uvx --from 'dokk[serve,search]==0.0.2' dokk
 
 rs:
 	uv run python manage.py runserver
@@ -26,3 +29,10 @@ lint:
 clean:
 	rm -f db/*.db
 	$(MAKE) migrate
+
+docs-build:
+	$(DOKK) check
+	$(DOKK) build
+
+docs-serve:
+	$(DOKK) serve

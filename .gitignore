@@ -163,3 +163,5 @@ db/
 
 project/static/
 project/media/
+# dokk documentation build
+.dokk/
