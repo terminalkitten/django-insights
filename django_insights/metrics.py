@@ -90,7 +90,6 @@ class InsightMetrics:
         Counter.objects.all().delete()
         Gauge.objects.all().delete()
         Bucket.objects.all().delete()
-        BucketValue.objects.all().delete()
 
     def get_memoized_app(self, module: str, label: str | None = None) -> App:
         """Memoize apps so we reduce query count"""
