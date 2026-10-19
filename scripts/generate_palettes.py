@@ -1,7 +1,4 @@
-"""Generate django_insights/palettes.py from the themes of shadcn/ui
-
-Run with: python scripts/generate_palettes.py [path-to-themes.ts], then ruff format the result
-"""
+"""Generate palettes.py from the shadcn/ui themes.ts, then ruff format the result"""
 
 from __future__ import annotations
 

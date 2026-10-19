@@ -71,8 +71,6 @@ def collect_trend(trend: TrendFunc | None) -> list[float]:
 
 
 class InsightMetrics:
-    """Auto-generate metrics from multiple apps at once"""
-
     create_counters: list[Counter]
     create_gauges: list[Gauge]
     create_bucket_values: list[BucketValue]
@@ -99,7 +97,6 @@ class InsightMetrics:
         if app := self.apps.get(module):
             return app
 
-        # get or create new app
         app, _ = App.objects.get_or_create(
             module=module,
             defaults={
@@ -127,7 +124,6 @@ class InsightMetrics:
         desc: str | None = None,
         trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, int]], Callable[P, int]]:
-        """Decorator to collect Counter metrics"""
 
         def decorator(func: Callable[P, int]) -> Callable[P, int]:
             label, app = self.get_app(func)
@@ -162,7 +158,6 @@ class InsightMetrics:
         desc: str | None = None,
         trend: TrendFunc | None = None,
     ) -> Callable[[Callable[P, float]], Callable[P, float]]:
-        """Decorator to collect Gauge metric"""
 
         def decorator(func: Callable[P, float]) -> Callable[P, float]:
             label, app = self.get_app(func)
@@ -236,7 +231,6 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, TimeSeriesReturn]], Callable[P, TimeSeriesReturn]]:
-        """Decorator to collect TimeSeries metrics"""
         return self._chart(
             BucketType.TIMESERIES,
             time_value,
@@ -259,7 +253,6 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, ScatterPlotReturn]], Callable[P, ScatterPlotReturn]]:
-        """Decorator to collect Scatterplot metrics"""
         return self._chart(
             BucketType.SCATTERPLOT,
             point_value,
@@ -282,7 +275,6 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
-        """Decorator to collect Barchart metrics"""
         return self._chart(
             BucketType.BARCHART,
             bar_value,
@@ -305,7 +297,6 @@ class InsightMetrics:
         yformat: str | None = None,
         title: str | None = None,
     ) -> Callable[[Callable[P, BarChartReturn]], Callable[P, BarChartReturn]]:
-        """Decorator to collect Horizontal Barchart metrics"""
         return self._chart(
             BucketType.HBARCHART,
             bar_value,

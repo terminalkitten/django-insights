@@ -9,11 +9,6 @@ from django_insights.managers import BucketManager
 
 
 class App(models.Model):
-    """
-    Apps that have insights
-
-    """
-
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     module = models.CharField(max_length=254, unique=True)
     label = models.CharField(max_length=254, null=True)
@@ -87,13 +82,11 @@ class Bucket(MetricModel):
         choices=BucketType.BUCKET_TYPES, default=BucketType.TIMESERIES
     )
 
-    # Bucket specific plot options
     xlabel = models.CharField(max_length=254, blank=True, null=True)
     xformat = models.CharField(max_length=254, blank=True, null=True)
     ylabel = models.CharField(max_length=254, blank=True, null=True)
     yformat = models.CharField(max_length=254, blank=True, null=True)
 
-    # title for plot
     title = models.CharField(max_length=254, blank=True, null=True)
 
     objects = BucketManager()
@@ -130,10 +123,8 @@ class Bucket(MetricModel):
 class BucketValue(models.Model):
     """Bucket values matrix, used by every chart type"""
 
-    # Timestamp for timeseries
     timestamp = models.DateTimeField(db_index=True, blank=True, null=True)
 
-    # Matrix
     xvalue = models.FloatField(default=0.0)
     yvalue = models.FloatField(default=0.0)
     category = models.CharField(db_index=True, max_length=254, null=True)

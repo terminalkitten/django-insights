@@ -7,8 +7,6 @@ from django_insights.registry import registry
 
 
 class Command(BaseCommand):
-    """Collect all registered insights"""
-
     def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(self.style.HTTP_INFO('[Django Insights] - Collect insights'))
 
