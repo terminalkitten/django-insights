@@ -4,7 +4,6 @@ from django.test import override_settings
 from django.urls import reverse
 
 from django_insights import checks, theme
-from django_insights.charts import get_theme
 from django_insights.palettes import ACCENTS, BASES
 from tests.test_views import get_html
 
@@ -99,17 +98,17 @@ def test_your_colors_win_over_the_theme():
 
 @override_settings(INSIGHTS_THEME={'dark': {'card': '#101010'}})
 def test_the_charts_use_the_colors_of_the_dashboard():
-    colors = get_theme('dark')
+    colors = theme.chart_colors('dark')
 
-    assert colors.face == colors.edge == theme.palette('dark')['card'] == '#101010'
-    assert colors.tick == theme.palette('dark')['foreground']
-    assert get_theme('light').face == theme.palette('light')['card']
+    assert colors['face'] == theme.palette('dark')['card'] == '#101010'
+    assert colors['tick'] == theme.palette('dark')['foreground']
+    assert theme.chart_colors('light')['face'] == theme.palette('light')['card']
 
 
 @override_settings(INSIGHTS_THEME='blue')
 def test_the_chart_color_is_the_middle_of_the_ramp_in_light_and_dark():
-    assert get_theme('light').primary == theme.palette('light')['chart_3']
-    assert get_theme('dark').primary == theme.palette('dark')['chart_3']
+    assert theme.chart_colors('light')['primary'] == theme.palette('light')['chart_3']
+    assert theme.chart_colors('dark')['primary'] == theme.palette('dark')['chart_3']
 
 
 @pytest.mark.parametrize('name', [*theme.ACCENT_NAMES, *theme.BASE_NAMES])
@@ -117,7 +116,7 @@ def test_every_shadcn_theme_renders_a_palette_and_chart_colors(name):
     with override_settings(INSIGHTS_THEME=name):
         for mode in theme.MODES:
             assert set(theme.palette(mode)) == set(theme.KEYS)
-            assert theme.HEX.match(get_theme(mode).primary)
+            assert theme.HEX.match(theme.chart_colors(mode)['primary'])
         assert theme.problems() == []
 
 

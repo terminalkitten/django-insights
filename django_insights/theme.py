@@ -39,13 +39,10 @@ BASECOAT_CHARTS = dict(
         CHART_KEYS, ('#93c5fd', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af'), strict=True
     )
 )
-DEFAULTS = {
-    mode: {**BASES['neutral'][mode], **BASECOAT_CHARTS} for mode in ('light', 'dark')
-}
+DEFAULTS = {mode: {**BASES['neutral'][mode], **BASECOAT_CHARTS} for mode in MODES}
 
 
 def style() -> str:
-    """The Basecoat style pack, the default when the setting is not a known one"""
     name = settings.INSIGHTS_STYLE
     return name if name in STYLES else DEFAULT_STYLE
 
@@ -78,22 +75,14 @@ def from_accent(accent: str) -> dict[str, dict[str, str]]:
         key: accent if step == 0 else lightness(accent, step)
         for key, step in zip(CHART_KEYS, CHART_STEPS, strict=True)
     }
-    return {
-        'light': {
-            'primary': accent,
-            'primary_foreground': readable_on(accent),
-            'sidebar_primary': accent,
-            'sidebar_primary_foreground': readable_on(accent),
-            **charts,
-        },
-        'dark': {
-            'primary': accent,
-            'primary_foreground': readable_on(accent),
-            'sidebar_primary': accent,
-            'sidebar_primary_foreground': readable_on(accent),
-            **charts,
-        },
+    colors = {
+        'primary': accent,
+        'primary_foreground': readable_on(accent),
+        'sidebar_primary': accent,
+        'sidebar_primary_foreground': readable_on(accent),
+        **charts,
     }
+    return {'light': colors, 'dark': colors}
 
 
 def configured_theme() -> dict[str, Any]:
@@ -105,7 +94,6 @@ def configured_theme() -> dict[str, Any]:
 
 
 def accent_colors(value: object) -> dict[str, dict[str, str]]:
-    """The colors of an accent, a shadcn theme name or any hex color, empty when unknown"""
     if isinstance(value, str):
         if value in ACCENTS:
             return ACCENTS[value]
@@ -115,7 +103,6 @@ def accent_colors(value: object) -> dict[str, dict[str, str]]:
 
 
 def user_colors() -> dict[str, dict[str, str]]:
-    """The valid colors per mode of INSIGHTS_THEME, anything else is ignored"""
     return {
         mode: {
             key: value.lower()
@@ -138,30 +125,22 @@ def overrides(mode: str) -> dict[str, str]:
 
 
 def palette(mode: str) -> dict[str, str]:
-    """Every color of a mode as hex, the dashboard and the charts both use these"""
     if mode not in MODES:
         raise ValueError(f"Unknown theme: {mode}")
     return {**DEFAULTS[mode], **overrides(mode)}
 
 
 def chart_colors(mode: str) -> dict[str, str]:
-    """The colors of a chart, taken from the same palette as the dashboard"""
     colors = palette(mode)
     return {
         'primary': colors['chart_3'],
         'face': colors['card'],
-        'edge': colors['card'],
         'tick': colors['foreground'],
-        'grid': colors['foreground'],
     }
 
 
 def css_overrides() -> str:
-    """CSS variables for the colors that are set, empty when everything is default
-
-    A color that differs in one mode is written for both, otherwise the light value
-    would also win in dark mode, the stylesheet of the dashboard comes first.
-    """
+    """CSS variables for the colors that are set, a color that differs in one mode is written for both"""
     keys = [key for key in KEYS if any(key in overrides(mode) for mode in MODES)]
     blocks = []
     for mode, selector in (('light', ':root'), ('dark', '.dark')):

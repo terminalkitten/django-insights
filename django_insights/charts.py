@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, wraps
 from pathlib import Path
@@ -56,38 +55,11 @@ class ChartSize(Enum):
     LARGE = 'large'
 
 
-@dataclass
-class ThemeColor:
-    primary: str
-    face: str
-    tick: str
-    grid: str
-    edge: str
-
-
-def get_theme(name: str) -> ThemeColor:
-    """Chart colors, from the same palette as the dashboard"""
-    return ThemeColor(**theme.chart_colors(name))
-
-
 FIGSIZES = {
     ChartSize.SMALL: (8, 4),
     ChartSize.MEDIUM: (16, 8),
     ChartSize.LARGE: (32, 16),
 }
-
-
-def get_figsize(size: ChartSize) -> tuple[int, int]:
-    """Size of charts
-
-    Args:
-        size (ChartSize): SMALL, MEDIUM, LARGE
-
-    Returns:
-        tuple[int, int]: return tuple of figure size
-    """
-
-    return FIGSIZES[size]
 
 
 LABEL_LENGTH = 30
@@ -133,33 +105,32 @@ def to_bytes_io(fig: Figure) -> bytes:
 
 
 def prepare_plot(
-    bucket: Bucket, colors: ThemeColor, size: ChartSize = ChartSize.SMALL
+    bucket: Bucket, colors: dict[str, str], size: ChartSize = ChartSize.SMALL
 ) -> tuple[Figure, Axes]:
     """Default plot options, used for all charts"""
 
-    figsize = get_figsize(size)
-    fig = Figure(figsize=figsize)
+    fig = Figure(figsize=FIGSIZES[size])
     ax = fig.subplots()
-    fig.set_facecolor(colors.face)
+    fig.set_facecolor(colors['face'])
 
-    ax.tick_params(axis='x', colors=colors.tick)
-    ax.tick_params(axis='y', colors=colors.tick)
-    ax.set_facecolor(colors.face)
+    ax.tick_params(axis='x', colors=colors['tick'])
+    ax.tick_params(axis='y', colors=colors['tick'])
+    ax.set_facecolor(colors['face'])
     ax.set_title(bucket.title)
     ax.set_ylabel(bucket.ylabel)
     ax.set_xlabel(bucket.xlabel)
-    ax.yaxis.label.set_color(colors.tick)
-    ax.xaxis.label.set_color(colors.tick)
+    ax.yaxis.label.set_color(colors['tick'])
+    ax.xaxis.label.set_color(colors['tick'])
     ax.grid(
         linestyle="dotted",
         linewidth=0.1,
-        color=colors.grid,
+        color=colors['tick'],
         zorder=-10,
         visible=True,
     )
 
     for spine in ax.spines.values():
-        spine.set_edgecolor(colors.edge)
+        spine.set_edgecolor(colors['face'])
 
     return fig, ax
 
@@ -172,9 +143,9 @@ def render_barchart(
     size: ChartSize,
 ) -> Figure:
     """Render barchart"""
-    colors = get_theme(mode)
+    colors = theme.chart_colors(mode)
     fig, ax = prepare_plot(bucket, colors, size)
-    ax.bar(labels, heights, color=colors.primary)
+    ax.bar(labels, heights, color=colors['primary'])
 
     return fig
 
@@ -187,12 +158,12 @@ def render_hbarchart(
     size: ChartSize,
 ) -> Figure:
     """Render horizontal barchart"""
-    colors = get_theme(mode)
+    colors = theme.chart_colors(mode)
     fig, ax = prepare_plot(bucket, colors, size)
     bars = ax.barh(
         labels,
         widths,
-        color=colors.primary,
+        color=colors['primary'],
         align='center',
         height=0.9,
     )
@@ -206,7 +177,7 @@ def render_hbarchart(
             s=f'{width:,.0f}' if width == int(width) else f'{width:,.2f}',
             va='center',
             size=9,
-            color=colors.tick,
+            color=colors['tick'],
         )
 
     for tick in ax.yaxis.get_major_ticks():
@@ -230,10 +201,10 @@ def render_scatterplot(
     size: ChartSize,
 ) -> Figure:
     """Render scatterplot"""
-    colors = get_theme(mode)
+    colors = theme.chart_colors(mode)
 
     fig, ax = prepare_plot(bucket, colors, size)
-    ax.scatter(xaxis, yaxis, color=colors.primary)
+    ax.scatter(xaxis, yaxis, color=colors['primary'])
 
     return fig
 
@@ -246,10 +217,10 @@ def render_timeseries(
     size: ChartSize,
 ) -> Figure:
     """Render timeseries"""
-    colors = get_theme(mode)
+    colors = theme.chart_colors(mode)
 
     fig, ax = prepare_plot(bucket, colors, size)
-    ax.plot(xaxis, yaxis, '--o', markersize=5, color=colors.primary)
+    ax.plot(xaxis, yaxis, '--o', markersize=5, color=colors['primary'])
 
     return fig
 

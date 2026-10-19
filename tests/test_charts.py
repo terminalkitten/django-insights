@@ -7,7 +7,7 @@ import pytest
 from django.test import override_settings
 from matplotlib.figure import Figure
 
-from django_insights import charts
+from django_insights import charts, theme
 from django_insights.charts import to_bytes_io
 from django_insights.choices import BucketType
 from django_insights.models import App, Bucket, BucketValue
@@ -50,7 +50,7 @@ def test_bars_without_a_category_still_render(render, bucket_type):
 
 def test_unknown_theme_is_rejected():
     with pytest.raises(ValueError, match='Unknown theme'):
-        charts.get_theme('neon')
+        theme.chart_colors('neon')
 
 
 def test_rendering_charts_leaves_the_host_matplotlib_config_alone(collected):
@@ -106,7 +106,7 @@ def test_horizontal_bar_labels_are_readable_on_the_theme():
 
     (text,) = figure.axes[0].texts
     assert text.get_text() == '1,200'
-    assert text.get_color() == charts.get_theme('dark').tick
+    assert text.get_color() == theme.chart_colors('dark')['tick']
 
 
 def test_only_long_category_labels_are_shortened():
@@ -140,7 +140,10 @@ def test_long_labels_stay_inside_the_image(render, bucket_type):
 
 def test_both_modes_draw_with_the_same_chart_color():
     with override_settings(INSIGHTS_THEME={'accent': '#16a34a'}):
-        assert charts.get_theme('light').primary == charts.get_theme('dark').primary
+        assert (
+            theme.chart_colors('light')['primary']
+            == theme.chart_colors('dark')['primary']
+        )
 
 
 def test_a_wrong_dpi_falls_back_to_the_default():

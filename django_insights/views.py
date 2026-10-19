@@ -25,15 +25,13 @@ if TYPE_CHECKING:
 
     from django.db.models.query import QuerySet
 
-THEMES = ('light', 'dark')
-
 
 def chart_mode(request: HttpRequest) -> str:
     mode = request.COOKIES.get('theme')
-    if mode in THEMES:
+    if mode in theme.MODES:
         return mode
     default = settings.INSIGHTS_DEFAULT_THEME
-    return default if default in THEMES else 'dark'
+    return default if default in theme.MODES else 'dark'
 
 
 def chart_etag(request: HttpRequest, bucket_id: int) -> str | None:
