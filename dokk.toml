@@ -1,4 +1,4 @@
-# django-insights documentation, built with dokk: make docs-serve / make docs-build
+# django-insights documentation, built with dokk: uv run dokk serve / uv run dokk build
 title = "Django Insights"
 description = "Create insights for your Django app, written right next to your application logic."
 site_url = "https://terminalkitten.github.io/django-insights/"

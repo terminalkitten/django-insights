@@ -44,6 +44,7 @@ dev = [
     "tox",
     "tox-uv",
     "pytest-cov>=7.1.0",
+    "dokk[search,serve]>=0.0.4",
 ]
 
 [project.entry-points.pytest11]
