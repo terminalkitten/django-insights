@@ -2,7 +2,7 @@
 title: Migrating to v2
 description: A checklist for upgrading from django-insights 0.2.x to 0.3 (v2).
 sidebar:
-  order: 5
+  order: 7
 ---
 
 A checklist for upgrading from 0.2.x. Work through it top to bottom, most projects need steps 1 to 5 only.

@@ -2,7 +2,7 @@
 title: Collecting
 description: How collect_insights runs, what happens when an insight fails, and running it from cron.
 sidebar:
-  order: 2
+  order: 3
 ---
 
 ```bash

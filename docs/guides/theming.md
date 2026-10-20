@@ -2,7 +2,7 @@
 title: Theming
 description: Pick a Basecoat style and shadcn/ui colors, shared by the dashboard and the charts.
 sidebar:
-  order: 3
+  order: 4
 ---
 
 The dashboard and the charts share one palette, so a color you set shows up in both. `INSIGHTS_STYLE` picks one of the [Basecoat styles](https://basecoatui.com/customization/), `INSIGHTS_THEME` sets the colors with the names of the [shadcn/ui themes](https://ui.shadcn.com/themes):

@@ -2,7 +2,7 @@
 title: Customizing
 description: Change where the dashboard lives, override its templates and reuse its template tags.
 sidebar:
-  order: 5
+  order: 6
 ---
 
 ## The URLs

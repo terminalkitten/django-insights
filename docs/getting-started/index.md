@@ -105,6 +105,22 @@ Or open the [dashboard](dashboard.md). The tables are described in [The insights
 Run `python manage.py check` after changing the settings. It warns about a missing insights database or router, see [System checks](../reference/checks.md).
 :::
 
+## What next?
+
+::::cards
+:::card[Recipes]{href="../guides/recipes.md"}
+Copy an insight for signups, revenue, top customers and more.
+:::
+
+:::card[Metrics]{href="../guides/metrics/index.md"}
+Pick the right metric for your question.
+:::
+
+:::card[Dashboard]{href="dashboard.md"}
+Show your insights in the browser.
+:::
+::::
+
 ## Keep it up to date
 
 `collect_insights` reads your data at that moment. Run it each time you want fresh numbers, in production for example from a cron job. More in [Collecting](../guides/collecting.md).

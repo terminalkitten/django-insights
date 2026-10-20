@@ -2,7 +2,7 @@
 title: Testing insights
 description: Test the queries behind your insights with the pytest plugin.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 The pytest plugin comes with Django Insights, there is nothing to configure. It gives a test the plain function behind an insight, so you can test your queries against the test database. Nothing is saved.

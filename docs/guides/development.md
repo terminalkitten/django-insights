@@ -2,7 +2,7 @@
 title: Development
 description: Run the demo project, the tests, the dashboard stylesheet build and these docs.
 sidebar:
-  order: 6
+  order: 8
 ---
 
 For contributors. The repository has a demo project (a fictional chat and billing app) with a lot of seeded data, so every chart type has something to show.
