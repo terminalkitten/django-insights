@@ -7,16 +7,16 @@ sidebar:
 
 All settings are optional and read from your Django settings when they are used, so `override_settings` works in tests.
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `INSIGHTS_APP_NAME` | `"MyApp"` | Name shown in the dashboard |
-| `INSIGHTS_DEFAULT_THEME` | `"dark"` | `"light"` or `"dark"`, used until a visitor chooses a theme |
-| `INSIGHTS_CHART_DPI` | `180` | Resolution of the chart images |
-| `INSIGHTS_STYLE` | `"vega"` | Basecoat style: `vega`, `nova`, `maia`, `lyra`, `mira`, `luma`, `sera` or `rhea` |
-| `INSIGHTS_THEME` | `None` | A shadcn theme name like `"blue"`, or a dict with your own colors, see [Theming](../guides/theming.md) |
-| `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False` | Keep rendered charts as files instead of rendering them on every request |
-| `INSIGHTS_MEDIA_CACHE_ROOT` | `None` | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
-| `INSIGHTS_DASHBOARD_PERMISSIONS` | `None` | List of permission classes, see below |
+| Setting                           | Default   | Description                                                                                                |
+| --------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| `INSIGHTS_APP_NAME`               | `"MyApp"` | Name shown in the dashboard                                                                                |
+| `INSIGHTS_DEFAULT_THEME`          | `"dark"`  | `"light"` or `"dark"`, used until a visitor chooses a theme                                                |
+| `INSIGHTS_CHART_DPI`              | `180`     | Resolution of the chart images                                                                             |
+| `INSIGHTS_STYLE`                  | `"vega"`  | Basecoat style: `vega`, `nova`, `maia`, `lyra`, `mira`, `luma`, `sera` or `rhea`                           |
+| `INSIGHTS_THEME`                  | `None`    | A shadcn theme name like `"blue"`, or a dict with your own colors, see [Theming](../guides/theming.md)     |
+| `INSIGHTS_CHARTS_USE_MEDIA_CACHE` | `False`   | Keep rendered charts as files instead of rendering them on every request                                   |
+| `INSIGHTS_MEDIA_CACHE_ROOT`       | `None`    | Directory for the cached charts, required when the cache is on. Only cached chart images in it are deleted |
+| `INSIGHTS_DASHBOARD_PERMISSIONS`  | `None`    | List of permission classes, see below                                                                      |
 
 ## Permissions
 

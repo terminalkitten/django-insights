@@ -7,14 +7,14 @@ sidebar:
 
 Django Insights collects six types of metrics. Each one is a decorator for a function in an `insights.py` file:
 
-| Decorator | Returns | Shown as |
-| --- | --- | --- |
-| `@metrics.counter` | a whole number, `-> int` | a number |
-| `@metrics.gauge` | a decimal number, `-> float` | a number |
-| `@metrics.timeseries` | values over time | a line chart |
-| `@metrics.scatterplot` | pairs of values | a scatter plot |
-| `@metrics.barchart` | values per category | a bar chart |
-| `@metrics.hbarchart` | values per category | a horizontal bar chart |
+| Decorator              | Returns                      | Shown as               |
+| ---------------------- | ---------------------------- | ---------------------- |
+| `@metrics.counter`     | a whole number, `-> int`     | a number               |
+| `@metrics.gauge`       | a decimal number, `-> float` | a number               |
+| `@metrics.timeseries`  | values over time             | a line chart           |
+| `@metrics.scatterplot` | pairs of values              | a scatter plot         |
+| `@metrics.barchart`    | values per category          | a bar chart            |
+| `@metrics.hbarchart`   | values per category          | a horizontal bar chart |
 
 Every decorator takes a `question` and optionally a `desc`. The chart types also take `xlabel`, `ylabel`, `xformat`, `yformat` and `title`. The functions run your own queries, a `QuerySet` can be returned as is.
 
@@ -148,12 +148,12 @@ def top_channels_by_messages() -> BarChartResult:
 
 The chart types return an iterable of tuples, a `QuerySet` from `values_list(...)` works. The position of each value matters:
 
-| Type | Row | Notes |
-| --- | --- | --- |
-| `timeseries` | `(timestamp, value)` | `timestamp` is a `datetime`, `xformat` formats it in the table |
-| `scatterplot` | `(vertical, horizontal, category)` | the first value is drawn on the vertical axis |
-| `barchart` | `(height, unused, label)` | the second value is stored, but not drawn |
-| `hbarchart` | `(length, unused, label)` | the length is shown behind the bar, labels over 30 characters are cut |
+| Type          | Row                                | Notes                                                                 |
+| ------------- | ---------------------------------- | --------------------------------------------------------------------- |
+| `timeseries`  | `(timestamp, value)`               | `timestamp` is a `datetime`, `xformat` formats it in the table        |
+| `scatterplot` | `(vertical, horizontal, category)` | the first value is drawn on the vertical axis                         |
+| `barchart`    | `(height, unused, label)`          | the second value is stored, but not drawn                             |
+| `hbarchart`   | `(length, unused, label)`          | the length is shown behind the bar, labels over 30 characters are cut |
 
 A missing label (`None`) is shown as an empty label. Annotate your functions with `TimeSeriesResult`, `ScatterPlotResult` and `BarChartResult` from `django_insights.metrics_types`.
 

@@ -2,17 +2,17 @@
 title: About
 description: Why Django Insights exists, and when it is the right tool.
 sidebar:
-  order: 3
+  order: 4
 ---
 
 ## Use cases
 
 Insights are gathered from the current state of your app. Django Insights is not meant as a realtime, incrementing data source: you should be able to gather the insights again from your actual data at any moment.
 
-| Yes | No |
-| --- | --- |
-| How many users, how many users invited per year | How many GET requests for URL X per second |
-| How many reports per day, how many messages sent on Wednesdays | A realtime profit target percentage |
+| Yes                                                            | No                                         |
+| -------------------------------------------------------------- | ------------------------------------------ |
+| How many users, how many users invited per year                | How many GET requests for URL X per second |
+| How many reports per day, how many messages sent on Wednesdays | A realtime profit target percentage        |
 
 ## Background
 

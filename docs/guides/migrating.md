@@ -21,18 +21,18 @@ pip install -U django-insights
 
 The three settings without the `S` are renamed. The old names are ignored, `manage.py check` warns when they are still set (`insights.W006`).
 
-| Old | New |
-| --- | --- |
+| Old                              | New                               |
+| -------------------------------- | --------------------------------- |
 | `INSIGHT_CHARTS_USE_MEDIA_CACHE` | `INSIGHTS_CHARTS_USE_MEDIA_CACHE` |
-| `INSIGHT_MEDIA_CACHE_ROOT` | `INSIGHTS_MEDIA_CACHE_ROOT` |
-| `INSIGHT_DASHBOARD_PERMISSIONS` | `INSIGHTS_DASHBOARD_PERMISSIONS` |
+| `INSIGHT_MEDIA_CACHE_ROOT`       | `INSIGHTS_MEDIA_CACHE_ROOT`       |
+| `INSIGHT_DASHBOARD_PERMISSIONS`  | `INSIGHTS_DASHBOARD_PERMISSIONS`  |
 
 The chart color settings are replaced by one theme setting (`manage.py check` warns with `insights.W010` while they are still set):
 
-| Old | New |
-| --- | --- |
+| Old                                  | New                         |
+| ------------------------------------ | --------------------------- |
 | `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` | `INSIGHTS_THEME`, see below |
-| `INSIGHTS_CHART_DARK_PRIMARY_COLOR` | `INSIGHTS_THEME`, see below |
+| `INSIGHTS_CHART_DARK_PRIMARY_COLOR`  | `INSIGHTS_THEME`, see below |
 
 ```python
 INSIGHTS_THEME = "blue"  # a shadcn theme name

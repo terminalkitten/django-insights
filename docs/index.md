@@ -3,7 +3,7 @@ title: Django Insights
 description: Create insights for your Django app, written right next to your application logic.
 ---
 
-![Django Insights](img/banner.png)
+::image[Django Insights, questions about your app as numbers and charts]{src="img/banner.png"}
 
 Django Insights turns questions about your app into numbers and charts. You write each insight as a small function next to your application code, `collect_insights` runs them all and stores the answers in a separate SQLite database, and a built-in dashboard shows them.
 
@@ -28,12 +28,15 @@ A new major release lives on the `feat/v2` branch: Django 5.2+ and Python 3.11+,
 :::card[Get started]{href="getting-started/index.md"}
 Install the app, add the insights database and collect your first insights.
 :::
+
 :::card[Metrics]{href="guides/metrics.md"}
 Counters, gauges, time series, scatter plots and bar charts, with trends.
 :::
+
 :::card[Theming]{href="guides/theming.md"}
 Basecoat styles and shadcn/ui colors, shared by the dashboard and the charts.
 :::
+
 :::card[Settings]{href="reference/settings.md"}
 Every setting with its default, and the system checks that guard them.
 :::
