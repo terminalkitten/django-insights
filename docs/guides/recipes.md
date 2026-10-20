@@ -216,15 +216,18 @@ def refund_rate_per_month():
     trend=refund_rate_per_month,
 )
 def refund_rate() -> float:
-    return Order.objects.aggregate(
-        rate=Avg(
-            Case(
-                When(status="refunded", then=100.0),
-                default=0.0,
-                output_field=FloatField(),
+    return (
+        Order.objects.aggregate(
+            rate=Avg(
+                Case(
+                    When(status="refunded", then=100.0),
+                    default=0.0,
+                    output_field=FloatField(),
+                )
             )
-        )
-    )["rate"] or 0.0
+        )["rate"]
+        or 0.0
+    )
 ```
 
 The dashboard shows the number with a small line, and the change of the last month against the one before it. See [Trend](metrics/trend.md).

@@ -17,14 +17,6 @@ urlpatterns = [
 
 Visit <http://localhost:8000/insights/> to see your insights. The dashboard requires a logged in user, to restrict it further see [Permissions](../reference/settings.md#permissions).
 
-:::note[Login]
-A visitor who is not logged in is sent to your `LOGIN_URL`, which is `/accounts/login/` by default. If your project has no login page there, point it to one, for example the admin:
-
-```python
-LOGIN_URL = "/admin/login/"
-```
-:::
-
 ## The dashboard
 
 All counters and gauges of all apps, with their trend. The sidebar lists your apps.

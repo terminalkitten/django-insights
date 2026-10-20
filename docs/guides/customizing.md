@@ -10,7 +10,7 @@ sidebar:
 Include the URLs under any path. The namespace must be `insights`:
 
 ```python
-path("stats/", include("django_insights.urls", namespace="insights")),
+(path("stats/", include("django_insights.urls", namespace="insights")),)
 ```
 
 These names are available for `reverse()` and `{% url %}`:
