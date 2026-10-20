@@ -1,6 +1,6 @@
 [![CI](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg)](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml)
 
-!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/banner.png)
+!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/banner.png)
 
 > [!NOTE]
 > **v2 is in the works.** We are currently working on a new major release on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and a lot of fixes. The documentation below describes the current state of that branch and may change before release.
@@ -119,8 +119,8 @@ Now you can visit http://localhost:8000/insights/ to inspect your Django Insight
 
 | Light | Dark |
 | --- | --- |
-| ![Dashboard, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-light.png) | ![Dashboard, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/dashboard-dark.png) |
-| ![App, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-light.png) | ![App, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/assets/images/app-dark.png) |
+| ![Dashboard, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/dashboard-light.png) | ![Dashboard, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/dashboard-dark.png) |
+| ![App, light](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/app-light.png) | ![App, dark](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/app-dark.png) |
 
 ## Metrics
 
