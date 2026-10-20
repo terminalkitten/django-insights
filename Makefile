@@ -1,30 +1,28 @@
-.PHONY: rs migrate dump shell seed collect_insights compilereqtxt clean
+.PHONY: lint rs migrate dump shell seed collect_insights clean
 
 rs:
-	python manage.py runserver
+	uv run python manage.py runserver
 
 migrate:
-	python manage.py migrate
-	python manage.py migrate insights --database=insights
+	mkdir -p db
+	uv run python manage.py migrate
+	uv run python manage.py migrate insights --database=insights
 
 shell:
-	python manage.py shell
+	uv run python manage.py shell
 
 seed:
-	python manage.py seed_db
+	uv run python manage.py seed_db
 
 collect_insights:
-	python manage.py collect_insights
+	uv run python manage.py collect_insights
 
-compilereq:
-	python requirements/compile.py
+lint:
+	uv run ruff check --fix .
+	uv run ruff format .
+	uv run ty check
+	uv run pytest
 
 clean:
 	rm -f db/*.db
-	rm -rf django_insights/migrations
-	rm -rf project/testapp/migrations
-
-	python manage.py makemigrations testapp users
-	python manage.py makemigrations insights
-	python manage.py migrate
-	python manage.py migrate insights --database=insights
+	$(MAKE) migrate
