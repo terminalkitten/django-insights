@@ -28,6 +28,8 @@
 > [!NOTE]
 > **v2 is in the works.** We are currently working on a new major release on the `main` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and a lot of fixes. The documentation below describes the current state of the `main` branch and may change before release.
 
+!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/banner.png)
+
 ## Features
 
 Create insights for your app, store them in a SQLite database for further processing, these insights are written right next to your application logic.
