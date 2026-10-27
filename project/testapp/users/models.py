@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class AppUser(AbstractBaseUser, PermissionsMixin):
+class AppUser(AbstractBaseUser, PermissionsMixin):  # ty: ignore[invalid-attribute-override]
     created = models.DateTimeField('created', auto_now_add=True)
     modified = models.DateTimeField('modified', auto_now=True)
 
