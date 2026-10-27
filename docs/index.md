@@ -69,7 +69,7 @@ It is a good fit when you want insights about the **current state** of your app 
 Then follow [Getting started](getting-started/index.md): you have your first insight in the dashboard in a few steps.
 
 :::note[v2 is in the works]
-A new major release lives on the `feat/v2` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and many fixes. These docs describe that branch and may change before the release. Upgrading from 0.2? Read [Migrating to v2](guides/migrating.md).
+A new major release lives on the `main` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and many fixes. These docs describe the `main` branch and may change before the release. Upgrading from 0.2? Read [Migrating to v2](guides/migrating.md).
 :::
 
 Supported: Django 5.2 (LTS), 6.0 and 6.1 (Django 6 needs Python 3.12+), on Python 3.11 to 3.14.
