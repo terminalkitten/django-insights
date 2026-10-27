@@ -35,6 +35,6 @@ INSIGHTS_DASHBOARD_PERMISSIONS = [IsStaff]
 A class without a `has_permission` method denies access, it never grants it.
 :::
 
-## Renamed in v2
+## Renamed in 0.3
 
-Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix, and replaced `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` and `INSIGHTS_CHART_DARK_PRIMARY_COLOR` with `INSIGHTS_THEME`. The old names are ignored, `manage.py check` warns when they are still set. See [Migrating to v2](../guides/migrating.md).
+Version 0.3 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix, and replaced `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` and `INSIGHTS_CHART_DARK_PRIMARY_COLOR` with `INSIGHTS_THEME`. The old names are ignored, `manage.py check` warns when they are still set. See [Upgrading from 0.2](../guides/migrating.md).

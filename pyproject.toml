@@ -12,7 +12,7 @@ license-files = ["LICENSE"]
 dynamic = ["version"]
 keywords = ["django", "insights", "metrics", "dashboard", "analytics", "reporting"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: Django",
     "Framework :: Django :: 5.2",

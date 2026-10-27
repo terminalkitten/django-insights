@@ -17,7 +17,7 @@
   <a href="https://terminalkitten.github.io/django-insights/guides/recipes/">Recipes</a> ·
   <a href="https://terminalkitten.github.io/django-insights/guides/metrics/">Metrics</a> ·
   <a href="https://terminalkitten.github.io/django-insights/guides/theming/">Theming</a> ·
-  <a href="https://terminalkitten.github.io/django-insights/guides/migrating/">Migrating to v2</a> ·
+  <a href="https://terminalkitten.github.io/django-insights/guides/migrating/">Upgrading from 0.2</a> ·
   <a href="https://pypi.org/project/django-insights/">PyPI</a>
 </p>
 
@@ -25,8 +25,8 @@
   <a href="https://github.com/terminalkitten/django-insights/actions/workflows/main.yml"><img src="https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg" alt="CI"></a>
 </p>
 
-> [!NOTE]
-> **v2 is in the works.** We are currently working on a new major release on the `main` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and a lot of fixes. The documentation below describes the current state of the `main` branch and may change before release.
+> [!IMPORTANT]
+> **Upgrading from 0.2?** Version 0.3 is a big update: Django 5.2+ and Python 3.11+, a new dashboard, renamed settings and a database migration. Follow the [upgrade checklist](https://terminalkitten.github.io/django-insights/guides/migrating/).
 
 !["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/banner.png)
 
@@ -365,7 +365,7 @@ INSIGHTS_DASHBOARD_PERMISSIONS = [IsStaff]
 
 A class without a `has_permission` method denies access, it never grants it.
 
-Version 2 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
+Version 0.3 renamed `INSIGHT_CHARTS_USE_MEDIA_CACHE`, `INSIGHT_MEDIA_CACHE_ROOT` and `INSIGHT_DASHBOARD_PERMISSIONS` to the `INSIGHTS_` prefix. The old names are ignored, `manage.py check` warns when they are still set.
 
 ### Theming
 
