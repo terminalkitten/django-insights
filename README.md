@@ -1,6 +1,29 @@
-[![CI](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg)](https://github.com/terminalkitten/django-insights/actions/workflows/main.yml)
+<p align="center">
+  <a href="https://terminalkitten.github.io/django-insights/">
+    <img src="https://raw.githubusercontent.com/terminalkitten/django-insights/main/public/logo.svg" alt="Django Insights logo" width="72" height="72">
+  </a>
+</p>
 
-!["Django Insights"](https://raw.githubusercontent.com/terminalkitten/django-insights/main/docs/img/banner.png)
+<h1 align="center">Django Insights</h1>
+
+<p align="center">
+  <strong>Questions about your Django app, answered as numbers and charts.</strong><br>
+  Write each insight as a small function next to your code, collect them, and get a dashboard and a SQLite file.
+</p>
+
+<p align="center">
+  <a href="https://terminalkitten.github.io/django-insights/"><strong>Documentation</strong></a> ·
+  <a href="https://terminalkitten.github.io/django-insights/getting-started/">Getting started</a> ·
+  <a href="https://terminalkitten.github.io/django-insights/guides/recipes/">Recipes</a> ·
+  <a href="https://terminalkitten.github.io/django-insights/guides/metrics/">Metrics</a> ·
+  <a href="https://terminalkitten.github.io/django-insights/guides/theming/">Theming</a> ·
+  <a href="https://terminalkitten.github.io/django-insights/guides/migrating/">Migrating to v2</a> ·
+  <a href="https://pypi.org/project/django-insights/">PyPI</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/terminalkitten/django-insights/actions/workflows/main.yml"><img src="https://github.com/terminalkitten/django-insights/actions/workflows/main.yml/badge.svg" alt="CI"></a>
+</p>
 
 > [!NOTE]
 > **v2 is in the works.** We are currently working on a new major release on the `main` branch: Django 5.2+ and Python 3.11+, a refreshed dashboard and a lot of fixes. The documentation below describes the current state of the `main` branch and may change before release.
