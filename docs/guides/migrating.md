@@ -1,131 +1,137 @@
 ---
-title: Migrating to v2
-description: A checklist for upgrading from django-insights 0.2.x to 0.3 (v2).
+title: Upgrading from 0.2
+description: What changed in django-insights 0.3, and the four steps to upgrade from 0.2.x.
 sidebar:
   order: 7
 ---
 
-A checklist for upgrading from 0.2.x. Work through it top to bottom, most projects need steps 1 to 5 only.
+Version 0.3 is a big update, but your insights keep working. Most projects need the four steps below and take about ten minutes. Your collected data is kept.
 
-## 1. Requirements
+## What changed
 
-- [ ] Python 3.11 to 3.14 (3.8 to 3.10 are dropped).
-- [ ] Django 5.2, 6.0 or 6.1 (3.2 to 4.2 are dropped). Django 6 needs Python 3.12+.
-- [ ] Browser with `<dialog>` and Tailwind 4 support for the dashboard: Chrome 111+, Safari 16.4+, Firefox 128+.
+| Area         | What changed                                                                | Do you need to act?            |
+| ------------ | --------------------------------------------------------------------------- | ------------------------------ |
+| Requirements | Python 3.11 to 3.14, Django 5.2, 6.0 or 6.1                                 | Yes, if you are older          |
+| Settings     | Three renamed, the chart colors replaced by `INSIGHTS_THEME`                | Yes                            |
+| Database     | Two migrations for the `insights` database                                  | Yes, one command               |
+| Collecting   | One transaction, a failing insight now makes the command exit with an error | Check your cron or CI          |
+| Permissions  | A permission class without `has_permission` now denies access               | Check your classes             |
+| PDF export   | Removed, with all its dependencies                                          | Yes, if you used it            |
+| Dashboard    | New design with Basecoat UI, light and dark                                 | Only if you override templates |
+| New          | Trends, themes with 24 shadcn colors, 8 styles, system checks               | No, optional                   |
 
-```bash
-pip install -U django-insights
-```
+## Upgrade in four steps
 
-## 2. Rename your settings
+:::steps
+1. **Upgrade the package.** You need Python 3.11 to 3.14 and Django 5.2, 6.0 or 6.1 (Django 6 needs Python 3.12+).
 
-The three settings without the `S` are renamed. The old names are ignored, `manage.py check` warns when they are still set (`insights.W006`).
+   ```bash
+   pip install -U django-insights
+   ```
 
-| Old                              | New                               |
-| -------------------------------- | --------------------------------- |
-| `INSIGHT_CHARTS_USE_MEDIA_CACHE` | `INSIGHTS_CHARTS_USE_MEDIA_CACHE` |
-| `INSIGHT_MEDIA_CACHE_ROOT`       | `INSIGHTS_MEDIA_CACHE_ROOT`       |
-| `INSIGHT_DASHBOARD_PERMISSIONS`  | `INSIGHTS_DASHBOARD_PERMISSIONS`  |
+2. **Rename your settings.** The old names are ignored, `manage.py check` warns while they are still set.
 
-The chart color settings are replaced by one theme setting (`manage.py check` warns with `insights.W010` while they are still set):
+   | Old                                                                       | New                                         |
+   | ------------------------------------------------------------------------- | ------------------------------------------- |
+   | `INSIGHT_CHARTS_USE_MEDIA_CACHE`                                          | `INSIGHTS_CHARTS_USE_MEDIA_CACHE`           |
+   | `INSIGHT_MEDIA_CACHE_ROOT`                                                | `INSIGHTS_MEDIA_CACHE_ROOT`                 |
+   | `INSIGHT_DASHBOARD_PERMISSIONS`                                           | `INSIGHTS_DASHBOARD_PERMISSIONS`            |
+   | `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR`, `INSIGHTS_CHART_DARK_PRIMARY_COLOR` | `INSIGHTS_THEME`, see [Theming](theming.md) |
 
-| Old                                  | New                         |
-| ------------------------------------ | --------------------------- |
-| `INSIGHTS_CHART_LIGHT_PRIMARY_COLOR` | `INSIGHTS_THEME`, see below |
-| `INSIGHTS_CHART_DARK_PRIMARY_COLOR`  | `INSIGHTS_THEME`, see below |
+   ```python
+   INSIGHTS_THEME = "blue"  # a shadcn theme name, or {"accent": "#ec4899"}
+   ```
 
-```python
-INSIGHTS_THEME = "blue"  # a shadcn theme name
-INSIGHTS_THEME = {"accent": "#ec4899"}  # or any hex color
-INSIGHTS_STYLE = "vega"  # Basecoat style, optional
-```
+   `INSIGHTS_APP_NAME`, `INSIGHTS_CHART_DPI` and `INSIGHTS_DEFAULT_THEME` are unchanged.
 
-The dashboard and the charts share one palette now. All names and the dict form are in [Theming](theming.md).
+3. **Migrate the insights database.** Two migrations, your data is kept.
 
-Unchanged: `INSIGHTS_APP_NAME`, `INSIGHTS_CHART_DPI`, `INSIGHTS_DEFAULT_THEME`.
+   ```bash
+   python manage.py migrate insights --database=insights
+   ```
 
-Other things about settings:
+4. **Collect once and check.**
 
-- [ ] Settings are read when they are used, so `override_settings` works. Unknown names raise `AttributeError`.
-- [ ] `INSIGHTS_CHARTS_USE_MEDIA_CACHE = True` requires `INSIGHTS_MEDIA_CACHE_ROOT` (`insights.W003`).
-- [ ] `INSIGHTS_DASHBOARD_PERMISSIONS` fails closed: a class without `has_permission(request)` used to be skipped, which granted access. It now raises `ImproperlyConfigured`. Check that every class you list has the method and returns `True` for the people who should get in.
-- [ ] System checks are warnings only (`insights.W001` to `W012`, see [System checks](../reference/checks.md)), they never stop the project from starting. `django_insights.database.check_settings()` is removed, run `manage.py check`.
+   ```bash
+   python manage.py collect_insights   # exit code 0
+   python manage.py check              # no insights warnings
+   ```
+:::
 
-## 3. Migrate the insights database
+That is it for most projects. Read on for the changes that can affect you.
 
-Two migrations, both for the `insights` database. Your data is kept.
+## Things to check
 
-```bash
-python manage.py migrate insights --database=insights
-```
+:::caution[Permissions now fail closed]
+A class in `INSIGHTS_DASHBOARD_PERMISSIONS` without a `has_permission(request)` method used to be skipped, which granted access. It now raises `ImproperlyConfigured` and the dashboard denies access. Check that every class you list has the method and returns `True` for the people who should get in.
+:::
 
-- `0002`: labels are unique per app (two apps can both have `count_users`), `Counter.value` is a big integer, explicit ordering, the unused histogram type, `ExecutionDelta` model and `Gauge.gauge()` are removed.
+:::caution[Cron jobs and CI see failures]
+`collect_insights` now runs in one transaction. When an insight raises, it is logged and reported, the others still run, and the command exits with an error such as `3 of 14 insights failed`. A monitor that watches the exit code will start to report them.
+:::
+
+:::caution[PDF export is removed]
+Nothing replaces it. Remove links to `insights:insight_pdf` and `insights:insight_pdf_test`, and the `[pdf]` extra from your requirements. `weasyprint`, `django-weasyprint` and PyMuPDF are no longer used, and no system libraries (Pango and friends) are needed.
+:::
+
+:::note[Old dashboard bookmarks]
+Dashboard URLs use a stable id per app, derived from the module path. Bookmarks of `/app/<uuid>/` from 0.2 stop working once, collect again and use the new links.
+:::
+
+## What is new
+
+- **Trends** on counters and gauges: a small line and the change against the previous period, see [Trend](metrics/trend.md).
+- **Themes**: pick a Basecoat style and shadcn colors, shared by the dashboard and the charts, see [Theming](theming.md).
+- **System checks**: `manage.py check` warns about a missing insights database, a wrong setting and more, see [System checks](../reference/checks.md).
+- **Stable collecting**: one transaction, per-insight errors, no output when it is not a terminal.
+- **A pytest plugin** that loads by itself, see [Testing insights](testing.md).
+
+## More details
+
+:::details[Settings behavior]
+- Settings are read when they are used, so `override_settings` works. Unknown names raise `AttributeError`.
+- `INSIGHTS_CHARTS_USE_MEDIA_CACHE = True` requires `INSIGHTS_MEDIA_CACHE_ROOT` (`insights.W003`).
+- System checks are warnings only (`insights.W001` to `W012`), they never stop the project from starting. `django_insights.database.check_settings()` is removed, run `manage.py check`.
+:::
+
+:::details[The database migrations]
+- `0002`: labels are unique per app (two apps can both have `count_users`), `Counter.value` is a big integer, explicit ordering. The unused histogram type, the `ExecutionDelta` model and `Gauge.gauge()` are removed.
 - `0003`: a `trend` column for counters and gauges.
 
-The insights database is a cache of your data, so you can also delete it and run `collect_insights`.
+The insights database is a cache of your data, so you can also delete it, migrate it again and run `collect_insights`.
+:::
 
-- [ ] Run `python manage.py collect_insights` once after upgrading. Dashboard URLs now use a stable id per app (derived from the module path), so old bookmarks of `/app/<uuid>/` stop working once.
+:::details[Collecting from code]
+- `metrics.collect()` returns the list of failures. It raises `InsightsError` (from `django_insights.exceptions`) when an insight saves duplicates, it no longer prints and calls `exit()`.
+- The progress bar is hidden when the output is not a terminal.
+- The chart cache only deletes cached `*-*-*.png` files, it no longer wipes the whole media cache root.
+:::
 
-## 4. Collecting
-
-- [ ] `collect_insights` runs in one transaction. A failing insight is logged (logger `django_insights.registry`), reported on stderr and makes the command exit with an error (`3 of 14 insights failed`), the other insights still run. Cron jobs and CI will now see a non-zero exit code, check your monitoring.
-- [ ] `metrics.collect()` returns the list of failures. It raises `InsightsError` (from `django_insights.exceptions`) when an insight saves duplicates, it no longer prints and calls `exit()`.
-- [ ] The progress bar is hidden when output is not a terminal.
-- [ ] The chart cache only deletes cached `*-*-*.png` files, it no longer wipes the whole media cache root.
-
-## 5. PDF export is removed
-
-The PDF report is gone, together with its dependencies. Nothing replaces it.
-
-- [ ] Remove links to `insights:insight_pdf` and `insights:insight_pdf_test` (`insights/pdf/` and `insights/pdf/test/`), they no longer exist.
-- [ ] Remove the `[pdf]` extra from your requirements: `pip install 'django-insights[pdf]'` is no longer needed. `weasyprint` and `django-weasyprint` are not dependencies anymore, and PyMuPDF is not used.
-- [ ] If you override `insights/pdf.html` or `pdf.css`, delete them. `{% pdf_chart %}` and `pdf_available` are removed too.
-- [ ] No system libraries (Pango and friends) are needed anymore.
-
-## 6. Templates and static files
-
+:::details[Templates and static files]
 Only needed if you override templates or use the template tags yourself.
 
-- [ ] The dashboard is rebuilt with Basecoat UI. Templates under `insights/` have new structure (`base.html`, `dashboard.html`, `app.html`, `_bucket.html`, `_stat.html`, `_empty.html`). If you override any, start from the new ones.
-- [ ] `{% chart bucket %}` no longer takes an `overlay` argument.
-- [ ] Stylesheets are compiled per Basecoat style (`insights/css/<style>.css`), icons are CSS classes, the Geist font is served from the package. Nothing is loaded from a CDN. Run `collectstatic` as usual.
-- [ ] The chart font is Geist (was Ubuntu). The library no longer changes matplotlib's global configuration, the chart style is only applied while a chart is built.
+- The dashboard is rebuilt with Basecoat UI. The templates under `insights/` have a new structure (`base.html`, `dashboard.html`, `app.html`, `_bucket.html`, `_stat.html`, `_empty.html`). If you override any, start from the new ones, see [Customizing](customizing.md).
+- `{% chart bucket %}` no longer takes an `overlay` argument. `{% pdf_chart %}` and `pdf_available` are removed, and so are the `insights/pdf.html` and `pdf.css` overrides.
+- Stylesheets are compiled per Basecoat style, icons are CSS classes and the Geist font is served from the package. Nothing is loaded from a CDN. Run `collectstatic` as usual.
+- The chart font is Geist (was Ubuntu). The library no longer changes matplotlib's global configuration.
+:::
 
-## 7. Using the library in code
+:::details[Using the library in code]
+- The `insights` console script is removed (it never worked).
+- `bar` and `hbar` charts no longer crash when a category is `None`.
+- Only the names in `__all__` of `django_insights.metrics` and `django_insights.metrics_types` are public.
+:::
 
-- [ ] The `insights` console script is removed (it never worked).
-- [ ] `bar` and `hbar` charts no longer crash when a category is `None`.
-- [ ] Only the names in `__all__` of `django_insights.metrics` and `django_insights.metrics_types` are public.
-- [ ] New and optional: counters and gauges accept `trend=` for a sparkline and change percentage that survive a rebuild of the database:
+:::details[Testing with the pytest plugin]
+- The plugin loads through the `pytest11` entry point, you do not need to register it.
+- The module-level `registry`, `register_insights_modules` and the injected fixture are removed. If you imported them from `django_insights.pytest`, use the `insights_query` fixture instead.
+- Errors inside an `insights.py` are no longer swallowed. The `insights` marker is registered, so `--strict-markers` works.
+:::
 
-```python
-@metrics.counter(label="Users", trend=users_per_month)
-def count_users() -> int: ...
-```
-
-`trend` is a function that returns `(datetime, value)` rows, the last 60 points are stored.
-
-## 8. Tests
-
-If you test your insights with the pytest plugin:
-
-- [ ] The plugin loads through the `pytest11` entry point, you do not need to register it. It does nothing at import and does not need Django to be configured.
-- [ ] The module-level `registry`, `register_insights_modules` and the injected fixture are removed. If you imported them from `django_insights.pytest`, use the `insights_query` fixture instead.
-- [ ] `insights_query` returns the plain function behind an insight. It is found by the test name (without `test_`), by a name given to the `insights` marker, or by `module.name`. A missing or ambiguous name fails the test.
-- [ ] Errors inside an `insights.py` are no longer swallowed. The `insights` marker is registered, so `--strict-markers` works.
-
-## 9. Building from source
-
+:::details[Building from source]
 Only for contributors.
 
-- [ ] `uv build` replaces flit. The version comes from the latest git tag (setuptools-scm). The wheel no longer contains `node_modules`.
-- [ ] `pnpm install && pnpm build` in `django_insights/packages` rebuilds the dashboard CSS. pnpm is pinned in `package.json`.
-- [ ] ruff replaces black, isort and flake8, tox runs through uv. Releases are made by pushing a tag, the release workflow publishes to PyPI.
-
-## Quick check
-
-```bash
-python manage.py check                              # no insights warnings
-python manage.py migrate insights --database=insights
-python manage.py collect_insights                   # exit code 0
-```
+- `uv build` replaces flit. The version comes from the latest git tag (setuptools-scm).
+- `pnpm install && pnpm build` in `django_insights/packages` rebuilds the dashboard CSS.
+- ruff replaces black, isort and flake8, and tox runs through uv. Releases are made by pushing a tag.
+:::
