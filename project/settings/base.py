@@ -2,12 +2,9 @@ from __future__ import annotations
 
 import os
 
-import django
-
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 SECRET_KEY = "NOTASECRET"
 
@@ -28,20 +25,25 @@ ALLOWED_HOSTS: list[str] = []
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
     "django.contrib.staticfiles",
     "project.testapp",
     "project.testapp.users",
+    "project.testapp.billing",
+    "project.testapp.tasks",
+    "project.testapp.support",
     "django_insights",
 ]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-)
+]
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
@@ -62,9 +64,6 @@ ROOT_URLCONF = "project.urls"
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
-
-if django.VERSION < (4, 0):
-    USE_L10N = True
 
 TEMPLATES = [
     {
@@ -94,8 +93,4 @@ INSIGHTS_APP_NAME = "Finq"
 INSIGHTS_CHART_DPI = 180
 
 # Insight cache
-INSIGHT_MEDIA_CACHE_ROOT = MEDIA_ROOT
-
-# Change primary color
-INSIGHTS_CHART_LIGHT_PRIMARY_COLOR = "#2563EB"
-INSIGHTS_CHART_DARK_PRIMARY_COLOR = "#BFDBFE"
+INSIGHTS_MEDIA_CACHE_ROOT = os.path.join(MEDIA_ROOT, 'insights')

@@ -1,85 +1,112 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
-[distutils]
-index-servers = ["pypi"]
-
-[pypi]
-repository = "https://upload.pypi.org/legacy/"
-username = "terminalkitten"
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-insights"
+description = "Create insights for your Django app, written right next to your application logic"
 authors = [{ name = "DK", email = "dk@terminalkitten.com" }]
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+keywords = ["django", "insights", "metrics", "dashboard", "analytics", "reporting"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
     "Framework :: Django",
-    "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
-    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Framework :: Matplotlib",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
-dynamic = ["version", "description"]
+requires-python = ">=3.11"
 dependencies = [
-    "django",
-    "matplotlib",
-    "tqdm",
-    "weasyprint>=53",
-    "django-weasyprint>=2.3",
+    "django>=5.2",
+    "matplotlib>=3.8",
+    "tqdm>=4.66",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "black",
-    "ipython",
-    "flit",
-    "flake8",
     "pytest",
     "pytest-django",
-    "mypy",
-    "isort",
-    "wheel",
-    "faker",
+    "ruff",
+    "ty",
+    "django-stubs",
+    "tox",
+    "tox-uv",
+    "pytest-cov>=7.1.0",
+    "dokk[format,search,serve]>=0.0.4",
 ]
-doc = ["pdoc"]
 
-[project.scripts]
-insights = "django_insights.cli:cli"
+[project.entry-points.pytest11]
+django_insights = "django_insights.pytest"
 
 [project.urls]
 Home = "https://github.com/terminalkitten/django-insights"
+Source = "https://github.com/terminalkitten/django-insights"
+Issues = "https://github.com/terminalkitten/django-insights/issues"
 
-[tool.django-stubs]
-django_settings_module = "project.settings"
+[tool.setuptools.packages.find]
+include = ["django_insights*"]
 
-[tool.black]
+[tool.setuptools.package-data]
+django_insights = ["py.typed"]
+
+[tool.setuptools_scm]
+
+[[tool.ty.overrides]]
+include = ["django_insights/models.py"]
+
+[tool.ty.overrides.rules]
+invalid-attribute-override = "ignore"
+
+[tool.ruff]
 line-length = 88
-skip-string-normalization = true
-target-version = ['py39', 'py310', 'py311']
+target-version = "py311"
+extend-exclude = ["django_insights/migrations", "project/testapp/migrations", "project/testapp/users/migrations", "project/testapp/billing/migrations", "project/testapp/tasks/migrations", "project/testapp/support/migrations"]
 
-[tool.isort]
-profile = "black"
-line_length = 88
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PT", "ANN", "S", "PERF", "C4", "RUF", "DJ", "TC"]
+ignore = ["E501", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "S101"]
+"project/**" = ["S105", "S311", "DJ008", "RUF012", "TC"]
+"project/settings/*.py" = ["F403", "F405"]
+"django_insights/models.py" = ["DJ001", "RUF012"]
+
+[tool.ruff.format]
+quote-style = "preserve"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-filterwarnings = ["error", "ignore::UserWarning"]
+filterwarnings = [
+    "error",
+    "ignore:Overriding setting DATABASES:UserWarning",
+    "ignore:builtin type .* has no __module__:DeprecationWarning",
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
+]
 addopts = """\
     --strict-config
     --strict-markers
     --ds=project.settings.test
+    --cov
+    --cov-report=term-missing:skip-covered
     """
 django_find_project = false
+
+[tool.coverage.run]
+source = ["django_insights"]
+omit = ["django_insights/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 90

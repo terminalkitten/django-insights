@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import 'basecoat-css/rhea';
+@plugin '@iconify/tailwind4';
+
+@source '../../templates';
+@source '../../templatetags';

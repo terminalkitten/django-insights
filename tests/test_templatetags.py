@@ -1,0 +1,32 @@
+import pytest
+
+from django_insights.charts import render_bucket
+from django_insights.models import App, Bucket
+from django_insights.templatetags.insight_chart import chart
+from django_insights.templatetags.nice_format import nice_float
+
+
+@pytest.mark.parametrize(
+    ('value', 'expected'),
+    [(1234567.0, '1.234.567'), (0.0, '0'), (5, 5), ('text', 'text'), (None, None)],
+)
+def test_nice_float(value, expected):
+    assert nice_float(value) == expected
+
+
+def test_chart_images_load_lazily():
+    assert 'loading="lazy"' in chart(Bucket(pk=7, question='q'))
+
+
+def test_chart_tag_escapes_the_question():
+    html = chart(Bucket(pk=7, question='"><script>x</script>'))
+    assert '<script>' not in html
+    assert '&quot;&gt;&lt;script&gt;' in html
+
+
+@pytest.mark.django_db(databases=['default', 'insights'])
+def test_unsupported_bucket_type_is_rejected():
+    app = App.objects.create(module='tests.unsupported')
+    bucket = Bucket.objects.create(app=app, label='odd', type=99)
+    with pytest.raises(ValueError, match='Unsupported bucket type'):
+        render_bucket(bucket, 'light')

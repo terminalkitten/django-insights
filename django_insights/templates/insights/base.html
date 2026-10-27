@@ -1,114 +1,76 @@
 {% load static %}
 {% url 'insights:insight_dashboard' as dashboard_url %}
 <!doctype html>
-<html id="html-root" lang="en">
-    <title>{{ app_name }} - Insights</title>
-    <head>
-        <meta charset="UTF-8" />
-        <meta lang="en" />
-        <meta keywords="{{ app_name }}, insights" />
-        <meta description="{{ app_name }} - Insights" />
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=ubuntu:300,300i,400,400i,500,500i,700,700i" rel="stylesheet" />
-        <link rel="stylesheet" href="{% static 'insights/css/insights.css' %}" />
-        <script src="{% static 'insights/js/insights.js' %}" defer></script>
-    </head>
-    <body class="bg-background text-foreground dark:bg-foreground dark:text-background">
-        <div class="sticky inset-x-0 top-0 z-20 px-4 bg-white border-b drop-shadow-sm sm:px-6 md:px-8 dark:border-b-gray-900 dark:bg-foreground">
-            <div class="flex items-center py-1">
-                <!-- Navigation Toggle -->
-                <button type="button"
-                        class="text-gray-500 hover:text-gray-600"
-                        data-hs-overlay="#application-sidebar"
-                        aria-controls="application-sidebar"
-                        aria-label="Toggle navigation">
-                    <span class="sr-only">Toggle Navigation</span>
-                    <svg class="w-5 h-5"
-                         width="16"
-                         height="16"
-                         fill="currentColor"
-                         viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-                    </svg>
-                </button>
-                <!-- End Navigation Toggle -->
-                <!-- Breadcrumb -->
-                <ol class="flex items-center flex-grow min-w-0 ml-3 whitespace-nowrap"
-                    aria-label="Breadcrumb">
-                    <li class="flex items-center text-sm text-gray-800 dark:text-gray-400">
-                        {{ app_name }}
-                        <svg class="flex-shrink-0 mx-3 overflow-visible h-2.5 w-2.5 text-gray-400 dark:text-gray-600"
-                             width="16"
-                             height="16"
-                             viewBox="0 0 16 16"
-                             fill="none"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 1L10.6869 7.16086C10.8637 7.35239 10.8637 7.64761 10.6869 7.83914L5 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </li>
-                    <li class="text-sm font-semibold text-gray-800 truncate dark:text-gray-400"
-                        aria-current="page">{{ app_label }}</li>
-                </ol>
-                <button id="mode-toggle"
-                        class="p-2 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-900">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke-width="1.5"
-                         stroke="currentColor"
-                         class="w-4 h-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                    </svg>
-                </button>
-                <!-- End Breadcrumb -->
-            </div>
-        </div>
-        <div id="data-copied-msg" class="hidden bg-green-50 border border-green-200 text-sm text-green-600 p-4" role="alert">
-            <span class="font-bold">Data copied</span> copy of the data is now on your clipboard.
-        </div>
-        <!-- Sidebar -->
-        <div id="application-sidebar"
-             class="hs-overlay hs-overlay-open:translate-x-0 -translate-x-full transition-all duration-300 transform hidden fixed top-0 left-0 bottom-0 z-[60] w-64 bg-white border-r border-gray-200 pt-7 pb-10 overflow-y-auto scrollbar-y dark:scrollbar-y dark:bg-foreground dark:border-foreground">
-            <div class="px-6">
-                <a class="flex-none" href="{{ dashboard_url }}">
-                    <span class="text-xl font-semibold text-primary-500">{{ app_name }}</span>
-                    <span class="inline-block align-top dark:text-white">Insights</span>
+<html lang="en" class="{{ theme }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_label }} - {{ app_name }} Insights</title>
+    <link rel="stylesheet" href="{% static stylesheet %}" />
+    {% if theme_css %}<style>{{ theme_css|safe }}</style>{% endif %}
+    <script src="{% static 'insights/js/basecoat.min.js' %}" defer></script>
+    <script src="{% static 'insights/js/sidebar.min.js' %}" defer></script>
+    <script src="{% static 'insights/js/insights.js' %}" defer></script>
+  </head>
+  <body>
+    <aside id="sidebar" class="sidebar" data-side="left">
+      <nav aria-label="Insights">
+        <header>
+          <a href="{{ dashboard_url }}" class="flex items-center gap-2 p-2 font-semibold">
+            <span>{{ app_name }}</span>
+            <span class="text-muted-foreground font-normal">Insights</span>
+          </a>
+        </header>
+        <section class="scrollbar-sm">
+          <div role="group" aria-labelledby="group-overview">
+            <h3 id="group-overview">Overview</h3>
+            <ul>
+              <li>
+                <a href="{{ dashboard_url }}" {% if not current_app %}aria-current="page"{% endif %}>
+                  <span class="icon-[lucide--layout-dashboard] size-4 shrink-0" aria-hidden="true"></span>
+                  <span>Dashboard</span>
                 </a>
+              </li>
+            </ul>
+          </div>
+          {% if apps %}
+            <div role="group" aria-labelledby="group-apps">
+              <h3 id="group-apps">Apps</h3>
+              <ul>
+                {% for app in apps %}
+                  {% url 'insights:insight_app' app_uuid=app.uuid as app_url %}
+                  <li>
+                    <a href="{{ app_url }}" {% if current_app.pk == app.pk %}aria-current="page"{% endif %}>
+                      <span>{{ app.name }}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
             </div>
-            <nav class="flex flex-col flex-wrap w-full p-6">
-                <ul class="space-y-1.5">
-                    <li>
-                        <a class="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:bg-gray-900 dark:text-white"
-                           href="{{ dashboard_url }}">
-                            <svg class="w-3.5 h-3.5"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 width="16"
-                                 height="16"
-                                 fill="currentColor"
-                                 viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
-                                <path fill-rule="evenodd" d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
-                            </svg>
-                            Dashboard
-                        </a>
-                    </li>
-                    {% for app in apps %}
-                        {% url 'insights:insight_app' app_uuid=app.uuid as app_url %}
-                        <li>
-                            <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-slate-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 dark:text-slate-400 dark:hover:text-slate-300"
-                               href="{{ app_url }}">
-                                {{ app.name }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
+          {% endif %}
+        </section>
+      </nav>
+    </aside>
+    <main>
+      <header class="bg-background sticky top-0 z-10 flex h-14 items-center gap-2 border-b px-4">
+        <button type="button" class="btn" data-variant="ghost" data-size="icon" data-sidebar-toggle aria-label="Toggle sidebar">
+          <span class="icon-[lucide--panel-left] size-4 shrink-0" aria-hidden="true"></span>
+        </button>
+        <h1 class="text-sm font-medium">{{ app_label }}</h1>
+        <div class="ml-auto flex items-center gap-2">
+          {% if last_collected %}
+            <span class="text-muted-foreground hidden text-xs sm:inline" title="{{ last_collected|date:'Y-m-d H:i' }}">Updated {{ last_collected|timesince }} ago</span>
+          {% endif %}
+          <button type="button" class="btn" data-variant="outline" data-size="icon" data-theme-toggle aria-label="Toggle dark mode" data-tooltip="Toggle dark mode" data-side="left">
+            <span class="hidden dark:flex"><span class="icon-[lucide--sun] size-4 shrink-0" aria-hidden="true"></span></span>
+            <span class="flex dark:hidden"><span class="icon-[lucide--moon] size-4 shrink-0" aria-hidden="true"></span></span>
+          </button>
         </div>
-        <div class="w-full px-4 pt-4 sm:px-6 md:px-8">
-            {% block content %}
-            {% endblock content %}
-        </div>
-    </body>
+      </header>
+      <div class="p-4 md:p-6">
+        {% block content %}
+        {% endblock content %}
+      </div>
+    </main>
+  </body>
 </html>

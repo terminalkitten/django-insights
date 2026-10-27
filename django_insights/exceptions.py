@@ -1,0 +1,2 @@
+class InsightsError(Exception):
+    pass

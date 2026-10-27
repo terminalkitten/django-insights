@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: npm
+    directory: /django_insights/packages
+    schedule:
+      interval: monthly
