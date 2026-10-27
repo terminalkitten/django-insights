@@ -9,11 +9,11 @@
     "dev": "tailwindcss -i src/vega.css -o ../static/insights/css/vega.css --watch"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.145",
+    "@iconify-json/lucide": "^1.2.147",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/cli": "^4.3.3",
-    "basecoat-css": "^1.0.2",
-    "geist": "^1.8.1",
+    "basecoat-css": "^1.1.0",
+    "geist": "^1.8.2",
     "tailwindcss": "^4.3.3"
   }
 }
