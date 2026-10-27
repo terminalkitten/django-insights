@@ -37,26 +37,15 @@ R = TypeVar('R', bound=Iterable[Any])
 
 
 def time_value(row: Sequence[Any]) -> dict[str, Any]:
-    answer = TimeSeriesAnswer(*row)
-    return {'timestamp': answer.timestamp, 'xvalue': answer.xvalue}
+    return TimeSeriesAnswer(*row)._asdict()
 
 
 def point_value(row: Sequence[Any]) -> dict[str, Any]:
-    answer = ScatterPlotAnswer(*row)
-    return {
-        'xvalue': answer.xvalue,
-        'yvalue': answer.yvalue,
-        'category': answer.category,
-    }
+    return ScatterPlotAnswer(*row)._asdict()
 
 
 def bar_value(row: Sequence[Any]) -> dict[str, Any]:
-    answer = BarChartAnswer(*row)
-    return {
-        'xvalue': answer.xvalue,
-        'yvalue': answer.yvalue,
-        'category': answer.category,
-    }
+    return BarChartAnswer(*row)._asdict()
 
 
 def collect_trend(trend: TrendFunc | None) -> list[float]:
@@ -198,7 +187,7 @@ class InsightMetrics:
 
             @functools.wraps(func)
             def inner(*args: P.args, **kwargs: P.kwargs) -> None:
-                values = [to_value(row) for row in func(*args, **kwargs)]
+                rows = [to_value(row) for row in func(*args, **kwargs)]
                 bucket = Bucket.objects.create(
                     app=self.get_memoized_app(app.module, app.label),
                     label=label,
@@ -206,7 +195,7 @@ class InsightMetrics:
                     **meta,
                 )
                 self.create_bucket_values.extend(
-                    BucketValue(bucket=bucket, **value) for value in values
+                    BucketValue(bucket=bucket, **row) for row in rows
                 )
 
             registry.register_insight(
@@ -325,12 +314,12 @@ class InsightMetrics:
 
     def reject_duplicate_timestamps(self) -> None:
         seen = set()
-        for value in self.create_bucket_values:
-            key = (value.bucket.pk, value.timestamp)
-            if value.timestamp is not None and key in seen:
+        for bucket_value in self.create_bucket_values:
+            key = (bucket_value.bucket.pk, bucket_value.timestamp)
+            if bucket_value.timestamp is not None and key in seen:
                 raise InsightsError(
-                    f"The insight '{value.bucket.label}' returns more than one "
-                    f'row for the timestamp {value.timestamp}.'
+                    f"The insight '{bucket_value.bucket.label}' returns more than one "
+                    f'row for the timestamp {bucket_value.timestamp}.'
                 )
             seen.add(key)
 
@@ -340,10 +329,10 @@ class InsightMetrics:
             Counter.objects.bulk_create(self.create_counters)
             Gauge.objects.bulk_create(self.create_gauges)
             BucketValue.objects.bulk_create(self.create_bucket_values)
-        except IntegrityError as e:
+        except IntegrityError as error:
             raise InsightsError(
                 "Most likely you've redefined an insights method with the same name."
-            ) from e
+            ) from error
 
 
 metrics = InsightMetrics()

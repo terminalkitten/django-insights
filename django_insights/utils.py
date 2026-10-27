@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django_insights.settings import settings
 
 
-def chart_cache_path(bucket_type: int, bucket_id: int, theme: str) -> Path | None:
+def chart_cache_path(bucket_type: int, bucket_id: int, mode: str) -> Path | None:
     """Cache file of a rendered chart, None when the media cache is disabled"""
     if not settings.INSIGHTS_CHARTS_USE_MEDIA_CACHE:
         return None
@@ -17,7 +17,7 @@ def chart_cache_path(bucket_type: int, bucket_id: int, theme: str) -> Path | Non
         raise ImproperlyConfigured(
             'INSIGHTS_MEDIA_CACHE_ROOT is required when INSIGHTS_CHARTS_USE_MEDIA_CACHE is enabled'
         )
-    return Path(root) / f'{bucket_type}-{bucket_id}-{theme}.png'
+    return Path(root) / f'{bucket_type}-{bucket_id}-{mode}.png'
 
 
 def write_atomic(path: Path, data: bytes) -> None:

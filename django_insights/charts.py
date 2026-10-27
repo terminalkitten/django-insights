@@ -170,10 +170,10 @@ def render_hbarchart(
 
     for bar in bars:
         width = bar.get_width()
-        label_y_pos = bar.get_y() + bar.get_height() / 2
+        label_y = bar.get_y() + bar.get_height() / 2
         ax.text(
             width,
-            label_y_pos,
+            label_y,
             s=f'{width:,.0f}' if width == int(width) else f'{width:,.2f}',
             va='center',
             size=9,
