@@ -12,7 +12,7 @@
     "@iconify-json/lucide": "^1.2.145",
     "@iconify/tailwind4": "^1.2.3",
     "@tailwindcss/cli": "^4.3.3",
-    "basecoat-css": "^1.0.2",
+    "basecoat-css": "^1.1.0",
     "geist": "^1.8.1",
     "tailwindcss": "^4.3.3"
   }
